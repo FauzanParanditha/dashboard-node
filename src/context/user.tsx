@@ -6,7 +6,8 @@ import useSWR from "swr";
 
 type AuthStatus = "authenticated" | "unauthorized";
 
-const userContext = () => {
+// Rename userContext to useUserContextValue
+const useUserContextValue = () => {
   const [auth, setAuth] = useState<AuthStatus>("unauthorized");
   const [isDark, setIsDark] = useState(false);
 
@@ -21,14 +22,15 @@ const userContext = () => {
     revalidateOnMount: true,
     refreshInterval: 20000,
   });
-  //handle user authentication
+
+  // Handle user authentication
   useEffect(() => {
     if (error) {
       if (error?.response?.status === 401) {
         if (window.location.pathname.includes("dashboard")) {
           toast.error(error.response.data?.messages, { theme: "colored" });
         }
-        //delete cookies
+        // Delete cookies
         deleteCookie(tokenName);
         setAuth("unauthorized");
       }
@@ -39,7 +41,7 @@ const userContext = () => {
     }
   }, [isValidating, user, error]);
 
-  //handle dark or light
+  // Handle dark or light theme
   useEffect(() => {
     if (window.localStorage?.theme === "dark") {
       setIsDark(true);
@@ -65,13 +67,13 @@ const userContext = () => {
   };
 };
 
-const UserContext = createContext({} as ReturnType<typeof userContext>);
+const UserContext = createContext({} as ReturnType<typeof useUserContextValue>);
 
 export const useUserContext = () => {
   return useContext(UserContext);
 };
 
 export const UserContextProvider = ({ children }: any) => {
-  const value = userContext();
+  const value = useUserContextValue(); // Use the renamed hook
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

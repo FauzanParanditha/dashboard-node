@@ -2,7 +2,6 @@
   "name": "dashboard",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -10,11 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
     "@headlessui/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
     "@types/react-transition-group": "^4.4.12",
     "antd": "^5.22.7",
     "axios": "^1.7.9",
+    "babel-loader": "^9.2.1",
     "cookies-next": "^5.0.2",
     "dayjs": "^1.11.13",
     "next": "15.1.3",

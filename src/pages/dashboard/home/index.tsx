@@ -1,8 +1,6 @@
-import DashboardLatestActivities from "@/components/home/latest-activities";
-import Orders from "@/components/home/orders";
-import DashboardTotalCountCard from "@/components/home/total-count";
 import { DashboardLayout } from "@/components/layout";
 import { Col, Row } from "antd";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useState } from "react";
 import useSWR from "swr";
@@ -12,6 +10,14 @@ const HomePage = () => {
     "/api/v1/adm/dashboard"
   );
   const [isLoading, setIsLoading] = useState(false);
+
+  const DashboardTotalCountCard = dynamic(
+    async () => await import("@/components/home/total-count")
+  );
+  const Orders = dynamic(async () => await import("@/components/home/orders"));
+  const DashboardLatestActivities = dynamic(
+    async () => await import("@/components/home/latest-activities")
+  );
 
   return (
     <>
