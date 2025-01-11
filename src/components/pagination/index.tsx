@@ -60,7 +60,7 @@ export default function Pagination({
         <li className="page-item">
           <button
             className={clsx(
-              "relative block rounded-l-md border px-3 py-1 text-xl text-slate-500 dark:border-slate-500"
+              "relative block rounded-l-md border px-3 py-1 text-xl text-slate-500 dark:border-slate-500",
             )}
             onClick={() => onPageChange(Number(previus))}
             disabled={Number(currentPage) === 1}
@@ -75,7 +75,7 @@ export default function Pagination({
               className={clsx("relative block border px-3 py-1 text-xl", {
                 ["cursor-default border-red-800 bg-red-800 text-slate-100"]:
                   currentPage === link,
-                ["bg-white text-red-800 hover:border-red-800 hover:bg-red-800 hover:text-white dark:border-slate-500 dark:bg-slate-800"]:
+                ["bg-white text-red-800 hover:border-red-800 hover:bg-red-800 hover:text-white dark:border-slate-500 dark:bg-black"]:
                   currentPage !== link,
               })}
               onClick={() => onPageChange(Number(link))}
@@ -87,7 +87,7 @@ export default function Pagination({
         <li className="page-item">
           <button
             className={clsx(
-              "relative block rounded-r-md border px-3 py-1 text-xl text-slate-500 dark:border-slate-500"
+              "relative block rounded-r-md border px-3 py-1 text-xl text-slate-500 dark:border-slate-500",
             )}
             onClick={() => onPageChange(Number(next))}
             disabled={Number(totalPages) === Number(currentPage)}

@@ -16,7 +16,7 @@ const DashboardLatestActivities = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { data: apilogs, mutate: revalidate } = useSWR(
-    `/api/v1/adm/apilogs?limit=${5}&page=${page}&query=${search}`
+    `/api/v1/adm/apilogs?limit=${5}&page=${page}&query=${search}`,
   );
 
   return (
@@ -28,13 +28,21 @@ const DashboardLatestActivities = () => {
         },
       }}
       title={
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          className="dark:text-white"
+        >
           <UnorderedListOutlined />
-          <Text size="sm" style={{ marginLeft: "0.5rem" }}>
+          <Text
+            size="sm"
+            style={{ marginLeft: "0.5rem" }}
+            className="dark:text-white"
+          >
             Latest Activities
           </Text>
         </div>
       }
+      className="dark:bg-black"
     >
       {isLoading ? (
         <List
@@ -62,22 +70,26 @@ const DashboardLatestActivities = () => {
                       size={72}
                       style={{
                         backgroundColor: `${getStatusResponseColor(
-                          statusCode
+                          statusCode,
                         )}`,
                       }}
                     />
                   }
-                  title={dayjs(createdAt).format("MMM DD, YYYY-HH:mm")}
+                  title={
+                    <div className="dark:text-white">
+                      {dayjs(createdAt).format("MMM DD, YYYY-HH:mm")}
+                    </div>
+                  }
                   description={
                     <>
-                      <Text>
+                      <Text className="dark:text-white">
                         Endpoint :{" "}
                         <strong>
                           {method}:&quot;{endpoint}&quot;
                         </strong>
                       </Text>
                       <br />
-                      <Text>
+                      <Text className="dark:text-white">
                         Ip : <strong>{ipAddress}</strong>
                       </Text>
                     </>

@@ -1,3 +1,37 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* React-Select Default */
+.custom-select__control {
+  @apply border-gray-300 bg-white text-black;
+}
+.custom-select__menu {
+  @apply bg-white text-black;
+}
+.custom-select__option {
+  @apply bg-white text-black hover:bg-gray-100;
+}
+.custom-select__option--is-selected {
+  @apply bg-gray-200 text-black;
+}
+.custom-select__option--is-focused {
+  @apply bg-gray-100;
+}
+
+/* React-Select Dark Mode */
+.dark .custom-select__control {
+  @apply border-gray-600 bg-black text-white;
+}
+.dark .custom-select__menu {
+  @apply bg-black text-white;
+}
+.dark .custom-select__option {
+  @apply bg-black text-white hover:bg-gray-700;
+}
+.dark .custom-select__option--is-selected {
+  @apply bg-gray-700 text-white;
+}
+.dark .custom-select__option--is-focused {
+  @apply bg-gray-600;
+}

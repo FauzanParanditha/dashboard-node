@@ -10,10 +10,10 @@ const SettingsPage = () => {
         <title>Profile Settings</title>
       </Head>
       <DashboardLayout>
-        <h4 className="my-4 font-bold text-2xl text-slate-500">
+        <h4 className="my-4 text-2xl font-bold text-slate-500 dark:text-white">
           Update Profile
         </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="rounded-2xl bg-slate-50">
             <div className="container mx-auto">
               <div className="max-w-full overflow-x-auto rounded-lg">

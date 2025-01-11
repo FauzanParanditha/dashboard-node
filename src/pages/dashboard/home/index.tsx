@@ -7,16 +7,16 @@ import useSWR from "swr";
 
 const HomePage = () => {
   const { data: dashboard, mutate: revalidate } = useSWR(
-    "/api/v1/adm/dashboard"
+    "/api/v1/adm/dashboard",
   );
   const [isLoading, setIsLoading] = useState(false);
 
   const DashboardTotalCountCard = dynamic(
-    async () => await import("@/components/home/total-count")
+    async () => await import("@/components/home/total-count"),
   );
   const Orders = dynamic(async () => await import("@/components/home/orders"));
   const DashboardLatestActivities = dynamic(
-    async () => await import("@/components/home/latest-activities")
+    async () => await import("@/components/home/latest-activities"),
   );
 
   return (

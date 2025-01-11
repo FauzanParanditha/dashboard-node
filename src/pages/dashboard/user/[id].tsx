@@ -28,7 +28,7 @@ const DetailUser = () => {
                                     selected,
                                   ["border-transparent hover:border-gray-300 hover:text-gray-600 dark:hover:text-gray-300"]:
                                     !selected,
-                                }
+                                },
                               )}
                             >
                               <svg
@@ -60,7 +60,7 @@ const DetailUser = () => {
                                     selected,
                                   ["border-transparent hover:border-gray-300 hover:text-gray-600 dark:hover:text-gray-300"]:
                                     !selected,
-                                }
+                                },
                               )}
                             >
                               <svg

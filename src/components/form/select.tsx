@@ -41,7 +41,7 @@ const SelectField: ForwardRefExoticComponent<Props> = forwardRef<
       onBlur,
       ...rest
     },
-    ref: any
+    ref: any,
   ) => {
     const styles = {
       control: (provided: any) => ({
@@ -99,7 +99,7 @@ const SelectField: ForwardRefExoticComponent<Props> = forwardRef<
         )}
       </div>
     );
-  }
+  },
 );
 SelectField.displayName = "select";
 export default SelectField;

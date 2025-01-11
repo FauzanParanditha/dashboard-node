@@ -78,7 +78,7 @@ const ChangePassword = () => {
   return (
     <>
       <div className="grid grid-cols-12">
-        <div className="col-span-full xl:col-span-12 bg-white shadow-lg rounded-md  p-4 dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-slate-600 dark:bg-slate-800 dark:border-slate-600">
+        <div className="col-span-full rounded-md bg-white p-4 shadow-lg xl:col-span-12 dark:border-slate-600 dark:bg-black dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-slate-600">
           <h2 className="text-xl font-semibold text-slate-500 dark:text-white">
             Change Password
           </h2>

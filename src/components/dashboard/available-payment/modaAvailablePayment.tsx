@@ -96,7 +96,7 @@ const ModalAvailablePayment = ({
               as="h3"
               className="flex justify-between py-2 text-lg font-medium leading-6 text-gray-900 dark:text-white"
             >
-              Create Client
+              Create Availabel Payment
               <button
                 type="button"
                 className="rounded-full bg-rose-50 p-1 text-sm font-semibold"
@@ -147,12 +147,12 @@ const ModalAvailablePayment = ({
                   />
                 </div>
                 <div className="mb-4 pr-3">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-white mt-3">
+                  <label className="mt-3 block text-sm font-medium text-gray-700 dark:text-white">
                     Upload Picture
                   </label>
                   <input
                     type="file"
-                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-black dark:file:text-white dark:hover:file:bg-slate-500"
                     accept="image/*"
                     onChange={handleImageChange}
                   />

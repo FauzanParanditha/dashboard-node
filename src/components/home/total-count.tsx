@@ -20,6 +20,7 @@ const DashboardTotalCountCard = ({
       style={{ height: "96px", padding: 0 }}
       styles={{ body: { padding: "8px 8px 8px 12px" } }}
       size="small"
+      className="dark:bg-black"
     >
       <div
         style={{
@@ -30,7 +31,11 @@ const DashboardTotalCountCard = ({
         }}
       >
         {icon}
-        <Text size="md" className="secondary" style={{ marginLeft: "8px" }}>
+        <Text
+          size="md"
+          className="secondary dark:text-white"
+          style={{ marginLeft: "8px" }}
+        >
           {title}
         </Text>
       </div>
@@ -51,6 +56,7 @@ const DashboardTotalCountCard = ({
             marginLeft: "48px",
             fontVariantNumeric: "tabular-nums",
           }}
+          className="dark:text-white"
         >
           {isLoading ? (
             <Skeleton.Button style={{ marginTop: "8px", width: "74px" }} />

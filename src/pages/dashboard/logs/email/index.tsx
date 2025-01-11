@@ -14,7 +14,7 @@ const LogEmailPage = () => {
   const { setIsLoading } = useStore();
 
   const { data: email, mutate: revalidate } = useSWR(
-    "api/v1/adm/emaillogs?perPage=10&page=" + page + "&query=" + search
+    "api/v1/adm/emaillogs?perPage=10&page=" + page + "&query=" + search,
   );
   useEffect(() => {
     setIsLoading(true);
@@ -35,8 +35,8 @@ const LogEmailPage = () => {
         <title>Email List</title>
       </Head>
       <DashboardLayout>
-        <h4 className="my-4 text-2xl font-bold">List Email</h4>
-        <div className="mt-8 rounded-2xl bg-white text-slate-700">
+        <h4 className="my-4 text-2xl font-bold dark:text-white">List Email</h4>
+        <div className="mt-8 rounded-2xl bg-white text-slate-700 dark:bg-black dark:text-white">
           <div className="flex items-center justify-between px-8 pt-4">
             <SearchForm
               search={search}
@@ -49,7 +49,7 @@ const LogEmailPage = () => {
             <div className="py-1">
               <div className="py-2">
                 <div className="max-w-full overflow-x-auto rounded-lg">
-                  <table className="w-full leading-normal text-slate-500">
+                  <table className="w-full leading-normal text-slate-500 dark:text-white">
                     <thead>
                       <tr>
                         <th
@@ -111,20 +111,20 @@ const LogEmailPage = () => {
                         const data = JSON.stringify(messages, null, 2);
                         return (
                           <tr key={index} className="border-b">
-                            <td className="border-gray-200 p-5 text-sm">
+                            <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
                                 {dt.email}
                               </div>
                             </td>
-                            <td className="border-gray-200 p-5 text-sm">
+                            <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">{data}</div>
                             </td>
-                            <td className="border-gray-200 p-5 text-sm">
+                            <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
                                 {dt.statusCode}
                               </div>
                             </td>
-                            <td className="border-gray-200 p-5 text-sm">
+                            <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <p className="whitespace-nowrap">
                                 {dayjs(dt._created).format("DD-MM-YYYY")}
                               </p>

@@ -21,7 +21,7 @@ const UserPage = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: users, mutate: revalidate } = useSWR(
-    `api/v1/users?limit=${10}&page=${page}&query=${search}`
+    `api/v1/users?limit=${10}&page=${page}&query=${search}`,
   );
 
   useEffect(() => {
@@ -72,11 +72,11 @@ const UserPage = () => {
         <Head>
           <title>Dashboard - User</title>
         </Head>
-        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-4 shadow">
+        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-4 shadow dark:bg-black">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="sm:flex sm:items-center">
               <div className="sm:flex-auto">
-                <h1 className="text-2xl font-semibold leading-6 text-gray-900">
+                <h1 className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white">
                   List User
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
@@ -106,25 +106,25 @@ const UserPage = () => {
                       <tr>
                         <th
                           scope="col"
-                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
+                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 dark:text-white"
                         >
                           Full Name
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Email
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Verified
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Action
                         </th>
@@ -143,19 +143,19 @@ const UserPage = () => {
                       )}
                       {users?.data?.map((usr: any, idx: any) => (
                         <tr key={idx}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
                             {usr.fullName}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             {usr.email}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             <span
                               className={clsx(
                                 usr.verified === true
                                   ? "bg-teal-400"
                                   : "bg-rose-400",
-                                "inline-flex rounded px-4 py-1 text-xs text-white"
+                                "inline-flex rounded px-4 py-1 text-xs text-white",
                               )}
                             >
                               {usr.verified ? "VERIFIED" : "NOT VERIFIED"}

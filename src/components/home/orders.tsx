@@ -15,7 +15,7 @@ const Orders = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { data: orders, mutate: revalidate } = useSWR(
-    `/api/v1/orders?limit=${5}&page=${page}&query=${search}`
+    `/api/v1/orders?limit=${7}&page=${page}&query=${search}`,
   );
 
   useEffect(() => {
@@ -39,13 +39,19 @@ const Orders = () => {
             alignItems: "center",
             gap: "8px",
           }}
+          className="dark:text-white"
         >
           <CalendarOutlined />
-          <Text size="sm" style={{ marginLeft: "0.7rem" }}>
+          <Text
+            size="sm"
+            style={{ marginLeft: "0.7rem" }}
+            className="dark:text-white"
+          >
             Orders
           </Text>
         </div>
       }
+      className="dark:bg-black"
     >
       {isLoading ? (
         <List
@@ -78,16 +84,16 @@ const Orders = () => {
                 <List.Item.Meta
                   avatar={<Badge color={getStatusColor(paymentStatus)} />}
                   title={
-                    <Text size="xs" strong>
+                    <Text size="xs" strong className="dark:text-white">
                       Order ID: {orderId}
                     </Text>
                   }
                   description={
                     <>
-                      <Text>
+                      <Text className="dark:text-white">
                         Payer: <strong>{payer}</strong>
                       </Text>{" "}
-                      <Text>
+                      <Text className="dark:text-white">
                         Status:{" "}
                         <strong
                           style={{
@@ -113,6 +119,7 @@ const Orders = () => {
             alignItems: "center",
             height: "220px",
           }}
+          className="dark:text-white"
         >
           NO Orders
         </span>

@@ -55,7 +55,7 @@ const LoginPage = () => {
         if (res.data.success) {
           setCookie(
             tokenName,
-            `${res.data.token_type} ${res.data.access_token}`
+            `${res.data.token_type} ${res.data.access_token}`,
           );
           await revalidate({}, true);
 
@@ -83,10 +83,10 @@ const LoginPage = () => {
         />
       </Head>
       <HomeLayout>
-        <div className="flex-1 justify-center mt-20 mb-10 sm:justify-center items-center pt-6 sm:pt-0">
-          <div className="w-full max-w-sm p-6 m-auto mx-auto bg-white rounded-lg shadow-md dark:bg-gray-800">
-            <div className="flex justify-center mx-auto">
-              <img className="w-auto h-8 sm:h-8" src="/favicon.ico" alt="" />
+        <div className="mb-10 mt-20 flex-1 items-center justify-center pt-6 sm:justify-center sm:pt-0">
+          <div className="m-auto mx-auto w-full max-w-sm rounded-lg bg-white p-6 shadow-md dark:bg-black">
+            <div className="mx-auto flex justify-center">
+              <img className="h-8 w-auto sm:h-8" src="/favicon.ico" alt="" />
             </div>
 
             <form className="mt-6" onSubmit={handleSubmit(submit)}>
@@ -105,13 +105,13 @@ const LoginPage = () => {
                 <div className="flex items-center justify-between pb-2">
                   <label
                     htmlFor="password"
-                    className="block text-sm text-slate-500 dark:text-gray-200"
+                    className="block text-sm text-slate-500 dark:text-white"
                   >
                     Password
                   </label>
                   <Link
                     href="/auth/forgot-password"
-                    className="text-xs text-red-600 dark:text-gray-400 hover:underline"
+                    className="text-xs text-red-600 hover:underline dark:text-white"
                   >
                     Forgot Password?
                   </Link>

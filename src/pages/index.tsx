@@ -18,17 +18,17 @@ export default function Home() {
         />
       </Head>
       <HomeLayout>
-        <div className="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20">
-          <div className="grid gap-5 row-gap-8 lg:grid-cols-2">
+        <div className="mx-auto px-4 py-16 sm:max-w-xl md:max-w-full md:px-24 lg:max-w-screen-xl lg:px-8 lg:py-20">
+          <div className="row-gap-8 grid gap-5 lg:grid-cols-2">
             <div className="flex flex-col justify-center">
-              <div className="max-w-xl mb-6">
-                <h2 className="max-w-lg mb-6 font-sans text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
+              <div className="mb-6 max-w-xl">
+                <h2 className="mb-6 max-w-lg font-sans text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl sm:leading-none">
                   The quick, brown fox
                   <br className="hidden md:block" />
                   jumps over{" "}
                   <span className="relative px-1">
-                    <div className="absolute inset-x-0 bottom-0 h-3 transform -skew-x-12 bg-teal-accent-400" />
-                    <span className="relative inline-block text-deep-purple-accent-400">
+                    <div className="bg-teal-accent-400 absolute inset-x-0 bottom-0 h-3 -skew-x-12 transform" />
+                    <span className="text-deep-purple-accent-400 relative inline-block">
                       a lazy dog
                     </span>
                   </span>
@@ -39,9 +39,9 @@ export default function Home() {
                   ipsa quae. explicabo.
                 </p>
               </div>
-              <div className="grid gap-5 row-gap-8 sm:grid-cols-2">
-                <div className="bg-white border-l-4 shadow-sm border-deep-purple-accent-400">
-                  <div className="h-full p-5 border border-l-0 rounded-r">
+              <div className="row-gap-8 grid gap-5 sm:grid-cols-2">
+                <div className="border-deep-purple-accent-400 border-l-4 bg-white shadow-sm">
+                  <div className="h-full rounded-r border border-l-0 p-5">
                     <h6 className="mb-2 font-semibold leading-5">
                       I&apos;ll be sure to note that in my log
                     </h6>
@@ -51,8 +51,8 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                <div className="bg-white border-l-4 shadow-sm border-deep-purple-accent-400">
-                  <div className="h-full p-5 border border-l-0 rounded-r">
+                <div className="border-deep-purple-accent-400 border-l-4 bg-white shadow-sm">
+                  <div className="h-full rounded-r border border-l-0 p-5">
                     <h6 className="mb-2 font-semibold leading-5">
                       A business big enough that it could be listed
                     </h6>
@@ -66,7 +66,7 @@ export default function Home() {
             </div>
             <div>
               <img
-                className="object-cover w-full h-56 rounded shadow-lg sm:h-96"
+                className="h-56 w-full rounded object-cover shadow-lg sm:h-96"
                 src="https://images.pexels.com/photos/927022/pexels-photo-927022.jpeg?auto=compress&amp;cs=tinysrgb&amp;dpr=3&amp;h=750&amp;w=1260"
                 alt=""
               />

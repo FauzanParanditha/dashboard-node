@@ -38,7 +38,7 @@ const api = () => {
                     error.response?.data?.message
                       ? error.response.data.message
                       : "Unauthorized",
-                    { theme: "colored" }
+                    { theme: "colored" },
                   );
                   break;
                 default:
@@ -46,7 +46,7 @@ const api = () => {
                     error.response?.data?.message
                       ? error.response.data.message
                       : "internal server error",
-                    { theme: "colored" }
+                    { theme: "colored" },
                   );
               }
             }
@@ -54,7 +54,7 @@ const api = () => {
           return reject(error);
         }
       });
-    }
+    },
   );
   return Axios;
 };
@@ -68,14 +68,14 @@ export const handleAxiosError = (error: any) => {
           error.response?.data?.message
             ? error.response.data.message
             : "Unauthorized",
-          { theme: "colored" }
+          { theme: "colored" },
         );
         break;
       case 403:
         toast.error(
           error.response?.data?.message ||
             "Forbidden - You do not have access to this resource",
-          { theme: "colored" }
+          { theme: "colored" },
         );
         break;
       case 422:

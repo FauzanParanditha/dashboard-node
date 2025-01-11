@@ -6,10 +6,10 @@ import { admin } from "./data";
 const style = {
   title: "font-normal mx-4 text-sm",
   active:
-    "bg-gradient-to-r border-r-4 border-rose-600 from-white to-cyan-100 text-blue-500",
-  link: "duration-200 flex font-thin items-center justify-start my-2 p-4 transition-colors text-gray-500 uppercase w-full font-semibold lg:hover:text-blue-600",
+    "bg-gradient-to-r border-r-4 border-rose-600 from-white to-cyan-100 text-blue-500 dark:text-black",
+  link: "duration-200 flex font-thin items-center justify-start my-2 p-4 transition-colors text-gray-500 dark:text-white uppercase w-full font-semibold lg:hover:text-blue-600 dark:text-white",
   subLink:
-    "duration-200 flex font-thin items-center justify-start my-2 p-4 transition-colors text-gray-400 uppercase w-full font-medium lg:hover:text-blue-600",
+    "duration-200 flex font-thin items-center justify-start my-2 p-4 transition-colors text-gray-400 dark:text-white uppercase w-full font-medium lg:hover:text-blue-600",
 };
 
 export function SidebarItems() {

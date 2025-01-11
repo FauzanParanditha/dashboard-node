@@ -23,7 +23,7 @@ const AdminPage = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: ips, mutate: revalidate } = useSWR(
-    `/api/v1/whitelist?limit=${10}&page=${page}&query=${search}`
+    `/api/v1/whitelist?limit=${10}&page=${page}&query=${search}`,
   );
 
   useEffect(() => {
@@ -87,11 +87,11 @@ const AdminPage = () => {
         <Head>
           <title>Dashboard - IP</title>
         </Head>
-        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-4 shadow">
+        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-4 shadow dark:bg-black">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="sm:flex sm:items-center">
               <div className="sm:flex-auto">
-                <h1 className="text-2xl font-semibold leading-6 text-gray-900">
+                <h1 className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white">
                   List Ip Whitelist
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
@@ -121,19 +121,19 @@ const AdminPage = () => {
                       <tr>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Ip
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Created By
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Action
                         </th>
@@ -152,10 +152,10 @@ const AdminPage = () => {
                       )}
                       {ips?.data?.map((ip: any, idx: any) => (
                         <tr key={idx}>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             {ip.ipAddress}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             {ip.adminId.email}
                           </td>
                           <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">

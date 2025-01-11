@@ -5,15 +5,15 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <header className="sticky w-full">
-      <nav className="bg-white border-gray-200 py-2.5 dark:bg-gray-900">
-        <div className="flex flex-wrap items-center justify-between max-w-screen-xl px-4 mx-auto">
+      <nav className="border-gray-200 bg-white py-2.5 dark:bg-gray-800">
+        <div className="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between px-4">
           <Link href="/" className="flex items-center">
             <img
               src="/favicon.ico"
               className="h-6 sm:h-9"
               alt="Landwind Logo"
             />
-            <h1 className="p-1 font-bold text-xl text-rose-600">Dashboard</h1>
+            <h1 className="p-1 text-xl font-bold text-rose-600">Dashboard</h1>
             {/* <span className="text-xs text-slate-400 mt-1">Global Block</span> */}
           </Link>
           <div className="flex items-center lg:order-1">
@@ -26,10 +26,10 @@ const Header = () => {
                         </button> */}
           </div>
           <div
-            className="items-center justify-end hidden w-full lg:flex lg:w-auto lg:order-2"
+            className="hidden w-full items-center justify-end lg:order-2 lg:flex lg:w-auto"
             id="mobile-menu-2"
           >
-            <ul className="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+            <ul className="mt-4 flex flex-col font-medium lg:mt-0 lg:flex-row lg:space-x-8">
               {/* <li>
                                 <Link href="/" className="block py-2 pl-3 pr-4 text-white bg-purple-700 rounded lg:bg-transparent lg:text-purple-700 lg:p-0 dark:text-white" aria-current="page">Home</Link>
                             </li>

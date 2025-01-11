@@ -29,7 +29,7 @@ const AvailablePaymentPage = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: availablePayment, mutate: revalidate } = useSWR(
-    `api/v1/available-payment?limit=${10}&page=${page}&query=${search}`
+    `api/v1/available-payment?limit=${10}&page=${page}&query=${search}`,
   );
 
   useEffect(() => {
@@ -93,11 +93,11 @@ const AvailablePaymentPage = () => {
         <Head>
           <title>Dashboard - Available Payment</title>
         </Head>
-        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-4 shadow">
+        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-4 shadow dark:bg-black">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="sm:flex sm:items-center">
               <div className="sm:flex-auto">
-                <h1 className="text-2xl font-semibold leading-6 text-gray-900">
+                <h1 className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white">
                   List Available Payment
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
@@ -127,37 +127,37 @@ const AvailablePaymentPage = () => {
                       <tr>
                         <th
                           scope="col"
-                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
+                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 dark:text-white"
                         >
                           Name
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Image
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Category
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Admin
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Status
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
+                          className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Action
                         </th>
@@ -177,10 +177,10 @@ const AvailablePaymentPage = () => {
                       {availablePayment?.data?.map(
                         (available: any, idx: any) => (
                           <tr key={idx}>
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
                               {available.name}
                             </td>
-                            <td className="p-2 whitespace-nowrap">
+                            <td className="whitespace-nowrap p-2">
                               <button
                                 className="flex items-center justify-start font-medium text-green-500"
                                 onClick={(e) => {
@@ -195,19 +195,19 @@ const AvailablePaymentPage = () => {
                               </button>
                             </td>
 
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                               {available.category}
                             </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                               {available.adminId.email}
                             </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                               <span
                                 className={clsx(
                                   available.active === true
                                     ? "bg-teal-400"
                                     : "bg-rose-400",
-                                  "inline-flex rounded px-4 py-1 text-xs text-white"
+                                  "inline-flex rounded px-4 py-1 text-xs text-white",
                                 )}
                               >
                                 {available.active ? "Active" : "NOT Active"}
@@ -228,7 +228,7 @@ const AvailablePaymentPage = () => {
                               />
                             </td>
                           </tr>
-                        )
+                        ),
                       )}
                     </tbody>
                   </table>
