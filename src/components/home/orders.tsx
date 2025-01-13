@@ -15,7 +15,7 @@ const Orders = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { data: orders, mutate: revalidate } = useSWR(
-    `/api/v1/orders?limit=${7}&page=${page}&query=${search}`,
+    `/api/v1/orders?limit=${6}&page=${page}&query=${search}`,
   );
 
   useEffect(() => {
