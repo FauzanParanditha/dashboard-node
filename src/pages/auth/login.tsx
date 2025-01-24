@@ -4,6 +4,7 @@ import InputField from "@/components/form/input";
 import HomeLayout from "@/components/layout/home";
 import { useUserContext } from "@/context/user";
 import useStore from "@/store";
+import { nextUrlSchema } from "@/utils/schema/url";
 import { tokenName } from "@/utils/var";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { setCookie } from "cookies-next";
@@ -60,9 +61,27 @@ const LoginPage = () => {
           await revalidate({}, true);
 
           toast.success("login success", { theme: "colored" });
-          if (router.query?.next) {
-            router.push(router.query.next as string);
-          } else {
+          try {
+            const sanitizedNext = await nextUrlSchema.validate(
+              router.query?.next,
+            );
+
+            // Redirect to the validated path
+            router.push(sanitizedNext);
+          } catch (err) {
+            if (err instanceof yup.ValidationError) {
+              // Handle Yup validation error
+              toast.error(`Validation error: ${err.message}`, {
+                theme: "colored",
+              });
+            } else {
+              // Handle other unknown errors
+              toast.error(`An unexpected error occurred: ${err}`, {
+                theme: "colored",
+              });
+            }
+
+            // Redirect to the default path on validation failure
             router.push("/dashboard/home");
           }
         }

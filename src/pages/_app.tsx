@@ -26,7 +26,7 @@ export default function App({ Component, pageProps }: AppProps) {
       >
         <UserContextProvider>
           {isLoading && <Loader />}
-          <Component {...pageProps} />;
+          <Component {...pageProps} />
         </UserContextProvider>
         <ToastContainer
           position="top-center"
