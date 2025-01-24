@@ -38,35 +38,6 @@ const PageProcess: React.FC = () => {
           setIsPaymentProcessing(paymentData.isPaymentProcessing);
           setIsNewLink(paymentData.isNewLink);
 
-          // Now connect to WebSocket after data is fetched
-          const websocket = await initializeWebSocket(
-            "ws://dev.api.pg.pandi.id:5001",
-          );
-          setWs(websocket); // Store the WebSocket instance
-
-          // Set up event listeners for WebSocket messages
-          websocket.onmessage = (event: any) => {
-            const msgData = JSON.parse(event.data);
-            // console.log(`Received message: ${JSON.stringify(msgData)}`);
-
-            // Check if orderPayments is available
-            if (paymentData) {
-              // Check if the orderId matches and status is "paid"
-              if (
-                msgData.paymentId === paymentData?.paymentData.paymentId &&
-                msgData.status === "paid"
-              ) {
-                // Redirect to the new page
-                toast.success(msgData.status, { theme: "colored" });
-                const encryptedData = encryptData(paymentData);
-                const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(encryptedData)}`;
-                router.push(newLink); // Adjust the path as needed
-              }
-            } else {
-              toast.warn("orderPayments is not yet available.");
-            }
-          };
-
           const paymentExpired = paymentData?.paymentData?.paymentExpired;
           const expirationDate =
             paymentExpired?.length === 14
@@ -93,6 +64,55 @@ const PageProcess: React.FC = () => {
 
     fetchData();
   }, [data]);
+
+  useEffect(() => {
+    if (!orderPayments) return; // Wait for orderPayments to be available
+
+    const setupWebSocket = async () => {
+      try {
+        const websocket = await initializeWebSocket(
+          "ws://dev.api.pg.pandi.id:5001",
+        );
+        setWs(websocket); // Store the WebSocket instance
+
+        // Set up event listeners for WebSocket messages
+        websocket.onmessage = (event: MessageEvent) => {
+          const msgData = JSON.parse(event.data);
+
+          if (orderPayments) {
+            if (
+              msgData.paymentId === orderPayments?.paymentData.paymentId &&
+              msgData.status === "paid"
+            ) {
+              // Redirect to the new page
+              toast.success(msgData.status, { theme: "colored" });
+              const encryptedData = encryptData(orderPayments);
+              const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(
+                encryptedData,
+              )}`;
+              router.push(newLink);
+            }
+          } else {
+            toast.warn("orderPayments is not yet available.");
+          }
+        };
+
+        websocket.onclose = () => {
+          console.log("WebSocket connection closed.");
+        };
+      } catch (error) {
+        console.error("Failed to initialize WebSocket:", error);
+      }
+    };
+
+    setupWebSocket();
+
+    return () => {
+      if (ws) {
+        ws.close(); // Clean up WebSocket connection on unmount
+      }
+    };
+  }, [orderPayments]); // Re-run this effect when orderPayments changes
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
