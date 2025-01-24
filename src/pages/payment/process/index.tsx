@@ -1,7 +1,9 @@
 import Loader from "@/components/loading";
+import { encryptData } from "@/utils/encryption";
 import { PaymentDetails } from "@/utils/order";
 import { convertDateString } from "@/utils/paylabs";
 import { cancelPayment } from "@/utils/payment";
+import { initializeWebSocket } from "@/utils/websocket_initializer";
 import axios from "axios";
 import clsx from "clsx";
 import Head from "next/head";
@@ -36,32 +38,34 @@ const PageProcess: React.FC = () => {
           setIsPaymentProcessing(paymentData.isPaymentProcessing);
           setIsNewLink(paymentData.isNewLink);
 
-          // // Now connect to WebSocket after data is fetched
-          // const websocket = await initializeWebSocket("ws://10.10.201.50:5001");
-          // setWs(websocket); // Store the WebSocket instance
+          // Now connect to WebSocket after data is fetched
+          const websocket = await initializeWebSocket(
+            "ws://dev.api.pg.pandi.id:5001",
+          );
+          setWs(websocket); // Store the WebSocket instance
 
-          // // Set up event listeners for WebSocket messages
-          // websocket.onmessage = (event: any) => {
-          //   const msgData = JSON.parse(event.data);
-          //   // console.log(`Received message: ${JSON.stringify(msgData)}`);
+          // Set up event listeners for WebSocket messages
+          websocket.onmessage = (event: any) => {
+            const msgData = JSON.parse(event.data);
+            // console.log(`Received message: ${JSON.stringify(msgData)}`);
 
-          //   // Check if orderPayments is available
-          //   if (paymentData) {
-          //     // Check if the orderId matches and status is "paid"
-          //     if (
-          //       msgData.paymentId === paymentData?.paymentData.paymentId &&
-          //       msgData.status === "paid"
-          //     ) {
-          //       // Redirect to the new page
-          //       toast.success(msgData.status, { theme: "colored" });
-          //       const encryptedData = encryptData(paymentData);
-          //       const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(encryptedData)}`;
-          //       router.push(newLink); // Adjust the path as needed
-          //     }
-          //   } else {
-          //     toast.warn("orderPayments is not yet available.");
-          //   }
-          // };
+            // Check if orderPayments is available
+            if (paymentData) {
+              // Check if the orderId matches and status is "paid"
+              if (
+                msgData.paymentId === paymentData?.paymentData.paymentId &&
+                msgData.status === "paid"
+              ) {
+                // Redirect to the new page
+                toast.success(msgData.status, { theme: "colored" });
+                const encryptedData = encryptData(paymentData);
+                const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(encryptedData)}`;
+                router.push(newLink); // Adjust the path as needed
+              }
+            } else {
+              toast.warn("orderPayments is not yet available.");
+            }
+          };
 
           const paymentExpired = paymentData?.paymentData?.paymentExpired;
           const expirationDate =
