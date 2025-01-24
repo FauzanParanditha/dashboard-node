@@ -39,7 +39,7 @@ const PageProcess: React.FC = () => {
           setIsNewLink(paymentData.isNewLink);
 
           // Now connect to WebSocket after data is fetched
-          const websocket = await initializeWebSocket("ws://localhost:5001");
+          const websocket = await initializeWebSocket("ws://10.10.201.50:5001");
           setWs(websocket); // Store the WebSocket instance
 
           // Set up event listeners for WebSocket messages
