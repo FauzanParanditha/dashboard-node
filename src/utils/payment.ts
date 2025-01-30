@@ -294,7 +294,7 @@ export const successPayment = async (
       : `/api/v1/order/status/va/snap/${id}`;
 
   const signature = createSignatureForward(
-    "POST",
+    "GET",
     endpointUrl,
     {},
     formattedTimestamp,
@@ -311,13 +311,12 @@ export const successPayment = async (
 
     let response;
     if (selectedMethod.category === "QRIS") {
-      response = await axios.post(
+      response = await axios.get(
         `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/status/qris/${id}`,
-        {},
         { headers },
       );
     } else if (selectedMethod.category === "VIRTUAL ACCOUNT") {
-      response = await axios.delete(
+      response = await axios.get(
         `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/status/va/snap/${id}`,
         { headers },
       );
