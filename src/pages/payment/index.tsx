@@ -25,7 +25,6 @@ const PaymentPage = () => {
   >(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
-  const [isnewLink, setIsNewLink] = useState(false);
 
   useEffect(() => {
     if (data) {
@@ -49,8 +48,7 @@ const PaymentPage = () => {
         })
         .catch((error) => {
           const errorMessage =
-            error.response?.data?.message || "Error fetching order data";
-          console.error(errorMessage);
+            error.response?.data?.error || "Error fetching order data";
           toast.error(errorMessage);
         });
     }
@@ -117,14 +115,28 @@ const PaymentPage = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader />
-      </div>
+      <>
+        <Head>
+          <title>Confirm - Payment</title>
+        </Head>
+        <div className="flex h-screen items-center justify-center">
+          <Loader />
+        </div>
+      </>
     );
   }
 
   if (!orderDetails) {
-    return <Loader />;
+    return (
+      <>
+        <Head>
+          <title>Confirm - Payment</title>
+        </Head>
+        <div className="flex h-screen items-center justify-center">
+          <p>No order detail found!</p>
+        </div>
+      </>
+    );
   }
 
   const totalAmount = parseFloat(orderDetails.totalAmount);
@@ -203,7 +215,6 @@ const PaymentPage = () => {
           <button
             className="w-full rounded-lg bg-blue-500 py-2 font-bold text-white transition-colors hover:bg-blue-600"
             onClick={handleSubmit}
-            disabled={isPaymentProcessing}
           >
             Process Payment
           </button>

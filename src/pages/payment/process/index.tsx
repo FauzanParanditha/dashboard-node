@@ -1,7 +1,8 @@
+import { handleAxiosError } from "@/api";
 import Loader from "@/components/loading";
 import { encryptData } from "@/utils/encryption";
 import { PaymentDetails } from "@/utils/order";
-import { convertDateString } from "@/utils/paylabs";
+import { convertDateString, createSignatureForward } from "@/utils/paylabs";
 import { cancelPayment } from "@/utils/payment";
 import { initializeWebSocket } from "@/utils/websocket_initializer";
 import axios from "axios";
@@ -21,7 +22,7 @@ const PageProcess: React.FC = () => {
     null,
   );
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
-  const [isNewLink, setIsNewLink] = useState(false);
+  // const [isNewLink, setIsNewLink] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
 
   useEffect(() => {
@@ -36,7 +37,47 @@ const PageProcess: React.FC = () => {
           const paymentData = response.data;
           setOrderPayments(paymentData);
           setIsPaymentProcessing(paymentData.isPaymentProcessing);
-          setIsNewLink(paymentData.isNewLink);
+
+          if (paymentData) {
+            console.log(paymentData);
+            const currentTimestamp = new Date().toISOString();
+            const formattedTimestamp = currentTimestamp.replace("Z", "+00:00");
+            const endpointUrl = `/api/v1/order/${paymentData?.paymentData?.orderId}`;
+            const clientId = paymentData?.orderDetails?.clientId;
+
+            const signature = createSignatureForward(
+              "GET",
+              endpointUrl,
+              {},
+              formattedTimestamp,
+            );
+
+            const headers = {
+              "x-signature": signature,
+              "x-partner-id": clientId,
+              "x-timestamp": formattedTimestamp,
+            };
+
+            try {
+              const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
+                { headers },
+              );
+
+              if (
+                response.status === 200 &&
+                response.data.data.paymentStatus === "paid"
+              ) {
+                const encryptedData = encryptData(paymentData);
+                const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(
+                  encryptedData,
+                )}`;
+                router.push(newLink);
+              }
+            } catch (error) {
+              handleAxiosError(error);
+            }
+          }
 
           const paymentExpired = paymentData?.paymentData?.paymentExpired;
           const expirationDate =
@@ -70,9 +111,7 @@ const PageProcess: React.FC = () => {
 
     const setupWebSocket = async () => {
       try {
-        const websocket = await initializeWebSocket(
-          "ws://dev.api.pg.pandi.id:5001",
-        );
+        const websocket = await initializeWebSocket("wss://wss.api.pandi.id");
         setWs(websocket); // Store the WebSocket instance
 
         // Set up event listeners for WebSocket messages
@@ -93,7 +132,9 @@ const PageProcess: React.FC = () => {
               router.push(newLink);
             }
           } else {
-            toast.warn("orderPayments is not yet available.");
+            toast.error(msgData.status, { theme: "colored" });
+            setTimeLeft(0);
+            setIsPaymentProcessing(true);
           }
         };
 
@@ -146,7 +187,6 @@ const PageProcess: React.FC = () => {
             orderPayments,
             orderPayments.paymentMethods,
             setIsPaymentProcessing,
-            setIsNewLink,
             setLoading,
             router,
           );

@@ -132,7 +132,6 @@ export const processPayment = async (
         selectedPaymentMethod,
         paymentMethods: paymentMethod,
         orderDetails: orderDetails,
-        isnewLink: true,
         paymentData: {
           virtualAccountNo: response.data.virtualAccountNo,
           customerNo: response.data.customerNo,
@@ -167,7 +166,7 @@ export const cancelPayment = async (
   paymentMethod: PaymentMethodsResponse[],
   setIsPaymentProcessing: (isProcessing: boolean) => void,
   //   setIsModalOpen: (isOpen: boolean) => void,
-  setIsNewLink: (isNew: boolean) => void,
+  // setIsNewLink: (isNew: boolean) => void,
   setLoading: (loading: boolean) => void,
   router: any,
 ) => {
@@ -255,7 +254,7 @@ export const cancelPayment = async (
 
       toast.warn("PAYMENT CANCELED", { theme: "colored" });
       setIsPaymentProcessing(false);
-      setIsNewLink(false);
+      // setIsNewLink(false);
       //   setIsModalOpen(false);
     } else {
       throw new Error("Failed to cancel payment. Please try again.");
