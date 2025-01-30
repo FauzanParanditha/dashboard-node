@@ -110,7 +110,9 @@ const PageProcess: React.FC = () => {
 
     const setupWebSocket = async () => {
       try {
-        const websocket = await initializeWebSocket("wss://wss.api.pandi.id");
+        const websocket = await initializeWebSocket(
+          "wss://wss.api.pg.pandi.id",
+        );
         setWs(websocket); // Store the WebSocket instance
 
         // Set up event listeners for WebSocket messages
