@@ -39,7 +39,6 @@ const PageProcess: React.FC = () => {
           setIsPaymentProcessing(paymentData.isPaymentProcessing);
 
           if (paymentData) {
-            console.log(paymentData);
             const currentTimestamp = new Date().toISOString();
             const formattedTimestamp = currentTimestamp.replace("Z", "+00:00");
             const endpointUrl = `/api/v1/order/${paymentData?.paymentData?.orderId}`;
