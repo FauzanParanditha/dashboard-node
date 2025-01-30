@@ -76,7 +76,7 @@ export const processPayment = async (
     return;
   }
 
-  const { clientId, payer, ...updatedOrderDetails } = {
+  const { clientId, expired, payer, ...updatedOrderDetails } = {
     ...orderDetails,
     paymentType: selectedMethod.name,
   };

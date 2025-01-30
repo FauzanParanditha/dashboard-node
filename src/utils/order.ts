@@ -132,6 +132,7 @@ export interface OrderDetails {
   payer: string;
   paymentMethod: PaymentMethod;
   clientId: string;
+  expired: number;
 }
 export interface PaymentData {
   success: boolean;
