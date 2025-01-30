@@ -1,3 +1,4 @@
+import Loader from "@/components/loading";
 import { PaymentDetails, QRISData, VirtualAccountData } from "@/utils/order";
 import { successPayment } from "@/utils/payment";
 import axios from "axios";
@@ -73,6 +74,19 @@ const PageSuccess: React.FC = () => {
 
     fetchData();
   }, [data]);
+
+  if (loading) {
+    return (
+      <>
+        <Head>
+          <title>Success - Payment</title>
+        </Head>
+        <div className="flex h-screen items-center justify-center">
+          <Loader />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
