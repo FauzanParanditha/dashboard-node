@@ -140,7 +140,11 @@ const PageProcess: React.FC = () => {
         };
 
         websocket.onclose = () => {
-          console.log("WebSocket connection closed.");
+          console.log(
+            "WebSocket connection closed. Attempting to reconnect...",
+          );
+          // Attempt to reconnect after a delay
+          setTimeout(setupWebSocket, 3000);
         };
       } catch (error) {
         console.error("Failed to initialize WebSocket:", error);
