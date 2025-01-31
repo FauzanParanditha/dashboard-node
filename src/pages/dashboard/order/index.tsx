@@ -116,7 +116,7 @@ const OrderPage = () => {
                       {orders?.data?.map((order: any, idx: any) => (
                         <tr key={idx}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
-                            {order.clientId.name}
+                            {order.clientId?.name}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             {order.orderId}
@@ -130,7 +130,11 @@ const OrderPage = () => {
                             {order.paymentType}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {order.paymentStatus}
+                            <span
+                              className={`ml-2 inline-block rounded ${order?.paymentStatus === "paid" ? "bg-green-500" : order?.paymentStatus === "failed" ? "bg-red-500" : order?.paymentStatus === "pending" ? "bg-yellow-500" : "bg-gray-500"} px-2 py-1 text-sm font-medium text-white`}
+                            >
+                              {order.paymentStatus}
+                            </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             {formatMoney(order.totalAmount)}

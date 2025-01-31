@@ -11,6 +11,10 @@ export const logoutValidator = yup.object().shape({
   email: yup.string().required().email("email is not valid"),
 });
 
+export const verifyAdminSchema = yup.object().shape({
+  provided_code: yup.number().required(),
+});
+
 export const createAdminSchema = yup.object().shape({
   email: yup.string().required().email("email is not valid"),
   fullName: yup.string().required("fullName is required"),

@@ -26,7 +26,7 @@ const DetailOrderPage = () => {
     if (id != undefined) {
       setIsLoading(true);
       api()
-        .get("/api/v1/order/" + id)
+        .get("/api/v1/order/status/" + id)
         .then((res) => {
           if (res.data.success) {
             setOrder(res.data.data);
@@ -76,9 +76,17 @@ const DetailOrderPage = () => {
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500 dark:text-white">
                   <span>
                     Status:
-                    {order?.paymentPaylabs?.status === "02" && (
+                    {order?.paymentPaylabs?.status === "02" ? (
                       <span className="ml-2 inline-block rounded bg-green-500 px-2 py-1 text-sm font-medium text-white">
-                        Success
+                        {order.paymentStatus}
+                      </span>
+                    ) : order?.paymentPaylabs?.status === "09" ? (
+                      <span className="ml-2 inline-block rounded bg-red-500 px-2 py-1 text-sm font-medium text-white">
+                        {order.paymentStatus}
+                      </span>
+                    ) : (
+                      <span className="ml-2 inline-block rounded bg-yellow-500 px-2 py-1 text-sm font-medium text-white">
+                        {order?.paymentStatus}
                       </span>
                     )}
                   </span>{" "}
@@ -167,164 +175,170 @@ const DetailOrderPage = () => {
               </dl>
             </div>
           </div>
-          <div className="max-h-screen overflow-auto bg-white shadow sm:rounded-lg dark:bg-black">
-            <div className="px-4 py-6 sm:px-6">
-              <h3 className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
-                Paylabs Detail
-              </h3>
-            </div>
-            <div className="border-t border-gray-100">
-              <dl className="divide-y divide-gray-100">
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Request Id
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {order?.paymentPaylabs?.requestId}
-                  </dd>
-                </div>
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Error Code
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {order?.paymentPaylabs?.errCode}
-                  </dd>
-                </div>
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Merchant Id
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {order?.paymentPaylabs?.merchantId}
-                  </dd>
-                </div>
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Create Time
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {dayjs(order?.paymentPaylabs?.createTime).format(
-                      "DD MMM YYYY",
-                    )}
-                  </dd>
-                </div>
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Success Time
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {dayjs(order?.paymentPaylabs?.successTime).format(
-                      "DD MMM YYYY",
-                    )}
-                  </dd>
-                </div>
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Status
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {order?.paymentPaylabs?.status}
-                  </dd>
-                </div>
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Payment Method Info
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {order?.paymentPaylabs?.paymentMethodInfo ? (
-                      typeof order.paymentPaylabs.paymentMethodInfo ===
-                      "object" ? (
-                        <ul>
-                          {"nmid" in order.paymentPaylabs.paymentMethodInfo && (
-                            <>
+          {order?.paymentPaylabs && (
+            <div className="max-h-screen overflow-auto bg-white shadow sm:rounded-lg dark:bg-black">
+              <div className="px-4 py-6 sm:px-6">
+                <h3 className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+                  Paylabs Detail
+                </h3>
+              </div>
+              <div className="border-t border-gray-100">
+                <dl className="divide-y divide-gray-100">
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Request Id
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabs?.requestId}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Error Code
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabs?.errCode}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Merchant Id
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabs?.merchantId}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Create Time
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {dayjs(order?.paymentPaylabs?.createTime).format(
+                        "DD MMM YYYY",
+                      )}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Success Time
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {dayjs(order?.paymentPaylabs?.successTime).format(
+                        "DD MMM YYYY",
+                      )}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Status
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabs?.status}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Payment Method Info
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabs?.paymentMethodInfo ? (
+                        typeof order.paymentPaylabs.paymentMethodInfo ===
+                        "object" ? (
+                          <ul>
+                            {"nmid" in
+                              order.paymentPaylabs.paymentMethodInfo && (
+                              <>
+                                <li>
+                                  NMID:{" "}
+                                  {order.paymentPaylabs.paymentMethodInfo.nmid}
+                                </li>
+                                <li>
+                                  RRN:{" "}
+                                  {order.paymentPaylabs.paymentMethodInfo.rrn}
+                                </li>
+                              </>
+                            )}
+                            {"vaCode" in
+                              order.paymentPaylabs.paymentMethodInfo && (
                               <li>
-                                NMID:{" "}
-                                {order.paymentPaylabs.paymentMethodInfo.nmid}
+                                VA Code:{" "}
+                                {order.paymentPaylabs.paymentMethodInfo.vaCode}
                               </li>
+                            )}
+                            {"paymentCode" in
+                              order.paymentPaylabs.paymentMethodInfo && (
                               <li>
-                                RRN:{" "}
-                                {order.paymentPaylabs.paymentMethodInfo.rrn}
+                                Payment Code:{" "}
+                                {
+                                  order.paymentPaylabs.paymentMethodInfo
+                                    .paymentCode
+                                }
                               </li>
-                            </>
-                          )}
-                          {"vaCode" in
-                            order.paymentPaylabs.paymentMethodInfo && (
-                            <li>
-                              VA Code:{" "}
-                              {order.paymentPaylabs.paymentMethodInfo.vaCode}
-                            </li>
-                          )}
-                          {"paymentCode" in
-                            order.paymentPaylabs.paymentMethodInfo && (
-                            <li>
-                              Payment Code:{" "}
-                              {
-                                order.paymentPaylabs.paymentMethodInfo
-                                  .paymentCode
-                              }
-                            </li>
-                          )}
-                          {"payer" in
-                            order.paymentPaylabs.paymentMethodInfo && (
-                            <li>
-                              Payer:{" "}
-                              {order.paymentPaylabs.paymentMethodInfo.payer}
-                            </li>
-                          )}
-                          {"phoneNumber" in
-                            order.paymentPaylabs.paymentMethodInfo && (
-                            <li>
-                              Phone Number:{" "}
-                              {
-                                order.paymentPaylabs.paymentMethodInfo
-                                  .phoneNumber
-                              }
-                            </li>
-                          )}
-                          {"issuerId" in
-                            order.paymentPaylabs.paymentMethodInfo && (
-                            <li>
-                              Issuer ID:{" "}
-                              {order.paymentPaylabs.paymentMethodInfo.issuerId}
-                            </li>
-                          )}
-                        </ul>
+                            )}
+                            {"payer" in
+                              order.paymentPaylabs.paymentMethodInfo && (
+                              <li>
+                                Payer:{" "}
+                                {order.paymentPaylabs.paymentMethodInfo.payer}
+                              </li>
+                            )}
+                            {"phoneNumber" in
+                              order.paymentPaylabs.paymentMethodInfo && (
+                              <li>
+                                Phone Number:{" "}
+                                {
+                                  order.paymentPaylabs.paymentMethodInfo
+                                    .phoneNumber
+                                }
+                              </li>
+                            )}
+                            {"issuerId" in
+                              order.paymentPaylabs.paymentMethodInfo && (
+                              <li>
+                                Issuer ID:{" "}
+                                {
+                                  order.paymentPaylabs.paymentMethodInfo
+                                    .issuerId
+                                }
+                              </li>
+                            )}
+                          </ul>
+                        ) : (
+                          <span>{order.paymentPaylabs.paymentMethodInfo}</span>
+                        )
                       ) : (
-                        <span>{order.paymentPaylabs.paymentMethodInfo}</span>
-                      )
-                    ) : (
-                      <span>No Payment Method Info Available</span>
-                    )}
-                  </dd>
-                </div>
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Trans Fee Rate
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {formatMoney(order?.paymentPaylabs?.transFeeRate)}
-                  </dd>
-                </div>
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Trans Fee Amount
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {formatMoney(order?.paymentPaylabs?.transFeeAmount)}
-                  </dd>
-                </div>
-                <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-900 dark:text-white">
-                    Total Trans Fee
-                  </dt>
-                  <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
-                    {formatMoney(order?.paymentPaylabs?.totalTransFee)}
-                  </dd>
-                </div>
-              </dl>
+                        <span>No Payment Method Info Available</span>
+                      )}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Trans Fee Rate
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {formatMoney(order?.paymentPaylabs?.transFeeRate)}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Trans Fee Amount
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {formatMoney(order?.paymentPaylabs?.transFeeAmount)}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Total Trans Fee
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {formatMoney(order?.paymentPaylabs?.totalTransFee)}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </DashboardLayout>
     </>

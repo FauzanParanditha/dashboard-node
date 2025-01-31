@@ -63,7 +63,7 @@ const ModalAvailablePayment = ({
 
     setIsLoading(true);
     api()
-      .put("api/v1/available-payment/", formData, {
+      .post("api/v1/available-payment/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((res) => {
