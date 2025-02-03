@@ -45,6 +45,7 @@ const ModalUser = ({ isOpen = false, setIsOpen, revalidate }: any) => {
         if (res.data.success) {
           revalidate({}, true);
           setIsOpen(false);
+          reset();
           toast.success("Create User success", { theme: "colored" });
         }
       })
@@ -78,6 +79,7 @@ const ModalUser = ({ isOpen = false, setIsOpen, revalidate }: any) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsOpen(false);
+                  reset();
                 }}
               >
                 <HiOutlineX className="h-5 w-5 text-rose-600" />

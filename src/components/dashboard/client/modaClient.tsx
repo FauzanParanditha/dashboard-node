@@ -69,6 +69,7 @@ const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
         if (res.data.success) {
           revalidate({}, true);
           setIsOpen(false);
+          reset();
           toast.success("Create Client success", { theme: "colored" });
         }
       })
@@ -105,6 +106,7 @@ const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsOpen(false);
+                  reset();
                 }}
               >
                 <HiOutlineX className="h-5 w-5 text-rose-600" />

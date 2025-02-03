@@ -138,7 +138,7 @@ const LogCallbackPage = () => {
                         <tr>
                           <td
                             className="border-b border-gray-200 py-6 text-center text-sm font-normal uppercase"
-                            colSpan={6}
+                            colSpan={7}
                           >
                             Data Not Found
                           </td>

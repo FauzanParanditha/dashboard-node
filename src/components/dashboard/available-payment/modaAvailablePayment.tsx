@@ -38,6 +38,7 @@ const ModalAvailablePayment = ({
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<Values>({
     mode: "onBlur",
@@ -68,7 +69,10 @@ const ModalAvailablePayment = ({
       })
       .then((res) => {
         if (res.data.success) {
-          toast.success("Update Available Payment success", {
+          revalidate({}, true);
+          setIsOpen(false);
+          reset();
+          toast.success("Create Available Payment success", {
             theme: "colored",
           });
         }
@@ -103,6 +107,7 @@ const ModalAvailablePayment = ({
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsOpen(false);
+                  reset();
                 }}
               >
                 <HiOutlineX className="h-5 w-5 text-rose-600" />
@@ -129,6 +134,8 @@ const ModalAvailablePayment = ({
                     error={errors.category?.message}
                   />
                 </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-1">
                 <div className="mb-4 pr-2">
                   <Controller
                     control={control}
@@ -146,7 +153,7 @@ const ModalAvailablePayment = ({
                     )}
                   />
                 </div>
-                <div className="mb-4 pr-3">
+                {/* <div className="mb-4 pr-3">
                   <label className="mt-3 block text-sm font-medium text-gray-700 dark:text-white">
                     Upload Picture
                   </label>
@@ -161,7 +168,7 @@ const ModalAvailablePayment = ({
                       {errors.image.message}
                     </p>
                   )}
-                </div>
+                </div> */}
               </div>
               <div className="my-2 w-1/2 md:w-1/4">
                 <Button success label={"Create Data"} block bold />
