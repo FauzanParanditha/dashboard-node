@@ -32,7 +32,7 @@ const PageSuccess: React.FC = () => {
 
           if (paymentData) {
             const result = await successPayment(
-              paymentData.paymentData.orderId,
+              paymentData.paymentData.id,
               paymentData.orderDetails.clientId,
               paymentData.paymentMethods,
               paymentData.selectedPaymentMethod,

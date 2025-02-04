@@ -41,7 +41,7 @@ const PageProcess: React.FC = () => {
           if (paymentData) {
             const currentTimestamp = new Date().toISOString();
             const formattedTimestamp = currentTimestamp.replace("Z", "+00:00");
-            const endpointUrl = `/api/v1/order/${paymentData?.paymentData?.orderId}`;
+            const endpointUrl = `/api/v1/order/${paymentData?.paymentData?.id}`;
             const clientId = paymentData?.orderDetails?.clientId;
 
             const signature = createSignatureForward(

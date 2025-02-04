@@ -141,6 +141,7 @@ export const processPayment = async (
           totalAmount: response.data.totalAmount,
           storeId: response.data.storeId,
           orderId: response.data.orderId,
+          id: response.data.id,
         },
       });
 
