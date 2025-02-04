@@ -130,7 +130,11 @@ const PageProcess: React.FC = () => {
               const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(
                 encryptedData,
               )}`;
-              router.push(newLink);
+              router.push(newLink).then(() => {
+                if (websocket) {
+                  websocket.close();
+                }
+              });
             }
           } else {
             toast.error(msgData.status, { theme: "colored" });
