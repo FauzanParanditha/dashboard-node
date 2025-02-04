@@ -254,7 +254,7 @@ export const cancelPayment = async (
         clientId: paymentDetails.orderDetails.clientId,
         items: paymentDetails.orderDetails.items,
         payer: paymentDetails.orderDetails.payer,
-        paymentMethods: paymentDetails.orderDetails.paymentMethod,
+        paymentMethod: paymentDetails.orderDetails.paymentMethod,
         phoneNumber: paymentDetails.orderDetails.phoneNumber,
         totalAmount: paymentDetails.orderDetails.totalAmount,
         expired: Math.floor((Date.now() + 30 * 60 * 1000) / 1000),
