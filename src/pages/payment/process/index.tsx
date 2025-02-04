@@ -7,11 +7,17 @@ import { cancelPayment } from "@/utils/payment";
 import { initializeWebSocket } from "@/utils/websocket_initializer";
 import axios from "axios";
 import clsx from "clsx";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const PageProcess: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(0);
@@ -39,8 +45,9 @@ const PageProcess: React.FC = () => {
           setIsPaymentProcessing(paymentData.isPaymentProcessing);
 
           if (paymentData) {
-            const currentTimestamp = new Date().toISOString();
-            const formattedTimestamp = currentTimestamp.replace("Z", "+00:00");
+            const formattedTimestamp = dayjs()
+              .tz("Asia/Jakarta")
+              .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
             const endpointUrl = `/api/v1/order/${paymentData?.paymentData?.id}`;
             const clientId = paymentData?.orderDetails?.clientId;
 
@@ -307,12 +314,14 @@ const PageProcess: React.FC = () => {
               </li> */}
             </ul>
           </div>
-          <button
-            className="mt-4 w-full rounded-lg bg-red-500 py-2 font-bold text-white transition-colors hover:bg-red-600"
-            onClick={handleCancel}
-          >
-            Cancel
-          </button>
+          {timeLeft > 0 && (
+            <button
+              className="mt-4 w-full rounded-lg bg-red-500 py-2 font-bold text-white transition-colors hover:bg-red-600"
+              onClick={handleCancel}
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </div>
     </>

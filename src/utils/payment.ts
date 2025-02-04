@@ -2,9 +2,16 @@
 import { encryptData } from "@/utils/encryption";
 import { createSignatureForward } from "@/utils/paylabs";
 import axios from "axios";
+import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { handleAxiosError } from "./errorHandling";
 import { OrderDetails, PaymentDetails, PaymentMethodsResponse } from "./order";
+
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const fetchPaymentMethods = async (
   setPaymentMethods: (methods: any) => void,
@@ -81,8 +88,9 @@ export const processPayment = async (
     paymentType: selectedMethod.name,
   };
 
-  const currentTimestamp = new Date().toISOString();
-  const formattedTimestamp = currentTimestamp.replace("Z", "+00:00");
+  const formattedTimestamp = dayjs()
+    .tz("Asia/Jakarta")
+    .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
 
   const endpointUrl =
     selectedMethod.category === "QRIS"
@@ -199,8 +207,9 @@ export const cancelPayment = async (
 
   const clientId = paymentDetails.orderDetails.clientId;
 
-  const currentTimestamp = new Date().toISOString();
-  const formattedTimestamp = currentTimestamp.replace("Z", "+00:00");
+  const formattedTimestamp = dayjs()
+    .tz("Asia/Jakarta")
+    .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
   const endpointUrl =
     selectedMethod.category === "QRIS"
       ? `/api/v1/order/cancel/qris/${paymentDetails.paymentData.id}`
@@ -289,8 +298,9 @@ export const successPayment = async (
     return;
   }
 
-  const currentTimestamp = new Date().toISOString();
-  const formattedTimestamp = currentTimestamp.replace("Z", "+00:00");
+  const formattedTimestamp = dayjs()
+    .tz("Asia/Jakarta")
+    .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
   const endpointUrl =
     selectedMethod.category === "QRIS"
       ? `/api/v1/order/status/qris/${id}`
