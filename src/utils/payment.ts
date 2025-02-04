@@ -215,12 +215,10 @@ export const cancelPayment = async (
       ? `/api/v1/order/cancel/qris/${paymentDetails.paymentData.id}`
       : `/api/v1/order/delete/va/snap/${paymentDetails.paymentData.id}`;
 
-  const signature = createSignatureForward(
-    "POST",
-    endpointUrl,
-    {},
-    formattedTimestamp,
-  );
+  const signature =
+    selectedMethod.category === "QRIS"
+      ? createSignatureForward("POST", endpointUrl, {}, formattedTimestamp)
+      : createSignatureForward("DELETE", endpointUrl, {}, formattedTimestamp);
 
   try {
     setLoading(true);
