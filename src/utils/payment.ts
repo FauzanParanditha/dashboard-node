@@ -179,7 +179,7 @@ export const cancelPayment = async (
   if (
     !paymentDetails ||
     !paymentDetails.paymentData ||
-    !paymentDetails.paymentData.orderId
+    !paymentDetails.paymentData.id
   ) {
     toast.error(
       "Invalid payment details. Please check your payment information.",
@@ -203,8 +203,8 @@ export const cancelPayment = async (
   const formattedTimestamp = currentTimestamp.replace("Z", "+00:00");
   const endpointUrl =
     selectedMethod.category === "QRIS"
-      ? `/api/v1/order/cancel/qris/${paymentDetails.paymentData.orderId}`
-      : `/api/v1/order/delete/va/snap/${paymentDetails.paymentData.orderId}`;
+      ? `/api/v1/order/cancel/qris/${paymentDetails.paymentData.id}`
+      : `/api/v1/order/delete/va/snap/${paymentDetails.paymentData.id}`;
 
   const signature = createSignatureForward(
     "POST",
@@ -225,12 +225,12 @@ export const cancelPayment = async (
     let response;
     if (selectedMethod.category === "QRIS") {
       response = await axios.post(
-        `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/cancel/qris/${paymentDetails.paymentData.orderId}`,
+        `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/cancel/qris/${paymentDetails.paymentData.id}`,
         { headers },
       );
     } else if (selectedMethod.category === "VIRTUAL ACCOUNT") {
       response = await axios.delete(
-        `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/delete/va/snap/${paymentDetails.paymentData.orderId}`,
+        `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/delete/va/snap/${paymentDetails.paymentData.id}`,
         { headers },
       );
     }

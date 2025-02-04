@@ -146,6 +146,7 @@ export interface PaymentData {
   storeId?: string;
   totalAmount: string;
   orderId: string;
+  id: string;
 }
 
 export interface PaymentDetails {
