@@ -139,7 +139,7 @@ const PageProcess: React.FC = () => {
               )}`;
               router.push(newLink).then(() => {
                 if (websocket) {
-                  websocket.close();
+                  websocket.onclose;
                 }
               });
             }
