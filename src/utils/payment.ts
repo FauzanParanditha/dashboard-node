@@ -248,6 +248,7 @@ export const cancelPayment = async (
         paymentMethods: paymentDetails.orderDetails.paymentMethod,
         phoneNumber: paymentDetails.orderDetails.phoneNumber,
         totalAmount: paymentDetails.orderDetails.totalAmount,
+        expired: Math.floor((Date.now() + 30 * 60 * 1000) / 1000),
       });
 
       const newLink = `${window.location.origin}/payment?data=${encodeURIComponent(encryptedData)}`;
