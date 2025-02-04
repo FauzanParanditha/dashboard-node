@@ -73,6 +73,13 @@ const PageProcess: React.FC = () => {
                 )}`;
                 router.push(newLink);
               }
+              if (
+                response.data.success &&
+                response.data.paymentStatus === "cancel"
+              ) {
+                setTimeLeft(0);
+                toast.warn("Payment Canceled", { theme: "colored" });
+              }
             } catch (error) {
               handleAxiosError(error);
             }
