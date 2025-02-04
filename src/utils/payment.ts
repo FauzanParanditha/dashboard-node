@@ -226,6 +226,7 @@ export const cancelPayment = async (
     if (selectedMethod.category === "QRIS") {
       response = await axios.post(
         `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/cancel/qris/${paymentDetails.paymentData.id}`,
+        {},
         { headers },
       );
     } else if (selectedMethod.category === "VIRTUAL ACCOUNT") {
