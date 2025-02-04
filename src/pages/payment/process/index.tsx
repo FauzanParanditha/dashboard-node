@@ -74,11 +74,12 @@ const PageProcess: React.FC = () => {
                 router.push(newLink);
               }
               if (
-                response.data.success &&
-                response.data.paymentStatus === "cancel"
+                response.data.data.success &&
+                response.data.data.paymentStatus === "cancel"
               ) {
                 setTimeLeft(0);
                 toast.warn("Payment Canceled", { theme: "colored" });
+                ws?.onclose;
               }
             } catch (error) {
               handleAxiosError(error);
