@@ -73,12 +73,13 @@ const PageProcess: React.FC = () => {
                 )}`;
                 router.push(newLink);
               } else if (
-                response.data.data.success &&
+                response.data.success &&
                 response.data.data.paymentStatus === "cancel"
               ) {
                 setTimeLeft(0);
                 toast.warn("Payment Canceled", { theme: "colored" });
                 ws?.onclose;
+                return;
               }
             } catch (error) {
               handleAxiosError(error);
@@ -115,59 +116,48 @@ const PageProcess: React.FC = () => {
   useEffect(() => {
     if (!orderPayments) return; // Wait for orderPayments to be available
 
+    let websocket: WebSocket | null = null; // Local variable for cleanup
+
     const setupWebSocket = async () => {
       try {
-        const websocket = await initializeWebSocket(
-          "wss://wss.api.pg.pandi.id",
-        );
-        setWs(websocket); // Store the WebSocket instance
+        websocket = await initializeWebSocket("wss://wss.api.pg.pandi.id");
+        setWs(websocket); // Store the WebSocket instance in state
 
-        // Set up event listeners for WebSocket messages
         websocket.onmessage = (event: MessageEvent) => {
           const msgData = JSON.parse(event.data);
 
-          if (orderPayments) {
-            if (
-              msgData.paymentId === orderPayments?.paymentData.paymentId &&
-              msgData.status === "paid"
-            ) {
-              // Redirect to the new page
-              toast.success(msgData.status, { theme: "colored" });
-              const encryptedData = encryptData(orderPayments);
-              const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(
-                encryptedData,
-              )}`;
-              router.push(newLink).then(() => {
-                if (websocket) {
-                  websocket.onclose;
-                }
-              });
-            }
-          } else {
-            toast.error(msgData.status, { theme: "colored" });
-            setTimeLeft(0);
-            setIsPaymentProcessing(true);
+          if (
+            msgData.paymentId === orderPayments?.paymentData.paymentId &&
+            msgData.status === "paid"
+          ) {
+            toast.success(msgData.status, { theme: "colored" });
+            const encryptedData = encryptData(orderPayments);
+            const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(
+              encryptedData,
+            )}`;
+            router.push(newLink).then(() => {
+              websocket?.close(); // Close WebSocket after navigation
+            });
           }
         };
 
         websocket.onclose = () => {
           console.log(
-            "WebSocket connection closed. Attempting to reconnect...",
+            "⚠️ WebSocket connection closed. Attempting to reconnect...",
           );
-          // Attempt to reconnect after a delay
           setTimeout(setupWebSocket, 3000);
         };
       } catch (error) {
-        console.error("Failed to initialize WebSocket:", error);
+        console.error("❌ Failed to initialize WebSocket:", error);
       }
     };
 
     setupWebSocket();
 
     return () => {
-      if (ws) {
-        ws.close(); // Clean up WebSocket connection on unmount
-      }
+      console.log("🔌 Cleaning up WebSocket...");
+      websocket?.close(); // Ensure WebSocket is closed properly
+      setWs(null); // Reset state
     };
   }, [orderPayments]); // Re-run this effect when orderPayments changes
 
