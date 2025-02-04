@@ -72,8 +72,7 @@ const PageProcess: React.FC = () => {
                   encryptedData,
                 )}`;
                 router.push(newLink);
-              }
-              if (
+              } else if (
                 response.data.data.success &&
                 response.data.data.paymentStatus === "cancel"
               ) {
