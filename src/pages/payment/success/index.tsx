@@ -95,7 +95,8 @@ const PageSuccess: React.FC = () => {
       </Head>
       <div className="flex min-h-screen items-center justify-center bg-gray-100">
         <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-md">
-          {qrisData?.status === "02" ? (
+          {qrisData?.status === "02" ||
+          virtualAccountData?.responseMessage === "Successful" ? (
             <h1
               aria-live="polite"
               className="mb-4 text-center text-3xl font-bold text-green-500"
@@ -103,12 +104,7 @@ const PageSuccess: React.FC = () => {
               Successfully
             </h1>
           ) : (
-            <h1
-              aria-live="polite"
-              className="mb-4 text-center text-3xl font-bold"
-            >
-              {qrisData?.status}
-            </h1>
+            <></>
           )}
 
           {virtualAccountData?.responseMessage ? (
