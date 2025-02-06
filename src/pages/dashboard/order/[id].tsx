@@ -76,16 +76,24 @@ const DetailOrderPage = () => {
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500 dark:text-white">
                   <span>
                     Status:
-                    {order?.paymentPaylabs?.status === "02" ? (
+                    {order?.paymentStatus === "paid" ? (
                       <span className="ml-2 inline-block rounded bg-green-500 px-2 py-1 text-sm font-medium text-white">
                         {order.paymentStatus}
                       </span>
-                    ) : order?.paymentPaylabs?.status === "09" ? (
+                    ) : order?.paymentStatus === "failed" ? (
                       <span className="ml-2 inline-block rounded bg-red-500 px-2 py-1 text-sm font-medium text-white">
                         {order.paymentStatus}
                       </span>
-                    ) : (
+                    ) : order?.paymentStatus === "pending" ? (
                       <span className="ml-2 inline-block rounded bg-yellow-500 px-2 py-1 text-sm font-medium text-white">
+                        {order?.paymentStatus}
+                      </span>
+                    ) : order?.paymentStatus === "cancel" ? (
+                      <span className="ml-2 inline-block rounded bg-yellow-700 px-2 py-1 text-sm font-medium text-white">
+                        {order?.paymentStatus}
+                      </span>
+                    ) : (
+                      <span className="ml-2 inline-block rounded bg-gray-500 px-2 py-1 text-sm font-medium text-white">
                         {order?.paymentStatus}
                       </span>
                     )}
@@ -335,6 +343,102 @@ const DetailOrderPage = () => {
                     </dt>
                     <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
                       {formatMoney(order?.paymentPaylabs?.totalTransFee)}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          )}
+          {order?.paymentPaylabsVaSnap && (
+            <div className="max-h-screen overflow-auto bg-white shadow sm:rounded-lg dark:bg-black">
+              <div className="px-4 py-6 sm:px-6">
+                <h3 className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+                  Paylabs Detail
+                </h3>
+              </div>
+              <div className="border-t border-gray-100">
+                <dl className="divide-y divide-gray-100">
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Partner Service Id
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabsVaSnap?.partnerServiceId}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Channel Code
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabsVaSnap?.channelCode}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Customer No
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabsVaSnap?.customerNo}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Virtual Account No
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabsVaSnap?.virtualAccountNo}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Virtual Account Name
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {order?.paymentPaylabsVaSnap?.virtualAccountName}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Transaction Date Time
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {dayjs(order?.paymentPaylabsVaSnap?.trxDateTime).format(
+                        "DD MMM YYYY",
+                      )}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Trans Fee Rate
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {formatMoney(
+                        order?.paymentPaylabsVaSnap?.additionalInfo
+                          ?.transFeeRate,
+                      )}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Trans Fee Amount
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {formatMoney(
+                        order?.paymentPaylabsVaSnap?.additionalInfo
+                          ?.transFeeAmount,
+                      )}
+                    </dd>
+                  </div>
+                  <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-900 dark:text-white">
+                      Total Trans Fee
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 dark:text-white">
+                      {formatMoney(
+                        order?.paymentPaylabsVaSnap?.additionalInfo
+                          ?.totalTransFee,
+                      )}
                     </dd>
                   </div>
                 </dl>

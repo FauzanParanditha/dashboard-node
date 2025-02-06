@@ -131,7 +131,7 @@ const OrderPage = () => {
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             <span
-                              className={`ml-2 inline-block rounded ${order?.paymentStatus === "paid" ? "bg-green-500" : order?.paymentStatus === "failed" ? "bg-red-500" : order?.paymentStatus === "pending" ? "bg-yellow-500" : order?.paymentStatus === "cancel" ? "bg-indigo-500" : "bg-gray-500"} px-2 py-1 text-sm font-medium text-white`}
+                              className={`ml-2 inline-block rounded ${order?.paymentStatus === "paid" ? "bg-green-500" : order?.paymentStatus === "failed" ? "bg-red-500" : order?.paymentStatus === "pending" ? "bg-yellow-500" : order?.paymentStatus === "cancel" ? "bg-yellow-700" : "bg-gray-500"} px-2 py-1 text-sm font-medium text-white`}
                             >
                               {order.paymentStatus}
                             </span>

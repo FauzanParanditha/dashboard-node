@@ -135,7 +135,7 @@ const ModalAvailablePayment = ({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2">
                 <div className="mb-4 pr-2">
                   <Controller
                     control={control}
@@ -153,7 +153,7 @@ const ModalAvailablePayment = ({
                     )}
                   />
                 </div>
-                {/* <div className="mb-4 pr-3">
+                <div className="mb-4 pr-3">
                   <label className="mt-3 block text-sm font-medium text-gray-700 dark:text-white">
                     Upload Picture
                   </label>
@@ -168,7 +168,7 @@ const ModalAvailablePayment = ({
                       {errors.image.message}
                     </p>
                   )}
-                </div> */}
+                </div>
               </div>
               <div className="my-2 w-1/2 md:w-1/4">
                 <Button success label={"Create Data"} block bold />

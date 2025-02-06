@@ -156,27 +156,27 @@ const ClientPage = () => {
                       {clients?.data?.map((client: any, idx: any) => (
                         <tr key={idx}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
-                            {client.name}
+                            {client?.name}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {client.clientId}
+                            {client?.clientId}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {client.notifyUrl}
+                            {client?.notifyUrl}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {client.userId.email}
+                            {client?.userId?.email}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             <span
                               className={clsx(
-                                client.active === true
+                                client?.active === true
                                   ? "bg-teal-400"
                                   : "bg-rose-400",
                                 "inline-flex rounded px-4 py-1 text-xs text-white",
                               )}
                             >
-                              {client.active ? "Active" : "NOT Active"}
+                              {client?.active ? "Active" : "NOT Active"}
                             </span>
                           </td>
                           <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">

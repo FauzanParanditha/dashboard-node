@@ -63,6 +63,70 @@ export interface PaymentPaylabsInterface {
   totalTransFee: string;
 }
 
+export interface PaymentPaylabsVaSnapInterface {
+  partnerServiceId: string;
+  customerNo: string;
+  virtualAccountNo: string;
+  virtualAccountName: string;
+  virtualAccountEmail: string;
+  virtualAccountPhone: string;
+  trxId: string;
+  paymentRequestId: string;
+  channelCode: string;
+  hashedSourceAccountNo: string;
+  sourceBankCode: string;
+  paidAmount: {
+    value: string;
+    currency: string;
+  };
+  cumulativePaymentAmount: {
+    value: string;
+    currency: string;
+  };
+  paidBills: string;
+  totalAmount: {
+    value: string;
+    currency: string;
+  };
+  trxDateTime: Date;
+  referenceNo: string;
+  journalNum: string;
+  paymentType: string;
+  flagAdvise: string;
+  subCompany: string;
+  billDetails: [
+    {
+      billCode: string;
+      billNo: string;
+      billName: string;
+      billShortName: string;
+      billDescription: {
+        english: string;
+        indonesia: string;
+      };
+      billSubCompany: string;
+      billAmount: {
+        value: string;
+        currency: string;
+      };
+      additionalInfo: object;
+    },
+  ];
+  freeTexts: [
+    {
+      english: string;
+      indonesia: string;
+    },
+  ];
+  additionalInfo: {
+    transFeeRate: string;
+    transFeeAmount: string;
+    totalTransFee: string;
+    vatFee: string;
+    paymentType: string;
+  };
+}
+
 export interface OrderInterface {
   _id?: string;
   orderId?: string;
@@ -85,6 +149,7 @@ export interface OrderInterface {
   createdAt?: string;
   updateAt?: string;
   paymentPaylabs?: PaymentPaylabsInterface;
+  paymentPaylabsVaSnap?: PaymentPaylabsVaSnapInterface;
 }
 
 export interface Admin {
