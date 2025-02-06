@@ -184,7 +184,7 @@ const AdminPage = () => {
             {!empty && (
               <div className="flex items-center justify-center border-t py-4">
                 <Pagination
-                  paginate={ips?.data?.pagination || {}}
+                  paginate={ips?.pagination || {}}
                   onPageChange={(pg) => setPage(pg)}
                   limit={1}
                 />

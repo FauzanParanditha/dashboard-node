@@ -90,25 +90,6 @@ const LogEmailPage = () => {
                         </tr>
                       )}
                       {email?.data?.map((dt: any, index: any) => {
-                        let messages;
-
-                        if (typeof dt.messages === "string") {
-                          // Handle the string case
-                          messages = {
-                            code: dt.messages.code,
-                            message: dt.messages || "null",
-                          };
-                        } else if (
-                          dt.messages &&
-                          typeof dt.messages === "object"
-                        ) {
-                          // Handle the object case
-                          messages = {
-                            code: dt.messages.code,
-                            message: dt.messages.message || "null",
-                          };
-                        }
-                        const data = JSON.stringify(messages, null, 2);
                         return (
                           <tr key={index} className="border-b">
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
@@ -117,7 +98,9 @@ const LogEmailPage = () => {
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">{data}</div>
+                              <div className="flex items-center">
+                                {JSON.stringify(dt.messages, null, 2)}
+                              </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
@@ -139,7 +122,7 @@ const LogEmailPage = () => {
               <div className="m-5 flex justify-center">
                 {!empty && (
                   <Pagination
-                    paginate={email?.data?.pagination || {}}
+                    paginate={email?.pagination || {}}
                     onPageChange={(pg) => setPage(pg)}
                     limit={1}
                   />

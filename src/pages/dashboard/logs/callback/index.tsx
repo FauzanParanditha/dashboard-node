@@ -145,41 +145,6 @@ const LogCallbackPage = () => {
                         </tr>
                       )}
                       {callback?.data?.map((dt: any, index: any) => {
-                        let messages;
-
-                        // Ambil payload dari data
-                        if (Array.isArray(callback.data)) {
-                          const firstRecord = callback.data[0]; // Mengambil data pertama (jika ada)
-
-                          if (
-                            firstRecord &&
-                            typeof firstRecord.payload === "object"
-                          ) {
-                            const payloadData = firstRecord.payload;
-
-                            // Extract fields as needed
-                            messages = {
-                              merchantId: payloadData.merchantId,
-                              requestId: payloadData.requestId,
-                              errCode: payloadData.errCode,
-                              paymentType: payloadData.paymentType,
-                              status: payloadData.status,
-                              productName: payloadData.productName,
-                              totalTransFee: payloadData.totalTransFee,
-                            };
-                          } else {
-                            messages = {
-                              message: "Payload not found or invalid format",
-                            };
-                          }
-                        } else {
-                          messages = { message: "Data array not found" };
-                        }
-
-                        // Convert messages to JSON string
-                        const data = JSON.stringify(messages, null, 2);
-                        console.log(data);
-
                         return (
                           <tr key={index} className="border-b">
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
@@ -188,7 +153,9 @@ const LogCallbackPage = () => {
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">{data}</div>
+                              <div className="flex items-center">
+                                {JSON.stringify(dt.payload, null, 2)}
+                              </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
@@ -229,7 +196,7 @@ const LogCallbackPage = () => {
               <div className="m-5 flex justify-center">
                 {!empty && (
                   <Pagination
-                    paginate={callback?.data?.pagination || {}}
+                    paginate={callback?.pagination || {}}
                     onPageChange={(pg) => setPage(pg)}
                     limit={1}
                   />
