@@ -141,7 +141,7 @@ const PaymentPage = () => {
 
   const totalAmount = parseFloat(orderDetails.totalAmount);
   const fee = 10141;
-  const subTotal = totalAmount + fee;
+  const subTotal = totalAmount;
 
   return (
     <>
@@ -166,14 +166,14 @@ const PaymentPage = () => {
                   <span>Rp {parseFloat(item.price).toLocaleString()}</span>
                 </li>
               ))}
-              <li className="flex justify-between">
+              {/* <li className="flex justify-between">
                 <span>Discount</span>
                 <span>Rp 0</span>
               </li>
               <li className="flex justify-between">
                 <span>Fee</span>
                 <span>Rp {fee.toLocaleString()}</span>
-              </li>
+              </li> */}
               <li className="flex justify-between font-bold">
                 <span>Sub Total</span>
                 <span>Rp {subTotal.toLocaleString()}</span>
