@@ -163,7 +163,10 @@ const PageProcess: React.FC = () => {
 
     return () => {
       console.log("🔌 Cleaning up WebSocket...");
-      websocket?.close(); // Ensure WebSocket is closed properly
+      if (websocket) {
+        websocket.close();
+        console.log("✅ WebSocket closed.");
+      }
       setWs(null); // Reset state
     };
   }, [orderPayments]); // Re-run this effect when orderPayments changes

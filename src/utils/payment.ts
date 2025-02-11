@@ -260,7 +260,9 @@ export const cancelPayment = async (
 
       const newLink = `${window.location.origin}/payment?q=${encodeURIComponent(encryptedData)}`;
       //   console.log("New Link:", newLink);
-      router.push(newLink);
+      router.push(newLink).then(() => {
+        router.reload(); // Memastikan useEffect berjalan ulang
+      });
 
       toast.warn("PAYMENT CANCELED", { theme: "colored" });
       setIsPaymentProcessing(false);
