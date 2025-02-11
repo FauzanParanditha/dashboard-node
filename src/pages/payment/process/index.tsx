@@ -23,7 +23,7 @@ const PageProcess: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const { data } = router.query;
+  const { q } = router.query;
   const [orderPayments, setOrderPayments] = useState<PaymentDetails | null>(
     null,
   );
@@ -35,10 +35,10 @@ const PageProcess: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        if (data) {
-          const dataString = Array.isArray(data) ? data[0] : data;
+        if (q) {
+          const dataString = Array.isArray(q) ? q[0] : q;
           const response = await axios.get(
-            `/api/payment?data=${encodeURIComponent(dataString)}`,
+            `/api/payment?q=${encodeURIComponent(dataString)}`,
           );
           const paymentData = response.data;
           setOrderPayments(paymentData);
@@ -75,7 +75,7 @@ const PageProcess: React.FC = () => {
                 response.data.data.paymentStatus === "paid"
               ) {
                 const encryptedData = encryptData(paymentData);
-                const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(
+                const newLink = `${window.location.origin}/payment/success?q=${encodeURIComponent(
                   encryptedData,
                 )}`;
                 router.push(newLink);
@@ -118,7 +118,7 @@ const PageProcess: React.FC = () => {
     };
 
     fetchData();
-  }, [data]);
+  }, [q]);
 
   useEffect(() => {
     if (!orderPayments) return; // Wait for orderPayments to be available
@@ -139,7 +139,7 @@ const PageProcess: React.FC = () => {
           ) {
             toast.success(msgData.status, { theme: "colored" });
             const encryptedData = encryptData(orderPayments);
-            const newLink = `${window.location.origin}/payment/success?data=${encodeURIComponent(
+            const newLink = `${window.location.origin}/payment/success?q=${encodeURIComponent(
               encryptedData,
             )}`;
             router.push(newLink).then(() => {

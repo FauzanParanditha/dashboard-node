@@ -153,7 +153,7 @@ export const processPayment = async (
         },
       });
 
-      const newLink = `${window.location.origin}/payment/process?data=${encodeURIComponent(encryptedData)}`;
+      const newLink = `${window.location.origin}/payment/process?q=${encodeURIComponent(encryptedData)}`;
       //   console.log("New Link:", newLink);
       router.push(newLink);
     } else {
@@ -258,7 +258,7 @@ export const cancelPayment = async (
         expired: Math.floor((Date.now() + 30 * 60 * 1000) / 1000),
       });
 
-      const newLink = `${window.location.origin}/payment?data=${encodeURIComponent(encryptedData)}`;
+      const newLink = `${window.location.origin}/payment?q=${encodeURIComponent(encryptedData)}`;
       //   console.log("New Link:", newLink);
       router.push(newLink);
 

@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 
 const PageSuccess: React.FC = () => {
   const router = useRouter();
-  const { data } = router.query;
+  const { q } = router.query;
   const [loading, setLoading] = useState(true);
   const [paymentSuccess, setPaymentSuccess] = useState<PaymentDetails | null>(
     null,
@@ -22,10 +22,10 @@ const PageSuccess: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        if (data) {
-          const dataString = Array.isArray(data) ? data[0] : data;
+        if (q) {
+          const dataString = Array.isArray(q) ? q[0] : q;
           const response = await axios.get(
-            `/api/payment?data=${encodeURIComponent(dataString)}`,
+            `/api/payment?q=${encodeURIComponent(dataString)}`,
           );
           const paymentData = response.data;
           setPaymentSuccess(paymentData);
@@ -73,7 +73,7 @@ const PageSuccess: React.FC = () => {
     };
 
     fetchData();
-  }, [data]);
+  }, [q]);
 
   if (loading) {
     return (

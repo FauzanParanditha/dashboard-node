@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 
 const PaymentPage = () => {
   const router = useRouter();
-  const { data } = router.query;
+  const { q } = router.query;
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<
     PaymentMethodsResponse[]
@@ -27,8 +27,8 @@ const PaymentPage = () => {
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
 
   useEffect(() => {
-    if (data) {
-      const dataString = Array.isArray(data) ? data[0] : data;
+    if (q) {
+      const dataString = Array.isArray(q) ? q[0] : q;
 
       // try {
       //   const decryptedData = decryptData(dataString);
@@ -42,7 +42,7 @@ const PaymentPage = () => {
       // }
 
       axios
-        .get(`/api/payment?data=${encodeURIComponent(dataString)}`)
+        .get(`/api/payment?q=${encodeURIComponent(dataString)}`)
         .then((response) => {
           setOrderDetails(response.data);
         })
@@ -52,7 +52,7 @@ const PaymentPage = () => {
           toast.error(errorMessage);
         });
     }
-  }, [data]);
+  }, [q]);
 
   useEffect(() => {
     fetchPaymentMethods(setPaymentMethods, setLoading);

@@ -7,14 +7,14 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { data } = req.query;
-  if (!data) {
+  const { q } = req.query;
+  if (!q) {
     return res.status(400).json({ error: "No data provided" });
   }
 
   try {
     // Decrypt the order data
-    const orderData = decryptData(Array.isArray(data) ? data[0] : data);
+    const orderData = decryptData(Array.isArray(q) ? q[0] : q);
 
     // Get the current timestamp
     const currentTime = new Date().getTime(); // Current time in milliseconds
