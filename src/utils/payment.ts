@@ -9,6 +9,11 @@ import { OrderDetails, PaymentDetails, PaymentMethodsResponse } from "./order";
 
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import {
+  closeWebSocket,
+  enableWebSocketReconnect,
+  initializeWebSocket,
+} from "./websocket_initializer";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -260,9 +265,13 @@ export const cancelPayment = async (
 
       const newLink = `${window.location.origin}/payment?q=${encodeURIComponent(encryptedData)}`;
       //   console.log("New Link:", newLink);
-      router.push(newLink).then(() => {
-        router.reload(); // Memastikan useEffect berjalan ulang
-      });
+      router.push(newLink);
+
+      enableWebSocketReconnect(); // ✅ Aktifkan reconnect setelah cancelPayment
+      setTimeout(() => {
+        console.log("🔄 Restarting WebSocket after cancelPayment...");
+        initializeWebSocket(process.env.NEXT_PUBLIC_WS_URL as string, true);
+      }, 1000);
 
       toast.warn("PAYMENT CANCELED", { theme: "colored" });
       setIsPaymentProcessing(false);
@@ -340,6 +349,7 @@ export const successPayment = async (
       (selectedMethod.category === "VIRTUAL ACCOUNT" &&
         response?.data.responseCode === "2002600")
     ) {
+      closeWebSocket();
       return { data: response.data };
     } else {
       throw new Error("Failed to cancel payment. Please try again.");

@@ -1,18 +1,29 @@
 let websocket: WebSocket | null = null;
-let isManuallyClosed = false; // Prevents unwanted reconnections
+let isManuallyClosed = false; // ❌ Prevents unwanted reconnections
+let shouldReconnect = true; // ✅ Controls whether WebSocket should reconnect
 
-export const initializeWebSocket = (url: string): Promise<WebSocket> => {
+export const initializeWebSocket = (
+  url: string,
+  forceReconnect = false,
+): Promise<WebSocket> => {
   return new Promise((resolve, reject) => {
-    if (websocket) {
-      console.log("WebSocket already initialized.");
+    if (websocket && !forceReconnect) {
+      console.log("⚠️ WebSocket already initialized.");
       return resolve(websocket);
     }
+
+    if (!shouldReconnect) {
+      console.log("🚫 WebSocket will not reconnect (successPayment).");
+      return reject(new Error("WebSocket reconnection is disabled."));
+    }
+
+    console.log("🛠️ Initializing WebSocket connection...");
 
     websocket = new WebSocket(url);
 
     websocket.onopen = () => {
       console.log("✅ WebSocket connection established");
-      isManuallyClosed = false; // Reset manual close flag
+      isManuallyClosed = false; // ✅ Reset manual close flag
       resolve(websocket as WebSocket);
     };
 
@@ -28,11 +39,11 @@ export const initializeWebSocket = (url: string): Promise<WebSocket> => {
     websocket.onclose = () => {
       console.log("⚠️ WebSocket connection closed");
 
-      if (!isManuallyClosed) {
+      if (!isManuallyClosed && shouldReconnect) {
         setTimeout(() => {
           console.log("🔄 Reconnecting WebSocket...");
-          initializeWebSocket(url).catch(console.error);
-        }, 3000); // Retry connection after 3 seconds
+          initializeWebSocket(url, true).catch(console.error);
+        }, 3000);
       }
     };
   });
@@ -42,10 +53,17 @@ export const initializeWebSocket = (url: string): Promise<WebSocket> => {
 export const closeWebSocket = () => {
   if (websocket) {
     isManuallyClosed = true;
+    shouldReconnect = false; // ❌ Stop future reconnect attempts
     websocket.close();
     websocket = null;
     console.log("🔌 WebSocket manually closed.");
   }
+};
+
+// ✅ Function to re-enable WebSocket reconnection (after `cancelPayment`)
+export const enableWebSocketReconnect = () => {
+  console.log("🔄 WebSocket reconnect enabled.");
+  shouldReconnect = true;
 };
 
 // ✅ Function to get the current WebSocket instance

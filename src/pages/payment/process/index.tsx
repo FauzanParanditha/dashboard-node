@@ -121,13 +121,20 @@ const PageProcess: React.FC = () => {
   }, [q]);
 
   useEffect(() => {
-    if (!orderPayments) return; // Wait for orderPayments to be available
+    console.log("🔄 Checking WebSocket initialization...");
+
+    if (!orderPayments) {
+      console.warn("⚠️ orderPayments is null, skipping WebSocket setup.");
+      return;
+    }
 
     let websocket: WebSocket | null = null; // Local variable for cleanup
 
     const setupWebSocket = async () => {
       try {
-        websocket = await initializeWebSocket("wss://wss.api.pg.pandi.id");
+        websocket = await initializeWebSocket(
+          process.env.NEXT_PUBLIC_WS_URL as string,
+        );
         setWs(websocket); // Store the WebSocket instance in state
 
         websocket.onmessage = (event: MessageEvent) => {
