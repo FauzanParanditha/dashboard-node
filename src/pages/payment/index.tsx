@@ -99,6 +99,16 @@ const PaymentPage = () => {
     }
 
     try {
+      const onSuccess = (data: any) => {
+        // Kirim data ke parent atau aplikasi yang memuat iframe
+        window.parent.postMessage({ success: true, data }, "*");
+      };
+
+      const onFailure = (error: any) => {
+        // Kirim error ke parent atau aplikasi yang memuat iframe
+        window.parent.postMessage({ success: false, error }, "*");
+      };
+
       await processPayment(
         selectedPaymentMethod,
         paymentMethods,
@@ -107,6 +117,8 @@ const PaymentPage = () => {
         // setIsModalOpen,
         setIsPaymentProcessing,
         router,
+        onSuccess,
+        onFailure,
       );
     } catch (error) {
       toast.error("Failed to process payment, please try again.");

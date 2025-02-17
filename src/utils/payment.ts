@@ -73,6 +73,8 @@ export const processPayment = async (
   //   setIsModalOpen: (isOpen: boolean) => void,
   setIsPaymentProcessing: (isProcessing: boolean) => void,
   router: any,
+  onSuccess?: (data: any) => void,
+  onFailure?: (error: any) => void,
 ) => {
   if (!selectedPaymentMethod) {
     toast.warn("Please select a payment method.", { theme: "colored" });
@@ -135,6 +137,7 @@ export const processPayment = async (
 
     if (response && response.data.success) {
       toast.success("Order created successfully!", { theme: "colored" });
+      if (onSuccess) onSuccess(response.data);
 
       setPaymentData(response.data);
       // setIsModalOpen(true);
@@ -169,6 +172,7 @@ export const processPayment = async (
     toast.error("An error occurred while processing your payment.", {
       theme: "colored",
     });
+    if (onFailure) onFailure(error);
   } finally {
     setIsPaymentProcessing(false);
   }
