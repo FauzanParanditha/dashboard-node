@@ -117,7 +117,7 @@ const LogActivityPage = () => {
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <p className="whitespace-nowrap">
-                                {dayjs(dt._created).format("DD-MM-YYYY")}
+                                {dayjs(dt._createdAt).format("DD-MM-YYYY")}
                               </p>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
