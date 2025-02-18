@@ -18,6 +18,16 @@ const PageSuccess: React.FC = () => {
   const [virtualAccountData, setVirtualAccountData] =
     useState<VirtualAccountData | null>(null);
 
+  const onSuccess = (data: any) => {
+    // Kirim data ke parent atau aplikasi yang memuat iframe
+    window.parent.postMessage({ success: true, data }, "*");
+  };
+
+  const onFailure = (error: any) => {
+    // Kirim error ke parent atau aplikasi yang memuat iframe
+    window.parent.postMessage({ success: false, error }, "*");
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -37,6 +47,8 @@ const PageSuccess: React.FC = () => {
               paymentData.paymentMethods,
               paymentData.selectedPaymentMethod,
               setLoading,
+              onSuccess,
+              onFailure,
             );
 
             if (result && result.data) {

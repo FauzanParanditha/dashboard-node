@@ -165,6 +165,7 @@ export const processPayment = async (
       //   console.log("New Link:", newLink);
       router.push(newLink);
     } else {
+      if (onFailure) onFailure("Failed to process payment. Please try again.");
       throw new Error("Failed to process payment. Please try again.");
     }
   } catch (error) {
@@ -187,6 +188,8 @@ export const cancelPayment = async (
   // setIsNewLink: (isNew: boolean) => void,
   setLoading: (loading: boolean) => void,
   router: any,
+  onSuccess?: (data: any) => void,
+  onFailure?: (error: any) => void,
 ) => {
   if (!selectedPaymentMethod) {
     toast.warn("Please select a payment method.", { theme: "colored" });
@@ -276,12 +279,13 @@ export const cancelPayment = async (
         console.log("🔄 Restarting WebSocket after cancelPayment...");
         initializeWebSocket(process.env.NEXT_PUBLIC_WS_URL as string, true);
       }, 1000);
-
+      if (onSuccess) onSuccess(response.data);
       toast.warn("PAYMENT CANCELED", { theme: "colored" });
       setIsPaymentProcessing(false);
       // setIsNewLink(false);
       //   setIsModalOpen(false);
     } else {
+      if (onFailure) onFailure("Failed to cancel payment. Please try again.");
       throw new Error("Failed to cancel payment. Please try again.");
     }
   } catch (error) {
@@ -290,6 +294,7 @@ export const cancelPayment = async (
       "An error occurred while processing your payment cancellation.",
       { theme: "colored" },
     );
+    if (onFailure) onFailure(error);
   } finally {
     setLoading(false);
   }
@@ -301,6 +306,8 @@ export const successPayment = async (
   paymentMethod: PaymentMethodsResponse[],
   selectedPaymentMethod: string,
   setLoading: (loading: boolean) => void,
+  onSuccess?: (data: any) => void,
+  onFailure?: (error: any) => void,
 ) => {
   const selectedMethod = paymentMethod
     .flatMap(({ methods }: any) => methods)
@@ -356,14 +363,15 @@ export const successPayment = async (
       closeWebSocket();
       return { data: response.data };
     } else {
-      throw new Error("Failed to cancel payment. Please try again.");
+      if (onFailure) onFailure("Failed to payment. Please try again.");
+      throw new Error("Failed to payment. Please try again.");
     }
   } catch (error) {
     handleAxiosError(error);
-    toast.error(
-      "An error occurred while processing your payment cancellation.",
-      { theme: "colored" },
-    );
+    toast.error("An error occurred while processing your payment.", {
+      theme: "colored",
+    });
+    if (onFailure) onFailure(error);
   } finally {
     setLoading(false);
   }

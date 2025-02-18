@@ -185,6 +185,16 @@ const PageProcess: React.FC = () => {
     return `${String(hours).padStart(2, "0")} : ${String(minutes).padStart(2, "0")} : ${String(secs).padStart(2, "0")}`;
   };
 
+  const onSuccess = (data: any) => {
+    // Kirim data ke parent atau aplikasi yang memuat iframe
+    window.parent.postMessage({ success: true, data }, "*");
+  };
+
+  const onFailure = (error: any) => {
+    // Kirim error ke parent atau aplikasi yang memuat iframe
+    window.parent.postMessage({ success: false, error }, "*");
+  };
+
   const handleCancel = async () => {
     if (!orderPayments?.selectedPaymentMethod) {
       toast.warn("Please select a payment method.", { theme: "colored" });
@@ -212,6 +222,8 @@ const PageProcess: React.FC = () => {
             setIsPaymentProcessing,
             setLoading,
             router,
+            onSuccess,
+            onFailure
           );
         } catch {
           toast.error("Failed to cancel payment, please try again.");
