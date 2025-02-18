@@ -360,6 +360,7 @@ export const successPayment = async (
       (selectedMethod.category === "VIRTUAL ACCOUNT" &&
         response?.data.responseCode === "2002600")
     ) {
+      if (onSuccess) onSuccess(response.data);
       closeWebSocket();
       return { data: response.data };
     } else {

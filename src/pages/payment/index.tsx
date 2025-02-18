@@ -101,7 +101,7 @@ const PaymentPage = () => {
     try {
       const onSuccess = (data: any) => {
         // Kirim data ke parent atau aplikasi yang memuat iframe
-        window.parent.postMessage({ success: true, data }, "*");
+        window.parent.postMessage({ success: true, data, message: "01" }, "*");
       };
 
       const onFailure = (error: any) => {

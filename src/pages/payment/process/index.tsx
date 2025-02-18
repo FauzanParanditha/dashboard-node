@@ -187,7 +187,7 @@ const PageProcess: React.FC = () => {
 
   const onSuccess = (data: any) => {
     // Kirim data ke parent atau aplikasi yang memuat iframe
-    window.parent.postMessage({ success: true, data }, "*");
+    window.parent.postMessage({ success: true, data, message: "05" }, "*");
   };
 
   const onFailure = (error: any) => {
@@ -223,7 +223,7 @@ const PageProcess: React.FC = () => {
             setLoading,
             router,
             onSuccess,
-            onFailure
+            onFailure,
           );
         } catch {
           toast.error("Failed to cancel payment, please try again.");

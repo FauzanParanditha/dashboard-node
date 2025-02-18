@@ -20,7 +20,7 @@ const PageSuccess: React.FC = () => {
 
   const onSuccess = (data: any) => {
     // Kirim data ke parent atau aplikasi yang memuat iframe
-    window.parent.postMessage({ success: true, data }, "*");
+    window.parent.postMessage({ success: true, data, message: "00" }, "*");
   };
 
   const onFailure = (error: any) => {
