@@ -36,8 +36,8 @@ const LoginPage = () => {
   const { user } = useUserContext();
 
   useEffect(() => {
-    console.log("Auth status:", auth);
-    console.log("User data:", user);
+    // console.log("Auth status:", auth);
+    // console.log("User data:", user);
 
     if (auth == "authenticated") {
       router.replace("/dashboard/home");
