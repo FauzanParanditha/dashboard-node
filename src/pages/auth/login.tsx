@@ -54,10 +54,8 @@ const LoginPage = () => {
       .post("/adm/auth/login", data)
       .then(async (res) => {
         if (res.data.success) {
-          setCookie(
-            tokenName,
-            `${res.data.token_type} ${res.data.access_token}`,
-          );
+          console.log(res.data);
+          setCookie(tokenName, `Bearer ${res.data.token}`);
           await revalidate({}, true);
 
           toast.success("login success", { theme: "colored" });
