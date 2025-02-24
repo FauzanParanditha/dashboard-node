@@ -1,5 +1,5 @@
 import { tokenName } from "@/utils/var";
-import { deleteCookie } from "cookies-next";
+import { deleteCookie, getCookie } from "cookies-next";
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import useSWR from "swr";
@@ -16,23 +16,42 @@ const useUserContextValue = () => {
     data: user,
     error,
     mutate,
-  } = useSWR("/me", {
+  } = useSWR(getCookie(tokenName) ? "/me" : null, {
     dedupingInterval: 20000,
     revalidateOnFocus: false,
     revalidateOnMount: true,
     refreshInterval: 20000,
   });
 
+  const logout = () => {
+    deleteCookie(tokenName);
+    mutate();
+    setAuth("unauthorized");
+  };
+
+  useEffect(() => {
+    if (auth !== "authenticated") return;
+    const checkToken = () => {
+      const token = getCookie(tokenName);
+      if (!token) {
+        logout();
+      }
+    };
+
+    const interval = setInterval(checkToken, 5000);
+    return () => clearInterval(interval);
+  }, [auth]);
+
   // Handle user authentication
   useEffect(() => {
     if (error) {
       if (error?.response?.status === 401) {
-        if (window.location.pathname.includes("dashboard")) {
-          toast.error(error.response.data?.messages, { theme: "colored" });
-        }
         // Delete cookies
         deleteCookie(tokenName);
         setAuth("unauthorized");
+        if (window.location.pathname.includes("dashboard")) {
+          toast.error(error.response.data?.messages, { theme: "colored" });
+        }
       }
     } else if (user?.data) {
       setAuth("authenticated");

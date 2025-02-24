@@ -33,11 +33,16 @@ const LoginPage = () => {
   const router = useRouter();
   const { auth, revalidate } = useUserContext();
   const { setIsLoading } = useStore();
+  const { user } = useUserContext();
+
   useEffect(() => {
+    console.log("Auth status:", auth);
+    console.log("User data:", user);
+
     if (auth == "authenticated") {
-      router.push("/dashboard/home");
+      router.replace("/dashboard/home");
     }
-  }, [auth]);
+  }, [auth, user]);
 
   const {
     register,
@@ -54,7 +59,6 @@ const LoginPage = () => {
       .post("/adm/auth/login", data)
       .then(async (res) => {
         if (res.data.success) {
-          console.log(res.data);
           setCookie(tokenName, `Bearer ${res.data.token}`);
           await revalidate({}, true);
 
