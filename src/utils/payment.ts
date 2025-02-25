@@ -73,7 +73,7 @@ export const processPayment = async (
   //   setIsModalOpen: (isOpen: boolean) => void,
   setIsPaymentProcessing: (isProcessing: boolean) => void,
   router: any,
-  onSuccess?: (data: any) => void,
+  onSuccess?: (data: any, link: any) => void,
   onFailure?: (error: any) => void,
 ) => {
   if (!selectedPaymentMethod) {
@@ -137,7 +137,6 @@ export const processPayment = async (
 
     if (response && response.data.success) {
       toast.success("Order created successfully!", { theme: "colored" });
-      if (onSuccess) onSuccess(response.data);
 
       setPaymentData(response.data);
       // setIsModalOpen(true);
@@ -162,6 +161,7 @@ export const processPayment = async (
       });
 
       const newLink = `${window.location.origin}/payment/process?q=${encodeURIComponent(encryptedData)}`;
+      if (onSuccess) onSuccess(response.data, newLink);
       //   console.log("New Link:", newLink);
       router.push(newLink);
     } else {

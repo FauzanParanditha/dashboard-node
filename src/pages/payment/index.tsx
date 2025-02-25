@@ -99,9 +99,12 @@ const PaymentPage = () => {
     }
 
     try {
-      const onSuccess = (data: any) => {
+      const onSuccess = (data: any, link: any) => {
         // Kirim data ke parent atau aplikasi yang memuat iframe
-        window.parent.postMessage({ success: true, data, message: "01" }, "*");
+        window.parent.postMessage(
+          { success: true, data, message: "01", link },
+          "*",
+        );
       };
 
       const onFailure = (error: any) => {
