@@ -4,6 +4,7 @@ import ModalImage from "@/components/dashboard/available-payment/modalImage";
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
+import { useUserContext } from "@/context/user";
 import useStore from "@/store";
 import clsx from "clsx";
 import Head from "next/head";
@@ -27,6 +28,7 @@ const AvailablePaymentPage = () => {
   const [modalImageData, setModalImageData] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useUserContext();
 
   const { data: availablePayment, mutate: revalidate } = useSWR(
     `api/v1/available-payment?limit=${10}&page=${page}&query=${search}`,
@@ -213,20 +215,22 @@ const AvailablePaymentPage = () => {
                                 {available.active ? "Active" : "NOT Active"}
                               </span>
                             </td>
-                            <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                              <Link
-                                href={`/dashboard/available-payment/${available._id}`}
-                              >
-                                <HiOutlinePencil className="h-5 w-5 text-blue-400" />
-                              </Link>
-                              <HiOutlineTrash
-                                className="h-5 w-5 text-rose-400"
-                                onClick={(e: any) => {
-                                  e.stopPropagation();
-                                  DeleteAvailablePayment(available);
-                                }}
-                              />
-                            </td>
+                            {user._id === available.adminId && (
+                              <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                                <Link
+                                  href={`/dashboard/available-payment/${available._id}`}
+                                >
+                                  <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                                </Link>
+                                <HiOutlineTrash
+                                  className="h-5 w-5 text-rose-400"
+                                  onClick={(e: any) => {
+                                    e.stopPropagation();
+                                    DeleteAvailablePayment(available);
+                                  }}
+                                />
+                              </td>
+                            )}
                           </tr>
                         ),
                       )}
