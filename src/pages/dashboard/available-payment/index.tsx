@@ -215,7 +215,7 @@ const AvailablePaymentPage = () => {
                                 {available.active ? "Active" : "NOT Active"}
                               </span>
                             </td>
-                            {user._id === available.adminId && (
+                            {user._id === available.adminId._id && (
                               <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
                                 <Link
                                   href={`/dashboard/available-payment/${available._id}`}

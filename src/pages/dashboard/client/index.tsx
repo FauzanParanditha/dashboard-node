@@ -3,6 +3,7 @@ import ModalClient from "@/components/dashboard/client/modaClient";
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
+import { useUserContext } from "@/context/user";
 import useStore from "@/store";
 import clsx from "clsx";
 import Head from "next/head";
@@ -18,6 +19,7 @@ const ClientPage = () => {
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
+  const { user } = useUserContext();
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: clients, mutate: revalidate } = useSWR(
@@ -179,18 +181,20 @@ const ClientPage = () => {
                               {client?.active ? "Active" : "NOT Active"}
                             </span>
                           </td>
-                          <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                            <Link href={`/dashboard/client/${client._id}`}>
-                              <HiOutlinePencil className="h-5 w-5 text-blue-400" />
-                            </Link>
-                            <HiOutlineTrash
-                              className="h-5 w-5 text-rose-400"
-                              onClick={(e: any) => {
-                                e.stopPropagation();
-                                DeleteClient(client);
-                              }}
-                            />
-                          </td>
+                          {user._id === client.adminId && (
+                            <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                              <Link href={`/dashboard/client/${client._id}`}>
+                                <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                              </Link>
+                              <HiOutlineTrash
+                                className="h-5 w-5 text-rose-400"
+                                onClick={(e: any) => {
+                                  e.stopPropagation();
+                                  DeleteClient(client);
+                                }}
+                              />
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>

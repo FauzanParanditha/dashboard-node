@@ -3,6 +3,7 @@ import ModalIp from "@/components/dashboard/ip/modalIp";
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
+import { useUserContext } from "@/context/user";
 import useStore from "@/store";
 import Head from "next/head";
 import { useEffect, useState } from "react";
@@ -16,6 +17,7 @@ const AdminPage = () => {
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
+  const { user } = useUserContext();
 
   const [defaultValue, setDefaultValue] = useState({});
   const [id, setId] = useState(0); //id for update
@@ -158,22 +160,24 @@ const AdminPage = () => {
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             {ip.adminId.email}
                           </td>
-                          <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                            <HiOutlinePencil
-                              className="h-5 w-5 text-blue-400"
-                              onClick={(e: any) => {
-                                e.stopPropagation();
-                                UpdateIp(ip);
-                              }}
-                            />
-                            <HiOutlineTrash
-                              className="h-5 w-5 text-rose-400"
-                              onClick={(e: any) => {
-                                e.stopPropagation();
-                                DeleteIp(ip);
-                              }}
-                            />
-                          </td>
+                          {user._id === ip.adminId._id && (
+                            <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                              <HiOutlinePencil
+                                className="h-5 w-5 text-blue-400"
+                                onClick={(e: any) => {
+                                  e.stopPropagation();
+                                  UpdateIp(ip);
+                                }}
+                              />
+                              <HiOutlineTrash
+                                className="h-5 w-5 text-rose-400"
+                                onClick={(e: any) => {
+                                  e.stopPropagation();
+                                  DeleteIp(ip);
+                                }}
+                              />
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
