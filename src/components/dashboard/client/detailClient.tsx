@@ -116,7 +116,7 @@ const DetailClnt = () => {
             <div className="grid grid-cols-1 sm:grid-cols-1">
               <div className="mb-4 pr-3">
                 <InputField
-                  placeholder="jhon"
+                  placeholder="example"
                   label="Full Name"
                   className="w-full"
                   {...register("name")}

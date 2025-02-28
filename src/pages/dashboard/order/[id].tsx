@@ -64,7 +64,7 @@ const DetailOrderPage = () => {
           </Link>
         </div> */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="max-h-screen overflow-hidden bg-white shadow sm:rounded-lg dark:bg-black">
+          <div className="max-h-screen overflow-y-auto bg-white shadow sm:rounded-lg dark:bg-black">
             <div className="px-4 py-6 sm:px-6">
               <h3 className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
                 Orders Detail
@@ -186,7 +186,7 @@ const DetailOrderPage = () => {
             </div>
           </div>
           {order?.paymentPaylabs && (
-            <div className="max-h-screen overflow-auto bg-white shadow sm:rounded-lg dark:bg-black">
+            <div className="max-h-screen overflow-y-auto bg-white shadow sm:rounded-lg dark:bg-black">
               <div className="px-4 py-6 sm:px-6">
                 <h3 className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
                   Paylabs Detail

@@ -100,7 +100,7 @@ const ModalAvailablePayment = ({
               as="h3"
               className="flex justify-between py-2 text-lg font-medium leading-6 text-gray-900 dark:text-white"
             >
-              Create Availabel Payment
+              Create Available Payment
               <button
                 type="button"
                 className="rounded-full bg-rose-50 p-1 text-sm font-semibold"

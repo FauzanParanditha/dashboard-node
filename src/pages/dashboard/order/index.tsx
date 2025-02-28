@@ -6,7 +6,7 @@ import formatMoney from "@/utils/helper";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { HiOutlinePencil } from "react-icons/hi";
+import { HiEye } from "react-icons/hi";
 import useSWR from "swr";
 
 const OrderPage = () => {
@@ -141,7 +141,7 @@ const OrderPage = () => {
                           </td>
                           <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
                             <Link href={`/dashboard/order/${order._id}`}>
-                              <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                              <HiEye className="h-5 w-5 text-blue-400" />
                             </Link>
                             {/* <HiOutlineTrash
                               className="h-5 w-5 text-rose-400"
