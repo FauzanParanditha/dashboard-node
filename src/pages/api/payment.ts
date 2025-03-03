@@ -7,11 +7,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  if (!process.env.ENCRYPTION_KEY) {
-    console.error("Encryption key is missing.");
-    return res.status(500).json({ error: "Server configuration error." });
-  }
-
   const { q } = req.query;
   if (!q || (typeof q !== "string" && !Array.isArray(q))) {
     return res.status(400).json({ error: "Invalid data format" });
