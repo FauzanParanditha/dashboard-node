@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     "rc-picker",
     "rc-input",
   ],
+  env: {
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+  },
 };
 
 export default nextConfig;

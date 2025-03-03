@@ -170,9 +170,9 @@ export const processPayment = async (
     }
   } catch (error) {
     handleAxiosError(error);
-    toast.error("An error occurred while processing your payment.", {
-      theme: "colored",
-    });
+    // toast.error("An error occurred while processing your payment.", {
+    //   theme: "colored",
+    // });
     if (onFailure) onFailure(error);
   } finally {
     setIsPaymentProcessing(false);
