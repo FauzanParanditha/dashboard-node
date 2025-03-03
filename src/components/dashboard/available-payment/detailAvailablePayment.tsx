@@ -109,7 +109,8 @@ const DetailAvaPay = () => {
       })
       .then((res) => {
         if (res.data.success) {
-          getData();
+          // getData();
+          router.push("/dashboard/available-payment");
           toast.success("Update Available Payment success", {
             theme: "colored",
           });
@@ -137,14 +138,14 @@ const DetailAvaPay = () => {
               <div className="mb-4 pr-3">
                 <InputField
                   placeholder="example"
-                  label="Full Name"
+                  label="Name"
                   className="w-full"
                   {...register("name")}
                   required
                   error={errors.name?.message}
                 />
               </div>
-              <div className="mb-4 pr-3">
+              <div className="mb-4 hidden pr-3">
                 <Controller
                   control={control}
                   name="adminId"
