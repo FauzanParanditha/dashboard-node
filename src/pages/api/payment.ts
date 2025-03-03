@@ -8,37 +8,26 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const { q } = req.query;
-  if (!q || (typeof q !== "string" && !Array.isArray(q))) {
-    return res.status(400).json({ error: "Invalid data format" });
-  }
-
-  const queryString = Array.isArray(q) ? q[0] : q;
-  if (
-    !queryString ||
-    typeof queryString !== "string" ||
-    queryString.trim() === ""
-  ) {
+  if (!q) {
     return res.status(400).json({ error: "No data provided" });
   }
 
-  let orderData;
   try {
-    orderData = decryptData(queryString);
-  } catch {
-    console.error("Decryption error: Invalid data format");
-    return res.status(400).json({ error: "Invalid or corrupted data" });
+    // Decrypt the order data
+    const orderData = decryptData(Array.isArray(q) ? q[0] : q);
+
+    // Get the current timestamp
+    const currentTime = new Date().getTime(); // Current time in milliseconds
+    const expirationTime = new Date(orderData.expired * 1000).getTime(); // Convert UNIX timestamp to milliseconds
+
+    if (currentTime > expirationTime) {
+      return res.status(400).json({ error: "Order has expired" });
+    }
+
+    // Order is still valid, return it
+    return res.status(200).json(orderData);
+  } catch (error) {
+    console.error("Decryption error:", error);
+    return res.status(500).json({ error: "Failed to process order data" });
   }
-
-  if (!Number.isFinite(orderData.expired) || orderData.expired <= 0) {
-    return res.status(400).json({ error: "Invalid expiration data" });
-  }
-
-  const currentTime = Date.now();
-  const expirationTime = orderData.expired * 1000;
-
-  if (currentTime > expirationTime) {
-    return res.status(400).json({ error: "Order has expired" });
-  }
-
-  return res.status(200).json(orderData);
 }
