@@ -29,7 +29,6 @@ const PaymentPage = () => {
   useEffect(() => {
     if (q) {
       const dataString = Array.isArray(q) ? q[0] : q;
-
       // try {
       //   const decryptedData = decryptData(dataString);
       //   setSelectedPaymentMethod(decryptedData.selectedPaymentMethod);

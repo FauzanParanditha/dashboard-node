@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   ],
   env: {
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+    HMAC_KEY: process.env.HMAC_KEY,
   },
 };
 

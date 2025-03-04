@@ -70,7 +70,6 @@ export const processPayment = async (
   paymentMethod: PaymentMethodsResponse[],
   orderDetails: OrderDetails,
   setPaymentData: (data: any) => void,
-  //   setIsModalOpen: (isOpen: boolean) => void,
   setIsPaymentProcessing: (isProcessing: boolean) => void,
   router: any,
   onSuccess?: (data: any, link: any) => void,
@@ -120,59 +119,47 @@ export const processPayment = async (
       "x-timestamp": formattedTimestamp,
     };
 
-    let response;
-    if (selectedMethod.category === "QRIS") {
-      response = await axios.post(
-        `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/create/qris`,
-        updatedOrderDetails,
-        { headers },
-      );
-    } else if (selectedMethod.category === "VIRTUAL ACCOUNT") {
-      response = await axios.post(
-        `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/create/va/snap`,
-        updatedOrderDetails,
-        { headers },
-      );
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
+      updatedOrderDetails,
+      { headers },
+    );
+
+    if (!response.data.success) {
+      if (onFailure) onFailure("Failed to process payment. Please try again.");
+      return;
     }
 
-    if (response && response.data.success) {
-      toast.success("Order created successfully!", { theme: "colored" });
+    toast.success("Order created successfully!", { theme: "colored" });
 
-      setPaymentData(response.data);
-      // setIsModalOpen(true);
+    setPaymentData(response.data);
 
-      const encryptedData = encryptData({
-        // isModalOpen: true,
-        isPaymentProcessing: true,
-        selectedPaymentMethod,
-        paymentMethods: paymentMethod,
-        orderDetails: orderDetails,
-        paymentData: {
-          virtualAccountNo: response.data.virtualAccountNo,
-          customerNo: response.data.customerNo,
-          qrUrl: response.data.qrUrl,
-          paymentExpired: response.data.paymentExpired,
-          paymentId: response.data.paymentId,
-          totalAmount: response.data.totalAmount,
-          storeId: response.data.storeId,
-          orderId: response.data.orderId,
-          id: response.data.id,
-        },
-      });
+    const encryptedData = encryptData({
+      isPaymentProcessing: true,
+      selectedPaymentMethod,
+      paymentMethods: paymentMethod,
+      orderDetails: orderDetails,
+      paymentData: {
+        virtualAccountNo: response.data.virtualAccountNo,
+        customerNo: response.data.customerNo,
+        qrUrl: response.data.qrUrl,
+        paymentExpired: response.data.paymentExpired,
+        paymentId: response.data.paymentId,
+        totalAmount: response.data.totalAmount,
+        storeId: response.data.storeId,
+        orderId: response.data.orderId,
+        id: response.data.id,
+      },
+    });
 
-      const newLink = `${window.location.origin}/payment/process?q=${encodeURIComponent(encryptedData)}`;
-      if (onSuccess) onSuccess(response.data, newLink);
-      //   console.log("New Link:", newLink);
+    const newLink = `${window.location.origin}/payment/process?q=${encodeURIComponent(encryptedData)}`;
+
+    if (onSuccess) {
+      onSuccess(response.data, newLink);
       router.push(newLink);
-    } else {
-      if (onFailure) onFailure("Failed to process payment. Please try again.");
-      throw new Error("Failed to process payment. Please try again.");
     }
   } catch (error) {
     handleAxiosError(error);
-    // toast.error("An error occurred while processing your payment.", {
-    //   theme: "colored",
-    // });
     if (onFailure) onFailure(error);
   } finally {
     setIsPaymentProcessing(false);

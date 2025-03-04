@@ -14,13 +14,14 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     // Decrypt the order data
-    const orderData = decryptData(Array.isArray(q) ? q[0] : q);
+    const orderData = decryptData(
+      decodeURIComponent(Array.isArray(q) ? q[0] : q),
+    );
 
     // Get the current timestamp
-    const currentTime = new Date().getTime(); // Current time in milliseconds
-    const expirationTime = new Date(orderData.expired * 1000).getTime(); // Convert UNIX timestamp to milliseconds
+    const currentTime = Math.floor(Date.now() / 1000);
 
-    if (currentTime > expirationTime) {
+    if (currentTime > orderData.expired) {
       return res.status(400).json({ error: "Order has expired" });
     }
 
