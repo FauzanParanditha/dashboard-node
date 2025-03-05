@@ -25,13 +25,19 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const currentTime = dayjs().unix();
 
-    const paymentExpiredStr = orderData.paymentData.paymentExpired
-      ? orderData.paymentData.paymentExpired
-      : orderData.expired;
+    let paymentExpiredStr = orderData?.paymentData?.paymentExpired
+      ? orderData?.paymentData?.paymentExpired
+      : orderData?.expired;
     let paymentExpired;
 
-    // Cek apakah formatnya ISO 8601 atau YYYYMMDDHHmmss
-    if (paymentExpiredStr.includes("T")) {
+    if (typeof paymentExpiredStr !== "string") {
+      paymentExpiredStr = String(paymentExpiredStr);
+    }
+
+    // Cek apakah nilai adalah angka 10 digit (Unix timestamp dalam detik)
+    if (/^\d{10}$/.test(paymentExpiredStr)) {
+      paymentExpired = Number(paymentExpiredStr); // Langsung pakai sebagai epoch time
+    } else if (paymentExpiredStr.includes("T")) {
       // Format ISO 8601
       paymentExpired = dayjs(paymentExpiredStr).unix();
     } else {
