@@ -25,7 +25,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const currentTime = dayjs().unix();
 
-    const paymentExpiredStr = orderData.paymentData.paymentExpired;
+    const paymentExpiredStr = orderData.paymentData.paymentExpired
+      ? orderData.paymentData.paymentExpired
+      : orderData.expired;
     let paymentExpired;
 
     // Cek apakah formatnya ISO 8601 atau YYYYMMDDHHmmss
