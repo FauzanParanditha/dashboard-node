@@ -125,6 +125,7 @@ const PageProcess: React.FC = () => {
         // console.error("Error fetching order data:", error);
         if ((error as any).status === 410) {
           toast.error("Order Expired");
+          return;
         }
         toast.error("Error fetching order data");
       } finally {
