@@ -49,9 +49,9 @@ const PageProcess: React.FC = () => {
               .tz("Asia/Jakarta")
               .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
             const endpointUrl =
-              paymentData?.selectedMethod === "QRIS"
-                ? `/api/v1/order/status/qris/${paymentData?.id}`
-                : `/api/v1/order/status/va/snap/${paymentData?.id}`;
+              paymentData?.selectedPaymentMethod === "QRIS"
+                ? `/api/v1/order/status/qris/${paymentData?.paymentData?.id}`
+                : `/api/v1/order/status/va/snap/${paymentData?.paymentData?.id}`;
             const clientId = paymentData?.orderDetails?.clientId;
 
             const signature = createSignatureForward(
@@ -69,21 +69,24 @@ const PageProcess: React.FC = () => {
 
             try {
               let response;
-              if (paymentData?.selectedMethod === "QRIS") {
+              console.log(paymentData?.paymentData?.id);
+              if (paymentData?.selectedPaymentMethod === "QRIS") {
                 response = await axios.get(
-                  `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/status/qris/${paymentData?.id}`,
+                  `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
                   { headers },
                 );
-              } else if (paymentData?.selectedMethod === "VIRTUAL ACCOUNT") {
+              } else if (
+                paymentData?.selectedPaymentMethod === "VIRTUAL ACCOUNT"
+              ) {
                 response = await axios.get(
-                  `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/status/va/snap/${paymentData?.id}`,
+                  `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
                   { headers },
                 );
               }
               if (
-                (paymentData?.selectedMethod === "QRIS" &&
+                (paymentData?.selectedPaymentMethod === "QRIS" &&
                   response?.data.status === "02") ||
-                (paymentData?.selectedMethod === "VIRTUAL ACCOUNT" &&
+                (paymentData?.selectedPaymentMethod === "VIRTUAL ACCOUNT" &&
                   response?.data.responseCode === "2002600")
               ) {
                 const encryptedData = encryptData(paymentData);
