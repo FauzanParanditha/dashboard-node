@@ -48,10 +48,7 @@ const PageProcess: React.FC = () => {
             const formattedTimestamp = dayjs()
               .tz("Asia/Jakarta")
               .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
-            const endpointUrl =
-              paymentData?.selectedPaymentMethod === "QRIS"
-                ? `/api/v1/order/status/qris/${paymentData?.paymentData?.id}`
-                : `/api/v1/order/status/va/snap/${paymentData?.paymentData?.id}`;
+            const endpointUrl = `/api/v1/order/${paymentData?.paymentData?.id}`;
             const clientId = paymentData?.orderDetails?.clientId;
 
             const signature = createSignatureForward(
@@ -68,35 +65,26 @@ const PageProcess: React.FC = () => {
             };
 
             try {
-              let response;
-              console.log(paymentData?.paymentData?.id);
-              if (paymentData?.selectedPaymentMethod === "QRIS") {
-                response = await axios.get(
-                  `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
-                  { headers },
-                );
-              } else if (
-                paymentData?.selectedPaymentMethod === "VIRTUAL ACCOUNT"
-              ) {
-                response = await axios.get(
-                  `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
-                  { headers },
-                );
-              }
+              const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
+                { headers },
+              );
+
               if (
-                (paymentData?.selectedPaymentMethod === "QRIS" &&
-                  response?.data.status === "02") ||
-                (paymentData?.selectedPaymentMethod === "VIRTUAL ACCOUNT" &&
-                  response?.data.responseCode === "2002600")
+                response.status === 200 &&
+                response.data.data.paymentStatus === "paid"
               ) {
                 const encryptedData = encryptData(paymentData);
                 const newLink = `${window.location.origin}/payment/success?q=${encodeURIComponent(
                   encryptedData,
                 )}`;
                 router.push(newLink);
-              } else {
+              } else if (
+                response.data.success &&
+                response.data.data.paymentStatus === "cancel"
+              ) {
                 setTimeLeft(0);
-                toast.warn("An error occurred: ", { theme: "colored" });
+                toast.warn("Payment Canceled", { theme: "colored" });
                 ws?.onclose;
                 return;
               }
@@ -122,11 +110,7 @@ const PageProcess: React.FC = () => {
           return () => clearInterval(timer);
         }
       } catch (error) {
-        // console.error("Error fetching order data:", error);
-        if ((error as any).status === 410) {
-          toast.error("Order Expired");
-          return;
-        }
+        console.error("Error fetching order data:", error);
         toast.error("Error fetching order data");
       } finally {
         setLoading(false);
