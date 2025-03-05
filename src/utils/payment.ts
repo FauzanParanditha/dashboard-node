@@ -343,7 +343,7 @@ export const successPayment = async (
     }
 
     if (
-      (selectedMethod.category === "QRIS" && response?.data.errCode === "0") ||
+      (selectedMethod.category === "QRIS" && response?.data.status === "02") ||
       (selectedMethod.category === "VIRTUAL ACCOUNT" &&
         response?.data.responseCode === "2002600")
     ) {

@@ -48,7 +48,10 @@ const PageProcess: React.FC = () => {
             const formattedTimestamp = dayjs()
               .tz("Asia/Jakarta")
               .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
-            const endpointUrl = `/api/v1/order/${paymentData?.paymentData?.id}`;
+            const endpointUrl =
+              paymentData?.selectedMethod.category === "QRIS"
+                ? `/api/v1/order/status/qris/${paymentData?.id}`
+                : `/api/v1/order/status/va/snap/${paymentData?.id}`;
             const clientId = paymentData?.orderDetails?.clientId;
 
             const signature = createSignatureForward(
@@ -65,26 +68,35 @@ const PageProcess: React.FC = () => {
             };
 
             try {
-              const response = await axios.get(
-                `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
-                { headers },
-              );
+              let response;
+              if (paymentData?.selectedMethod.category === "QRIS") {
+                response = await axios.get(
+                  `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/status/qris/${paymentData?.id}`,
+                  { headers },
+                );
+              } else if (
+                paymentData?.selectedMethod.category === "VIRTUAL ACCOUNT"
+              ) {
+                response = await axios.get(
+                  `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/status/va/snap/${paymentData?.id}`,
+                  { headers },
+                );
+              }
 
               if (
-                response.status === 200 &&
-                response.data.data.paymentStatus === "paid"
+                (paymentData?.selectedMethod.category === "QRIS" &&
+                  response?.data.status === "02") ||
+                (paymentData?.selectedMethod.category === "VIRTUAL ACCOUNT" &&
+                  response?.data.responseCode === "2002600")
               ) {
                 const encryptedData = encryptData(paymentData);
                 const newLink = `${window.location.origin}/payment/success?q=${encodeURIComponent(
                   encryptedData,
                 )}`;
                 router.push(newLink);
-              } else if (
-                response.data.success &&
-                response.data.data.paymentStatus === "cancel"
-              ) {
+              } else {
                 setTimeLeft(0);
-                toast.warn("Payment Canceled", { theme: "colored" });
+                toast.warn("An error occurred: ", { theme: "colored" });
                 ws?.onclose;
                 return;
               }

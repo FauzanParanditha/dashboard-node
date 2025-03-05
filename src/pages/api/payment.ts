@@ -1,4 +1,6 @@
 import { decryptData } from "@/utils/encryption";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -19,10 +21,31 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     );
 
     // Get the current timestamp
-    const currentTime = Math.floor(Date.now() / 1000);
+    dayjs.extend(customParseFormat);
 
-    if (currentTime > orderData.expired) {
-      return res.status(400).json({ error: "Order has expired" });
+    const currentTime = dayjs().unix();
+
+    const paymentExpiredStr = orderData.paymentData.paymentExpired;
+    let paymentExpired;
+
+    // Cek apakah formatnya ISO 8601 atau YYYYMMDDHHmmss
+    if (paymentExpiredStr.includes("T")) {
+      // Format ISO 8601
+      paymentExpired = dayjs(paymentExpiredStr).unix();
+    } else {
+      // Format YYYYMMDDHHmmss
+      paymentExpired = dayjs(paymentExpiredStr, "YYYYMMDDHHmmss").unix();
+    }
+
+    // Validasi hasil konversi
+    if (!paymentExpired || isNaN(paymentExpired)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid payment expiration format" });
+    }
+
+    if (currentTime > paymentExpired) {
+      return res.status(410).json({ error: "Order has expired" });
     }
 
     // Order is still valid, return it
