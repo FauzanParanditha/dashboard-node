@@ -122,7 +122,10 @@ const PageProcess: React.FC = () => {
           return () => clearInterval(timer);
         }
       } catch (error) {
-        console.error("Error fetching order data:", error);
+        // console.error("Error fetching order data:", error);
+        if ((error as any).status === 410) {
+          toast.error("Order Expired");
+        }
         toast.error("Error fetching order data");
       } finally {
         setLoading(false);
