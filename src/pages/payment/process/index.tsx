@@ -49,7 +49,7 @@ const PageProcess: React.FC = () => {
               .tz("Asia/Jakarta")
               .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
             const endpointUrl =
-              paymentData?.selectedMethod.category === "QRIS"
+              paymentData?.selectedMethod === "QRIS"
                 ? `/api/v1/order/status/qris/${paymentData?.id}`
                 : `/api/v1/order/status/va/snap/${paymentData?.id}`;
             const clientId = paymentData?.orderDetails?.clientId;
@@ -69,24 +69,21 @@ const PageProcess: React.FC = () => {
 
             try {
               let response;
-              if (paymentData?.selectedMethod.category === "QRIS") {
+              if (paymentData?.selectedMethod === "QRIS") {
                 response = await axios.get(
                   `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/status/qris/${paymentData?.id}`,
                   { headers },
                 );
-              } else if (
-                paymentData?.selectedMethod.category === "VIRTUAL ACCOUNT"
-              ) {
+              } else if (paymentData?.selectedMethod === "VIRTUAL ACCOUNT") {
                 response = await axios.get(
                   `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/order/status/va/snap/${paymentData?.id}`,
                   { headers },
                 );
               }
-
               if (
-                (paymentData?.selectedMethod.category === "QRIS" &&
+                (paymentData?.selectedMethod === "QRIS" &&
                   response?.data.status === "02") ||
-                (paymentData?.selectedMethod.category === "VIRTUAL ACCOUNT" &&
+                (paymentData?.selectedMethod === "VIRTUAL ACCOUNT" &&
                   response?.data.responseCode === "2002600")
               ) {
                 const encryptedData = encryptData(paymentData);

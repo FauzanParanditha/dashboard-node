@@ -119,11 +119,42 @@ export const processPayment = async (
       "x-timestamp": formattedTimestamp,
     };
 
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
-      updatedOrderDetails,
-      { headers },
-    );
+    // const response = await axios.post(
+    //   `${process.env.NEXT_PUBLIC_CLIENT_API_URL}${endpointUrl}`,
+    //   updatedOrderDetails,
+    //   { headers },
+    // );
+
+    const response =
+      selectedMethod.category === "QRIS"
+        ? {
+            data: {
+              success: true,
+              qrCode: "MOCK-QRIS:2025011745400000016",
+              qrUrl:
+                "https://sit-payer.paylabs.co.id/payer-api/qr?4f945bfd41dace9626fb4586ef30980bMOCK-QRIS%3A2025011745400000016",
+              paymentExpired: "20250306093933",
+              paymentId: "PL-288adc8f48c7ec45",
+              storeId: "010454S00001",
+              totalAmount: "20141",
+              orderId: "CLNT1234520250305803",
+              id: "6791a4956140fa6f98ea7acf",
+            },
+          }
+        : {
+            data: {
+              success: true,
+              partnerServiceId: "  010454",
+              customerNo: "20250120203595732591",
+              virtualAccountNo: "8780197401241500",
+              totalAmount: "10000",
+              paymentExpired: "2025-01-25T18:38:16+07:00",
+              paymentId: "PL-891564cc0d471e48",
+              storeId: "010454S00001",
+              orderId: "CLNT1234520250305803",
+              id: "678def593ba7120a1fb86995",
+            },
+          };
 
     if (!response.data.success) {
       if (onFailure) onFailure("Failed to process payment. Please try again.");
