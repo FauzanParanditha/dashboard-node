@@ -6,9 +6,16 @@ import ModalVerification from "@/components/dashboard/settings/modalVerification
 import { DashboardLayout } from "@/components/layout";
 import { useUserContext } from "@/context/user";
 import useStore from "@/store";
+import { checkAuthAdmin } from "@/utils/server";
+import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import { toast } from "react-toastify";
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Use the checkAuth function to handle authentication
+  return checkAuthAdmin(context);
+};
 
 const SettingsPage = () => {
   const { setIsLoading } = useStore();

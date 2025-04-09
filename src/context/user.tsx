@@ -1,4 +1,4 @@
-import { tokenName } from "@/utils/var";
+import { jwtConfig } from "@/utils/var";
 import { deleteCookie, getCookie } from "cookies-next";
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -16,7 +16,7 @@ const useUserContextValue = () => {
     data: user,
     error,
     mutate,
-  } = useSWR(getCookie(tokenName) ? "/me" : null, {
+  } = useSWR(getCookie(jwtConfig.admin.accessTokenName) ? "/me" : null, {
     dedupingInterval: 20000,
     revalidateOnFocus: false,
     revalidateOnMount: true,
@@ -24,7 +24,7 @@ const useUserContextValue = () => {
   });
 
   const logout = () => {
-    deleteCookie(tokenName);
+    deleteCookie(jwtConfig.admin.accessTokenName);
     mutate();
     setAuth("unauthorized");
   };
@@ -32,7 +32,7 @@ const useUserContextValue = () => {
   useEffect(() => {
     if (auth !== "authenticated") return;
     const checkToken = () => {
-      const token = getCookie(tokenName);
+      const token = getCookie(jwtConfig.admin.accessTokenName);
       if (!token) {
         logout();
       }
@@ -47,7 +47,7 @@ const useUserContextValue = () => {
     if (error) {
       if (error?.response?.status === 401) {
         // Delete cookies
-        deleteCookie(tokenName);
+        deleteCookie(jwtConfig.admin.accessTokenName);
         setAuth("unauthorized");
         if (window.location.pathname.includes("dashboard")) {
           toast.error(error.response.data?.messages, { theme: "colored" });

@@ -3,7 +3,9 @@ import { DashboardLayout } from "@/components/layout";
 import useStore from "@/store";
 import formatMoney from "@/utils/helper";
 import { OrderInterface } from "@/utils/order";
+import { checkAuthAdmin } from "@/utils/server";
 import dayjs from "dayjs";
+import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -14,6 +16,11 @@ type FormValues = {
     name: string;
     status: string;
   }[];
+};
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Use the checkAuth function to handle authentication
+  return checkAuthAdmin(context);
 };
 
 const DetailOrderPage = () => {

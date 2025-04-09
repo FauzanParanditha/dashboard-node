@@ -1,8 +1,15 @@
 import DetailAdm from "@/components/dashboard/admin/detailAdmin";
 import { DashboardLayout } from "@/components/layout";
+import { checkAuthAdmin } from "@/utils/server";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import clsx from "clsx";
+import { GetServerSideProps } from "next";
 import { Fragment } from "react";
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Use the checkAuth function to handle authentication
+  return checkAuthAdmin(context);
+};
 
 const DetailAdmin = () => {
   return (

@@ -2,7 +2,7 @@ import api, { handleAxiosError } from "@/api";
 import Transition from "@/components/Transition";
 import { useUserContext } from "@/context/user";
 import useStore from "@/store";
-import { tokenName } from "@/utils/var";
+import { jwtConfig } from "@/utils/var";
 import { deleteCookie } from "cookies-next";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
@@ -44,7 +44,7 @@ function UserMenu() {
   });
 
   const Logout = () => {
-    deleteCookie(tokenName);
+    deleteCookie(jwtConfig.admin.accessTokenName);
     setIsLoading(true);
     api()
       .post("/adm/auth/logout")

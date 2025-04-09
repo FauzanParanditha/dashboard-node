@@ -5,6 +5,8 @@ import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useUserContext } from "@/context/user";
 import useStore from "@/store";
+import { checkAuthAdmin } from "@/utils/server";
+import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { HiOutlinePencil, HiOutlinePlus, HiOutlineTrash } from "react-icons/hi";
@@ -12,7 +14,12 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import useSWR from "swr";
 
-const AdminPage = () => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Use the checkAuth function to handle authentication
+  return checkAuthAdmin(context);
+};
+
+const WhitelistPage = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
@@ -209,4 +216,4 @@ const AdminPage = () => {
   );
 };
 
-export default AdminPage;
+export default WhitelistPage;

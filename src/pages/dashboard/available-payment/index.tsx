@@ -6,7 +6,9 @@ import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useUserContext } from "@/context/user";
 import useStore from "@/store";
+import { checkAuthAdmin } from "@/utils/server";
 import clsx from "clsx";
+import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -19,6 +21,11 @@ import {
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import useSWR from "swr";
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Use the checkAuth function to handle authentication
+  return checkAuthAdmin(context);
+};
 
 const AvailablePaymentPage = () => {
   const [page, setPage] = useState(1);

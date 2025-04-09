@@ -3,11 +3,18 @@ import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import useStore from "@/store";
 import formatMoney from "@/utils/helper";
+import { checkAuthAdmin } from "@/utils/server";
+import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { HiEye } from "react-icons/hi";
 import useSWR from "swr";
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Use the checkAuth function to handle authentication
+  return checkAuthAdmin(context);
+};
 
 const OrderPage = () => {
   const [page, setPage] = useState(1);

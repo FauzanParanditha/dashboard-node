@@ -1,9 +1,16 @@
 import ChangePasswordUser from "@/components/dashboard/user/changePassword";
 import DetailUsr from "@/components/dashboard/user/detailUser";
 import { DashboardLayout } from "@/components/layout";
+import { checkAuthAdmin } from "@/utils/server";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import clsx from "clsx";
+import { GetServerSideProps } from "next";
 import { Fragment } from "react";
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Use the checkAuth function to handle authentication
+  return checkAuthAdmin(context);
+};
 
 const DetailUser = () => {
   return (

@@ -5,7 +5,7 @@ import HomeLayout from "@/components/layout/home";
 import { useUserContext } from "@/context/user";
 import useStore from "@/store";
 import { nextUrlSchema } from "@/utils/schema/url";
-import { tokenName } from "@/utils/var";
+import { jwtConfig } from "@/utils/var";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { setCookie } from "cookies-next";
 import Head from "next/head";
@@ -59,7 +59,10 @@ const LoginPage = () => {
       .post("/adm/auth/login", data)
       .then(async (res) => {
         if (res.data.success) {
-          setCookie(tokenName, `Bearer ${res.data.token}`);
+          setCookie(
+            jwtConfig.admin.accessTokenName,
+            `Bearer ${res.data.token}`,
+          );
           await revalidate({}, true);
 
           toast.success("login success", { theme: "colored" });
