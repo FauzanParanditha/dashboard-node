@@ -1,24 +1,27 @@
-import { tokenName } from "@/utils/var";
+import { jwtConfig } from "@/utils/var";
 import axios from "axios";
 import { deleteCookie, getCookie } from "cookies-next";
 import { toast } from "react-toastify";
 
 const api = () => {
   const path = window.location.pathname;
+
   const Axios = axios.create({
     baseURL:
       process.env.NEXT_PUBLIC_CLIENT_API_URL || process.env.SERVER_API_URL,
     withCredentials: true,
     timeout: 30000,
   });
+
   //request
   Axios.interceptors.request.use((config: any) => {
-    const token = getCookie(tokenName);
+    const token = getCookie(jwtConfig.admin.accessTokenName);
     if (token) {
       config.headers.Authorization = token;
     }
     return config;
   });
+
   //response
   Axios.interceptors.response.use(
     (response: any) => {
@@ -29,11 +32,11 @@ const api = () => {
         if (typeof error === "object" && error !== null) {
           //check errror
           if (error.response) {
-            if (path.startsWith("dashboard")) {
+            if (path.startsWith("/dashboard")) {
               const status = error.response?.status;
               switch (status) {
                 case 401:
-                  deleteCookie(tokenName);
+                  deleteCookie(jwtConfig.admin.accessTokenName);
                   toast.error(
                     error.response?.data?.message
                       ? error.response.data.message

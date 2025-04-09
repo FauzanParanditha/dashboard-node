@@ -1,12 +1,17 @@
-import { NextResponse } from "next/server";
+import { jwtConfig } from "@/utils/var";
 import type { NextRequest } from "next/server";
-import { tokenName } from "@/utils/var";
+import { NextResponse } from "next/server";
+
+export const config = {
+  matcher: ["/dashboard/:path*"],
+};
 
 export function middleware(request: NextRequest) {
   const { origin } = request.nextUrl;
-  const token = request.cookies.get(tokenName);
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    if (!token) return NextResponse.redirect(`${origin}/auth/login`);
+  const adminToken = request.cookies.get(jwtConfig.admin.accessTokenName);
+
+  if (request.nextUrl.pathname.toLowerCase().startsWith("/dashboard")) {
+    if (!adminToken) return NextResponse.redirect(`${origin}/auth/login`);
   }
   return NextResponse.next();
 }
