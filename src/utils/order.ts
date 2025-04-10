@@ -146,6 +146,10 @@ export interface OrderInterface {
   paymentType?: string;
   paymentExpired?: string;
   paymentId?: string;
+  partnerServiceId?: string;
+  customerNo?: string;
+  virtualAccountNo?: string;
+  storeId?: string;
   createdAt?: string;
   updateAt?: string;
   paymentPaylabs?: PaymentPaylabsInterface;
