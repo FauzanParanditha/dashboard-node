@@ -61,6 +61,8 @@ const LogCallbackPage = () => {
               //toast
               revalidate({}, true);
               toast.success(`${res.data.message}`, { theme: "colored" });
+            } else {
+              toast.error(`${res.data.message}`, { theme: "colored" });
             }
           })
           .catch((err) => {
