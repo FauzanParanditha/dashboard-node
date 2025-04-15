@@ -59,7 +59,6 @@ const LogCallbackPage = () => {
           .then((res) => {
             if (res.data.success) {
               //toast
-              revalidate({}, true);
               toast.success(`${res.data.message}`, { theme: "colored" });
             } else {
               toast.error(`${res.data.message}`, { theme: "colored" });
@@ -68,7 +67,10 @@ const LogCallbackPage = () => {
           .catch((err) => {
             handleAxiosError(err);
           })
-          .finally(() => setIsLoading(false));
+          .finally(() => {
+            revalidate({}, true);
+            setIsLoading(false);
+          });
       }
     });
   };
