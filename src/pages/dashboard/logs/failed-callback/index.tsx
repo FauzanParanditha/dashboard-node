@@ -1,3 +1,4 @@
+import api, { handleAxiosError } from "@/api";
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
@@ -7,6 +8,9 @@ import dayjs from "dayjs";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useEffect, useState } from "react";
+import { HiOutlineRefresh } from "react-icons/hi";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import useSWR from "swr";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -14,14 +18,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return checkAuthAdmin(context);
 };
 
-const LogCallbackPage = () => {
+const LogFailedCallbackPage = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
 
   const { data: callback, mutate: revalidate } = useSWR(
-    "api/v1/adm/callbacklogs?perPage=10&page=" + page + "&query=" + search,
+    "api/v1/adm/failed-callbacklogs?perPage=10&page=" +
+      page +
+      "&query=" +
+      search,
   );
   useEffect(() => {
     setIsLoading(true);
@@ -36,14 +43,49 @@ const LogCallbackPage = () => {
     }
   }, [callback]);
 
+  //retry callback
+  const RetryCallback = (data: any) => {
+    const id = data._id;
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#991B1B",
+      cancelButtonColor: "#1E293B",
+      confirmButtonText: "RETRY",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setIsLoading(true);
+        api()
+          .post("/api/v1/adm/retry/callback/" + id)
+          .then((res) => {
+            if (res.data.success) {
+              //toast
+              toast.success(`${res.data.message}`, { theme: "colored" });
+            } else {
+              toast.error(`${res.data.message}`, { theme: "colored" });
+            }
+          })
+          .catch((err) => {
+            handleAxiosError(err);
+          })
+          .finally(() => {
+            revalidate({}, true);
+            setIsLoading(false);
+          });
+      }
+    });
+  };
+
   return (
     <>
       <Head>
-        <title>Callback List</title>
+        <title>Failed Callback List</title>
       </Head>
       <DashboardLayout>
         <h4 className="my-4 text-2xl font-bold dark:text-white">
-          List Callback
+          List Failed Callback
         </h4>
         <div className="mt-8 rounded-2xl bg-white text-slate-700 dark:bg-black dark:text-white">
           <div className="flex items-center justify-between px-8 pt-4">
@@ -65,25 +107,7 @@ const LogCallbackPage = () => {
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          Type
-                        </th>
-                        <th
-                          scope="col"
-                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
-                        >
-                          Source
-                        </th>
-                        <th
-                          scope="col"
-                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
-                        >
-                          Target
-                        </th>
-                        <th
-                          scope="col"
-                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
-                        >
-                          Status
+                          Client
                         </th>
                         <th
                           scope="col"
@@ -95,13 +119,31 @@ const LogCallbackPage = () => {
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          Response
+                          Callback Url
+                        </th>
+                        <th
+                          scope="col"
+                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
+                        >
+                          Retry Count
+                        </th>
+                        <th
+                          scope="col"
+                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
+                        >
+                          Description
                         </th>
                         <th
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
                           Created_at
+                        </th>
+                        <th
+                          scope="col"
+                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
+                        >
+                          Action
                         </th>
                       </tr>
                     </thead>
@@ -120,21 +162,8 @@ const LogCallbackPage = () => {
                         return (
                           <tr key={index} className="border-b">
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">{dt.type}</div>
-                            </td>
-                            <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
-                                {dt.source}
-                              </div>
-                            </td>
-                            <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">
-                                {dt.target}
-                              </div>
-                            </td>
-                            <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">
-                                {dt.status}
+                                {dt.client.name}
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
@@ -144,13 +173,32 @@ const LogCallbackPage = () => {
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
-                                {JSON.stringify(dt.response, null, 2)}
+                                {dt.callbackUrl}
+                              </div>
+                            </td>
+                            <td className="border-gray-200 p-5 text-sm dark:text-white">
+                              <div className="flex items-center justify-center">
+                                {dt.retryCount}
+                              </div>
+                            </td>
+                            <td className="border-gray-200 p-5 text-sm dark:text-white">
+                              <div className="flex items-center">
+                                {dt.errDesc}
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <p className="whitespace-nowrap">
-                                {dayjs(dt.createdAt).format("DD-MM-YYYY")}
+                                {dayjs(dt._created).format("DD-MM-YYYY")}
                               </p>
+                            </td>
+                            <td className="border-gray-200 p-5 text-sm dark:text-white">
+                              <HiOutlineRefresh
+                                className="h-5 w-5 text-rose-400"
+                                onClick={(e: any) => {
+                                  e.stopPropagation();
+                                  RetryCallback(dt);
+                                }}
+                              />
                             </td>
                           </tr>
                         );
@@ -176,4 +224,4 @@ const LogCallbackPage = () => {
   );
 };
 
-export default LogCallbackPage;
+export default LogFailedCallbackPage;

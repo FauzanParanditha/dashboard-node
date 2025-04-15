@@ -11,6 +11,7 @@ import {
   FcReading,
   FcSalesPerformance,
   FcSettings,
+  FcSynchronize,
 } from "react-icons/fc";
 
 export const admin = [
@@ -68,6 +69,11 @@ export const admin = [
         title: "Callback Logs",
         icon: <FcCallback />,
         link: "/dashboard/logs/callback",
+      },
+      {
+        title: "Failed Callback Logs",
+        icon: <FcSynchronize />,
+        link: "/dashboard/logs/failed-callback",
       },
     ],
   },
