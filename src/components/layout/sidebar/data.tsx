@@ -4,6 +4,7 @@ import {
   FcFeedback,
   FcGenealogy,
   FcHome,
+  FcKey,
   FcNook,
   FcOrganization,
   FcPaid,
@@ -44,6 +45,11 @@ export const admin = [
     title: "Client",
     icon: <FcOrganization />,
     link: "/dashboard/client",
+  },
+  {
+    title: "Client Key",
+    icon: <FcKey />,
+    link: "/dashboard/client-key",
   },
   {
     title: "Order",

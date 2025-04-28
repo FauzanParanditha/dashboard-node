@@ -76,9 +76,7 @@ export function SidebarItems() {
           ) : (
             <Link href={item.link}>
               <span
-                className={`${style.link} ${
-                  active.startsWith(item.link) ? style.active : ""
-                }`}
+                className={`${style.link} ${active === item.link || active.startsWith(`${item.link}/`) ? style.active : ""} `}
               >
                 <span>{item.icon}</span>
                 <span className={style.title}>{item.title}</span>
