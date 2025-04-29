@@ -16,6 +16,7 @@
     "axios": "^1.7.9",
     "cookies-next": "^5.0.2",
     "dayjs": "^1.11.13",
+    "fs": "^0.0.1-security",
     "next": "15.2.4",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",

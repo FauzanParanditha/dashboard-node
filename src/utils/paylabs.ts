@@ -12,6 +12,11 @@ export const createSignatureForward = (
     throw new Error("SECRET_KEY is not defined");
   }
 
+  const privateKey = process.env.PRIVATE_KEY;
+  if (!privateKey) throw new Error("PRIVATE_KEY is not defined");
+
+  console.log("Private key length:", privateKey.length);
+
   const minifiedBody = minifyJson(body);
 
   const hashedBody = crypto
@@ -22,11 +27,14 @@ export const createSignatureForward = (
   const stringContent = `${httpMethod}:${endpointUrl}:${hashedBody}:${timestamp}`;
   // console.log(stringContent);
 
-  const sign = crypto.createHmac("sha256", secret);
-  sign.update(stringContent);
-  const signature = sign.digest("base64"); // Sign and encode in Base64
-
-  return signature;
+  try {
+    const sign = crypto.createSign("RSA-SHA256");
+    sign.update(stringContent);
+    return sign.sign(privateKey, "base64");
+  } catch (err) {
+    console.error("Error signing:", err);
+    return null;
+  }
 };
 
 export const minifyJson = (body: Record<string, any>) => {
