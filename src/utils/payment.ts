@@ -143,6 +143,8 @@ export const processPayment = async (
         virtualAccountNo: response.data.virtualAccountNo,
         customerNo: response.data.customerNo,
         qrUrl: response.data.qrUrl,
+        transFeeRate: response.data.transFeeRate,
+        transFeeAmount: response.data.transFeeAmount,
         paymentExpired: response.data.paymentExpired,
         paymentId: response.data.paymentId,
         totalAmount: response.data.totalAmount,
