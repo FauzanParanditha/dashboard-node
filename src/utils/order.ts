@@ -216,8 +216,7 @@ export interface PaymentData {
   totalAmount: string;
   orderId: string;
   id: string;
-  transFeeRate?: string;
-  transFeeAmount?: string;
+  totalTransFee?: string;
 }
 
 export interface PaymentDetails {
