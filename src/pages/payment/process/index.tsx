@@ -62,6 +62,7 @@ const PageProcess: React.FC = () => {
               "x-signature": signature,
               "x-partner-id": clientId,
               "x-timestamp": formattedTimestamp,
+              "x-signer": "frontend",
             };
 
             try {
