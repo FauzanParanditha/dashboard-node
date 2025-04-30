@@ -102,7 +102,6 @@ export const processPayment = async (
     selectedMethod.category === "QRIS"
       ? `/api/v1/order/create/qris`
       : `/api/v1/order/create/va/snap`;
-
   const signature = createSignatureForward(
     "POST",
     endpointUrl,
@@ -117,6 +116,7 @@ export const processPayment = async (
       "x-signature": signature,
       "x-partner-id": clientId,
       "x-timestamp": formattedTimestamp,
+      "x-signer": "frontend",
     };
 
     const response = await axios.post(
