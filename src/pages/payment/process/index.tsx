@@ -241,6 +241,10 @@ const PageProcess: React.FC = () => {
     );
   }
 
+  const layanan =
+    Number(orderPayments?.paymentData?.transFeeRate || 0) +
+    Number(orderPayments?.paymentData?.transFeeAmount || 0);
+
   return (
     <>
       <Head>
@@ -298,6 +302,11 @@ const PageProcess: React.FC = () => {
                   <span>Rp {parseFloat(item.price).toLocaleString()}</span>
                 </li>
               ))}
+              <li className="flex justify-between">
+                <span>Biaya layanan</span>
+                <span>Rp {layanan.toLocaleString()}</span>
+              </li>
+
               <li className="flex justify-between">
                 <span>Total Pembayaran</span>
                 <span>
