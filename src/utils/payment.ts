@@ -226,6 +226,7 @@ export const cancelPayment = async (
       "x-signature": signature,
       "x-partner-id": clientId,
       "x-timestamp": formattedTimestamp,
+      "x-signer": "frontend",
     };
 
     let response;
@@ -327,6 +328,7 @@ export const successPayment = async (
       "x-signature": signature,
       "x-partner-id": clientId,
       "x-timestamp": formattedTimestamp,
+      "x-signer": "frontend",
     };
 
     let response;
