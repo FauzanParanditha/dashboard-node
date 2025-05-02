@@ -63,7 +63,7 @@ const PageSuccess: React.FC = () => {
               } else {
                 // Narrow down to VirtualAccountData type
                 const vaResult = result.data as VirtualAccountData;
-                if (vaResult.responseCode && vaResult.virtualAccountData) {
+                if (vaResult.merchantId && vaResult.vaCode) {
                   setVirtualAccountData(vaResult);
                 } else {
                   toast.error("Invalid Virtual Account data structure", result);
@@ -123,19 +123,21 @@ const PageSuccess: React.FC = () => {
             </h1>
           )}
 
-          {virtualAccountData?.responseMessage ? (
+          {virtualAccountData?.status === "02" ? (
             <h1
               aria-live="polite"
               className="mb-4 text-center text-3xl font-bold text-green-500"
             >
-              {virtualAccountData?.responseMessage}
+              {/* {virtualAccountData?.responseMessage} */}
+              Successfully
             </h1>
           ) : (
             <h1
               aria-live="polite"
               className="mb-4 text-center text-3xl font-bold"
             >
-              {virtualAccountData?.responseMessage}
+              {/* {virtualAccountData?.responseMessage} */}
+              {virtualAccountData?.status}
             </h1>
           )}
 
@@ -147,7 +149,8 @@ const PageSuccess: React.FC = () => {
                 <span>
                   {qrisData
                     ? qrisData.paymentType
-                    : virtualAccountData?.additionalInfo.paymentType}
+                    : // : virtualAccountData?.additionalInfo.paymentType}
+                      virtualAccountData?.paymentType}
                 </span>
               </li>
               <li className="flex justify-between">
@@ -157,8 +160,8 @@ const PageSuccess: React.FC = () => {
                   {qrisData
                     ? parseFloat(qrisData.amount || "0").toLocaleString()
                     : parseFloat(
-                        virtualAccountData?.virtualAccountData.totalAmount
-                          .value || "0",
+                        // virtualAccountData?.virtualAccountData.totalAmount.value
+                        virtualAccountData?.amount || "0",
                       ).toLocaleString()}
                 </span>
               </li>
@@ -176,11 +179,13 @@ const PageSuccess: React.FC = () => {
                   <span>{paymentSuccess?.paymentData.storeId}</span>
                 </li>
               )} */}
-              {virtualAccountData?.virtualAccountData.customerNo && (
+              {/* {virtualAccountData?.virtualAccountData.customerNo && ( */}
+              {virtualAccountData?.vaCode && (
                 <li className="flex justify-between">
                   <span>Customer Number</span>
                   <span>
-                    {virtualAccountData?.virtualAccountData.customerNo}
+                    {/* {virtualAccountData?.virtualAccountData.customerNo} */}
+                    {virtualAccountData?.vaCode}
                   </span>
                 </li>
               )}

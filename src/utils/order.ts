@@ -259,26 +259,55 @@ export interface QRISData {
 }
 
 // Define the interface for the second data object
+// export interface VirtualAccountData {
+//   responseCode: string;
+//   responseMessage: string;
+//   virtualAccountData: {
+//     partnerServiceId: string;
+//     customerNo: string;
+//     virtualAccountNo: string;
+//     inquiryRequestId: string;
+//     paymentRequestId: string;
+//     paidAmount: {
+//       value: string;
+//       currency: string;
+//     };
+//     totalAmount: {
+//       value: string;
+//       currency: string;
+//     };
+//     paymentFlagStatus: string;
+//   };
+//   additionalInfo: {
+//     paymentType: string;
+//   };
+// }
+
 export interface VirtualAccountData {
-  responseCode: string;
-  responseMessage: string;
-  virtualAccountData: {
-    partnerServiceId: string;
-    customerNo: string;
-    virtualAccountNo: string;
-    inquiryRequestId: string;
-    paymentRequestId: string;
-    paidAmount: {
-      value: string;
-      currency: string;
-    };
-    totalAmount: {
-      value: string;
-      currency: string;
-    };
-    paymentFlagStatus: string;
-  };
-  additionalInfo: {
-    paymentType: string;
-  };
+  merchantId: string;
+  requestId: string;
+  errCode: string;
+  paymentType: string;
+  amount: string;
+  merchantTradeNo: string;
+  createTime: string;
+  platformTradeNo: string;
+  successTime: string;
+  expiredTime: string;
+  status: string;
+  productName: string;
+  productInfo: [
+    {
+      id: string;
+      name: string;
+      price: number;
+      type: string;
+      quantity: number;
+    },
+  ];
+  transFeeRate: string;
+  transFeeAmount: string;
+  totalTransFee: string;
+  vatFee: string;
+  vaCode: string;
 }
