@@ -182,7 +182,8 @@ const PageSuccess: React.FC = () => {
               {/* {virtualAccountData?.virtualAccountData.customerNo && ( */}
               {virtualAccountData?.vaCode && (
                 <li className="flex justify-between">
-                  <span>Customer Number</span>
+                  {/* <span>Customer Number</span> */}
+                  <span>VA Code</span>
                   <span>
                     {/* {virtualAccountData?.virtualAccountData.customerNo} */}
                     {virtualAccountData?.vaCode}
