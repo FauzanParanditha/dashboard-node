@@ -30,6 +30,7 @@ const PageProcess: React.FC = () => {
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   // const [isNewLink, setIsNewLink] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [isQris, setIsQris] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,6 +43,7 @@ const PageProcess: React.FC = () => {
           );
           const paymentData = response.data;
           setOrderPayments(paymentData);
+          setIsQris(paymentData?.paymentData?.qrUrl ? true : false);
           setIsPaymentProcessing(paymentData.isPaymentProcessing);
 
           if (paymentData) {
@@ -347,7 +349,7 @@ const PageProcess: React.FC = () => {
               </li> */}
             </ul>
           </div>
-          {timeLeft > 0 && (
+          {timeLeft > 0 && isQris && (
             <button
               className="mt-4 w-full rounded-lg bg-red-500 py-2 font-bold text-white transition-colors hover:bg-red-600"
               onClick={handleCancel}
