@@ -1,32 +1,32 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: d-pa-fe
+  name: d-payhub-fe
   namespace: dev
   labels:
-    app: proxy-pa-fe
+    app: proxy-payhub-fe
     env: dev
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: d-pa-fe
+      app: d-payhub-fe
       env: dev
   template:
     metadata:
       labels:
-        app: d-pa-fe
+        app: d-payhub-fe
         env: dev
     spec:
       containers:
-        - name: d-pa-fe
+        - name: d-payhub-fe
           image: 'images.247.or.id/pandi/payment-aggregator-frontend:latest'
           ports:
             - name: http
               containerPort: 80
               protocol: TCP
         #  volumeMounts:
-     #       - name: d-pandimeeting-frontendenv
+     #       - name: d-payhubndimeeting-frontendenv
       #        mountPath: /usr/share/nginx/html/.env
        #       subPath: .env
           imagePullPolicy: Always

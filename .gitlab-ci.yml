@@ -44,7 +44,7 @@ deploy-pa-fe:
   image: images.247.or.id/pandi/kubectl:bogor
   stage: deploy
   script:
-    - sed -i "s/pandi-meeting-fe:latest/pandi-meeting-fe:$CI_COMMIT_SHORT_SHA/g" "deploy/d-pa-fe.yml"
+    - sed -i "s/payment-aggregator-frontend:latest/payment-aggregator-frontend:$CI_COMMIT_SHORT_SHA/g" "deploy/d-pa-fe.yml"
     - kubectl apply -f deploy/d-pa-fe.yml
   only:
     - dev
