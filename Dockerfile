@@ -15,7 +15,7 @@ WORKDIR /app
 # Copy only the necessary files
 COPY package.json yarn.lock ./
 # RUN yarn install --frozen-lockfile
-
+COPY .env.example .env
 # Copy all files
 COPY . .
 
