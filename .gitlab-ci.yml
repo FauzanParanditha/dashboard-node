@@ -15,7 +15,8 @@ build-pa-fe:
   stage: build
   script:
     - ls
-    - sed -i "s/NEXT_PUBLIC_CLIENT_API_URL/NEXT_PUBLIC_CLIENT_API_URL=${devNEXT_PUBLIC_CLIENT_API_URL}/g" .env.example
+    - sed -i "s/NEXT_PUBLIC_CLIENT_API_URL=/NEXT_PUBLIC_CLIENT_API_URL=${devNEXT_PUBLIC_CLIENT_API_URL}/g" .env.example
+    - sed -i "s/SERVER_API_URL=/SERVER_API_URL=${devSERVER_API_URL}/g" .env.example
     - cat .env.example
     - docker login -u $DOCKER_USER_K8S -p $DOCKER_PASSWORD_K8S $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
