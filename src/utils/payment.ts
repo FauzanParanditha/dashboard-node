@@ -176,7 +176,7 @@ export const cancelPayment = async (
   // setIsNewLink: (isNew: boolean) => void,
   setLoading: (loading: boolean) => void,
   router: any,
-  onSuccess?: (data: any) => void,
+  onSuccess?: (data: any, link: any) => void,
   onFailure?: (error: any) => void,
 ) => {
   if (!selectedPaymentMethod) {
@@ -268,7 +268,7 @@ export const cancelPayment = async (
         console.log("🔄 Restarting WebSocket after cancelPayment...");
         initializeWebSocket(process.env.NEXT_PUBLIC_WS_URL as string, true);
       }, 1000);
-      if (onSuccess) onSuccess(response.data);
+      if (onSuccess) onSuccess(response.data, newLink);
       toast.warn("PAYMENT CANCELED", { theme: "colored" });
       setIsPaymentProcessing(false);
       // setIsNewLink(false);
