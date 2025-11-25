@@ -188,9 +188,12 @@ const PageProcess: React.FC = () => {
     return `${String(hours).padStart(2, "0")} : ${String(minutes).padStart(2, "0")} : ${String(secs).padStart(2, "0")}`;
   };
 
-  const onSuccess = (data: any) => {
+  const onSuccess = (data: any, link: any) => {
     // Kirim data ke parent atau aplikasi yang memuat iframe
-    window.parent.postMessage({ success: true, data, message: "05" }, "*");
+    window.parent.postMessage(
+      { success: true, data, message: "05", link },
+      "*",
+    );
   };
 
   const onFailure = (error: any) => {
