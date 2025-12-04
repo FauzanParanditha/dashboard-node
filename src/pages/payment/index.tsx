@@ -123,7 +123,7 @@ const PaymentPage = () => {
         onFailure,
       );
     } catch (error) {
-      // toast.error("Failed to process payment, please try again.");
+      toast.error("Failed to process payment, please try again.");
     }
   };
 
