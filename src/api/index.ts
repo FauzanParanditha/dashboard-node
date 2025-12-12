@@ -1,6 +1,6 @@
 import { jwtConfig } from "@/utils/var";
 import axios from "axios";
-import { deleteCookie, getCookie } from "cookies-next";
+import { getCookie } from "cookies-next";
 import { toast } from "react-toastify";
 
 const api = () => {
@@ -24,80 +24,61 @@ const api = () => {
 
   //response
   Axios.interceptors.response.use(
-    (response: any) => {
-      return response;
-    },
-    (error: any) => {
-      return new Promise((resolve, reject) => {
-        if (typeof error === "object" && error !== null) {
-          //check errror
-          if (error.response) {
-            if (path.startsWith("/dashboard")) {
-              const status = error.response?.status;
-              switch (status) {
-                case 401:
-                  deleteCookie(jwtConfig.admin.accessTokenName);
-                  toast.error(
-                    error.response?.data?.message
-                      ? error.response.data.message
-                      : "Unauthorized",
-                    { theme: "colored" },
-                  );
-                  break;
-                default:
-                  toast.error(
-                    error.response?.data?.message
-                      ? error.response.data.message
-                      : "internal server error",
-                    { theme: "colored" },
-                  );
-              }
-            }
-          }
-          return reject(error);
-        }
-      });
-    },
+    (res) => res,
+    (error) => Promise.reject(error),
   );
+
   return Axios;
 };
 
 export const handleAxiosError = (error: any) => {
   if (typeof error === "object" && error !== null) {
-    const msg = error.response.data.errors;
-    switch (error.response?.status) {
+    const status = error.response?.status;
+    const msg =
+      error.response?.data?.errors ||
+      error.response?.data?.message ||
+      error.message ||
+      "Network error";
+
+    switch (status) {
       case 401:
-        toast.error(
-          error.response?.data?.message
-            ? error.response.data.message
-            : "Unauthorized",
-          { theme: "colored" },
-        );
+        toast.error(error.response?.data?.message ?? "Unauthorized", {
+          theme: "colored",
+        });
         break;
+
       case 403:
         toast.error(
-          error.response?.data?.message ||
+          error.response?.data?.message ??
             "Forbidden - You do not have access to this resource",
           { theme: "colored" },
         );
         break;
-      case 422:
-        //check type error is object
-        if (
-          error.response?.data?.message != undefined &&
-          typeof error.response?.data?.message == "object"
-        ) {
-          //loop error
-          error.response?.data?.message.forEach((item: any) => {
-            toast.error(item.field + " : " + item.reason, { theme: "colored" });
+
+      case 422: {
+        const message = error.response?.data?.message;
+        if (Array.isArray(message)) {
+          message.forEach((item: any) => {
+            toast.error(`${item.field} : ${item.reason}`, { theme: "colored" });
           });
         } else {
-          toast.error(error.response?.data?.message, { theme: "colored" });
+          toast.error(message ?? "Validation error", { theme: "colored" });
         }
         break;
+      }
+
       default:
-        toast.error(msg ? msg : "internal server error", { theme: "colored" });
+        toast.error(typeof msg === "string" ? msg : "internal server error", {
+          theme: "colored",
+        });
         break;
+    }
+
+    // kalau error.response undefined, kasih toast khusus
+    if (!error.response) {
+      toast.error(error.message || "No response from server", {
+        theme: "colored",
+      });
     }
   }
 };

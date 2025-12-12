@@ -87,6 +87,12 @@ const OrderPage = () => {
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
+                          Domain Name
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                        >
                           Payment Type
                         </th>
                         <th
@@ -131,6 +137,11 @@ const OrderPage = () => {
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             {order.items.map((item: any, index: any) => (
                               <div key={index}>{item.name}</div>
+                            ))}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                            {order.items.map((item: any, index: any) => (
+                              <div key={index}>{item.domain}</div>
                             ))}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">

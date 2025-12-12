@@ -137,6 +137,7 @@ export interface OrderInterface {
     price: number;
     quantity: number;
     type: string;
+    domain: string;
   }>;
   totalAmount?: number;
   payer?: string;

@@ -168,6 +168,7 @@ const DetailOrderPage = () => {
                           <div>Price: {formatMoney(item.price)}</div>
                           <div>Quantity: {item.quantity}</div>
                           <div>Type: {item.type}</div>
+                          <div>Domain: {item.domain}</div>
                         </div>
                       );
                     })}
