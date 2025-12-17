@@ -2,6 +2,7 @@ import api, { handleAxiosError } from "@/api";
 import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import useStore from "@/store";
+import { getValidObjectId } from "@/utils/helper";
 import { updateAdminSchema } from "@/utils/schema/admin";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
@@ -39,8 +40,15 @@ const DetailAdm = () => {
 
   const getData = () => {
     setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid admin ID"));
+      return;
+    }
+
     api()
-      .get("api/v1/adm/admin/" + id)
+      .get(`api/v1/adm/admin/${validId}`)
       .then((res) => {
         if (res.data.success) {
           const dt = res.data.data;
@@ -64,8 +72,15 @@ const DetailAdm = () => {
 
   const onSubmit = (data: Values) => {
     setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid admin ID"));
+      return;
+    }
+
     api()
-      .put("api/v1/adm/admin/" + id, data)
+      .put(`api/v1/adm/admin/${validId}`, data)
       .then((res) => {
         if (res.data.success) {
           getData();

@@ -2,6 +2,7 @@ import api, { handleAxiosError } from "@/api";
 import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import useStore from "@/store";
+import { getValidObjectId } from "@/utils/helper";
 import { updatePasswordSchema } from "@/utils/schema/admin";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
@@ -37,8 +38,15 @@ const ChangePasswordUser = () => {
 
   const getData = () => {
     setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid user ID"));
+      return;
+    }
+
     api()
-      .get("api/v1/user/" + id)
+      .get(`api/v1/user/${validId}`)
       .then((res) => {
         if (res.data.success) {
           const dt = res.data.data;

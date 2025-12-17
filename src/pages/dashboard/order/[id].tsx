@@ -1,7 +1,7 @@
 import api, { handleAxiosError } from "@/api";
 import { DashboardLayout } from "@/components/layout";
 import useStore from "@/store";
-import formatMoney from "@/utils/helper";
+import formatMoney, { getValidObjectId } from "@/utils/helper";
 import { OrderInterface } from "@/utils/order";
 import { checkAuthAdmin } from "@/utils/server";
 import dayjs from "dayjs";
@@ -32,8 +32,15 @@ const DetailOrderPage = () => {
   useEffect(() => {
     if (id != undefined) {
       setIsLoading(true);
+
+      const validId = getValidObjectId(typeof id === "string" ? id : "");
+      if (!validId) {
+        handleAxiosError(new Error("Invalid status ID"));
+        return;
+      }
+
       api()
-        .get("/api/v1/order/status/" + id)
+        .get(`/api/v1/order/status/${validId}`)
         .then((res) => {
           if (res.data.success) {
             setOrder(res.data.data);

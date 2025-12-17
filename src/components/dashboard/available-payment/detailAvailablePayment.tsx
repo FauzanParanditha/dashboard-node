@@ -3,6 +3,7 @@ import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
 import useStore from "@/store";
+import { getValidObjectId } from "@/utils/helper";
 import { updateAvailablePaymentSchema } from "@/utils/schema/available-payment";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
@@ -44,8 +45,15 @@ const DetailAvaPay = () => {
 
   const getData = () => {
     setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid available payment ID"));
+      return;
+    }
+
     api()
-      .get("api/v1/available-payment/" + id)
+      .get(`api/v1/available-payment/${validId}`)
       .then((res) => {
         if (res.data.success) {
           const dt = res.data.data;
@@ -103,8 +111,15 @@ const DetailAvaPay = () => {
     }
 
     setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid available payment ID"));
+      return;
+    }
+
     api()
-      .put("api/v1/available-payment/" + id, formData, {
+      .put(`api/v1/available-payment/${validId}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((res) => {
