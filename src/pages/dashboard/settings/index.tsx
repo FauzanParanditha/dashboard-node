@@ -5,19 +5,19 @@ import ChangePasswordProfile from "@/components/dashboard/settings/changePasswor
 import ModalVerification from "@/components/dashboard/settings/modalVerification";
 import { DashboardLayout } from "@/components/layout";
 import { useUserContext } from "@/context/user";
+import { useAdminAuthGuard } from "@/hooks/use-admin";
 import useStore from "@/store";
-import { checkAuthAdmin } from "@/utils/server";
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  // Use the checkAuth function to handle authentication
-  return checkAuthAdmin(context);
-};
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//   // Use the checkAuth function to handle authentication
+//   return checkAuthAdmin(context);
+// };
 
 const SettingsPage = () => {
+  useAdminAuthGuard();
   const { setIsLoading } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);

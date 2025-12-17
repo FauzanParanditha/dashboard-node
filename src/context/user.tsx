@@ -1,86 +1,82 @@
+import api from "@/api";
 import { jwtConfig } from "@/utils/var";
-import { deleteCookie, getCookie } from "cookies-next";
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import useSWR from "swr";
 
 type AuthStatus = "authenticated" | "unauthorized";
 
-// Rename userContext to useUserContextValue
 const useUserContextValue = () => {
   const [auth, setAuth] = useState<AuthStatus>("unauthorized");
   const [isDark, setIsDark] = useState(false);
 
-  const {
-    isValidating,
-    data: user,
-    error,
-    mutate,
-  } = useSWR(getCookie(jwtConfig.admin.accessTokenName) ? "/me" : null, {
-    dedupingInterval: 20000,
-    revalidateOnFocus: false,
-    revalidateOnMount: true,
-    refreshInterval: 20000,
-  });
+  const hasToken =
+    typeof window !== "undefined" &&
+    !!localStorage.getItem(jwtConfig.admin.accessTokenName);
+
+  const { isValidating, data, error, mutate } = useSWR(
+    hasToken ? "/me" : null,
+    () =>
+      api()
+        .get("/me")
+        .then((res) => res.data),
+  );
 
   const logout = () => {
-    deleteCookie(jwtConfig.admin.accessTokenName);
-    mutate();
+    localStorage.removeItem(jwtConfig.admin.accessTokenName);
     setAuth("unauthorized");
+    mutate(undefined, false);
   };
 
-  useEffect(() => {
-    if (auth !== "authenticated") return;
-    const checkToken = () => {
-      const token = getCookie(jwtConfig.admin.accessTokenName);
-      if (!token) {
-        logout();
-      }
-    };
-
-    const interval = setInterval(checkToken, 5000);
-    return () => clearInterval(interval);
-  }, [auth]);
-
-  // Handle user authentication
+  // Handle authentication state
   useEffect(() => {
     if (error) {
       if (error?.response?.status === 401) {
-        // Delete cookies
-        deleteCookie(jwtConfig.admin.accessTokenName);
-        setAuth("unauthorized");
+        logout();
+
         if (window.location.pathname.includes("dashboard")) {
-          toast.error(error.response.data?.messages, { theme: "colored" });
+          toast.error("Session expired. Please login again.", {
+            theme: "colored",
+          });
         }
       }
-    } else if (user?.data) {
+      return;
+    }
+
+    if (data?.success) {
       setAuth("authenticated");
     } else if (!isValidating) {
       setAuth("unauthorized");
     }
-  }, [isValidating, user, error]);
+  }, [data, error, isValidating]);
 
-  // Handle dark or light theme
+  // Handle dark mode
   useEffect(() => {
-    if (window.localStorage?.theme === "dark") {
+    if (typeof window === "undefined") return;
+
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark") {
       setIsDark(true);
     }
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     if (isDark) {
-      window.document.documentElement.classList.add("dark");
+      document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
     } else {
-      window.document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
   }, [isDark]);
 
   return {
-    user: user?.data || {},
+    user: data?.data || {},
     auth,
     revalidate: mutate,
+    logout,
     isDark,
     setIsDark,
   };
@@ -88,11 +84,9 @@ const useUserContextValue = () => {
 
 const UserContext = createContext({} as ReturnType<typeof useUserContextValue>);
 
-export const useUserContext = () => {
-  return useContext(UserContext);
-};
+export const useUserContext = () => useContext(UserContext);
 
 export const UserContextProvider = ({ children }: any) => {
-  const value = useUserContextValue(); // Use the renamed hook
+  const value = useUserContextValue();
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

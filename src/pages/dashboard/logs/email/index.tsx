@@ -1,20 +1,20 @@
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
+import { useAdminAuthGuard } from "@/hooks/use-admin";
 import useStore from "@/store";
-import { checkAuthAdmin } from "@/utils/server";
 import dayjs from "dayjs";
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  // Use the checkAuth function to handle authentication
-  return checkAuthAdmin(context);
-};
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//   // Use the checkAuth function to handle authentication
+//   return checkAuthAdmin(context);
+// };
 
 const LogEmailPage = () => {
+  useAdminAuthGuard();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);

@@ -1,31 +1,47 @@
 import { jwtConfig } from "@/utils/var";
 import axios from "axios";
-import { getCookie } from "cookies-next";
 import { toast } from "react-toastify";
 
 const api = () => {
-  const path = window.location.pathname;
-
   const Axios = axios.create({
     baseURL:
       process.env.NEXT_PUBLIC_CLIENT_API_URL || process.env.SERVER_API_URL,
-    withCredentials: true,
     timeout: 30000,
   });
 
-  //request
-  Axios.interceptors.request.use((config: any) => {
-    const token = getCookie(jwtConfig.admin.accessTokenName);
-    if (token) {
-      config.headers.Authorization = token;
-    }
-    return config;
-  });
+  // REQUEST INTERCEPTOR
+  Axios.interceptors.request.use(
+    (config) => {
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem(jwtConfig.admin.accessTokenName);
 
-  //response
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
+      return config;
+    },
+    (error) => Promise.reject(error),
+  );
+
+  // RESPONSE INTERCEPTOR
   Axios.interceptors.response.use(
     (res) => res,
-    (error) => Promise.reject(error),
+    (error) => {
+      if (error.response?.status === 401) {
+        localStorage.removeItem(jwtConfig.admin.accessTokenName);
+
+        toast.error("Session expired. Please login again.", {
+          theme: "colored",
+        });
+
+        if (typeof window !== "undefined") {
+          window.location.href = "/auth/login";
+        }
+      }
+
+      return Promise.reject(error);
+    },
   );
 
   return Axios;
@@ -42,9 +58,9 @@ export const handleAxiosError = (error: any) => {
 
     switch (status) {
       case 401:
-        toast.error(error.response?.data?.message ?? "Unauthorized", {
-          theme: "colored",
-        });
+        // toast.error(error.response?.data?.message ?? "Unauthorized", {
+        //   theme: "colored",
+        // });
         break;
 
       case 403:

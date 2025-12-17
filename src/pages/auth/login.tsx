@@ -7,7 +7,6 @@ import useStore from "@/store";
 import { nextUrlSchema } from "@/utils/schema/url";
 import { jwtConfig } from "@/utils/var";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { setCookie } from "cookies-next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -55,46 +54,34 @@ const LoginPage = () => {
 
   const submit = async (data: Values) => {
     setIsLoading(true);
-    api()
-      .post("/adm/auth/login", data)
-      .then(async (res) => {
-        if (res.data.success) {
-          setCookie(
-            jwtConfig.admin.accessTokenName,
-            `Bearer ${res.data.token}`,
+
+    try {
+      const res = await api().post("/adm/auth/login", data);
+
+      if (res.data.success) {
+        const token = res.data.data.token;
+
+        // 🔐 Simpan token (bukan cookie)
+        localStorage.setItem(jwtConfig.admin.accessTokenName, token);
+
+        await revalidate({}, true);
+
+        toast.success("Login success", { theme: "colored" });
+
+        try {
+          const sanitizedNext = await nextUrlSchema.validate(
+            router.query?.next,
           );
-          await revalidate({}, true);
-
-          toast.success("login success", { theme: "colored" });
-          try {
-            const sanitizedNext = await nextUrlSchema.validate(
-              router.query?.next,
-            );
-
-            // Redirect to the validated path
-            router.push(sanitizedNext);
-          } catch (err) {
-            if (err instanceof yup.ValidationError) {
-              // Handle Yup validation error
-              toast.error(`Validation error: ${err.message}`, {
-                theme: "colored",
-              });
-            } else {
-              // Handle other unknown errors
-              toast.error(`An unexpected error occurred: ${err}`, {
-                theme: "colored",
-              });
-            }
-
-            // Redirect to the default path on validation failure
-            router.push("/dashboard/home");
-          }
+          router.push(sanitizedNext);
+        } catch {
+          router.push("/dashboard/home");
         }
-      })
-      .catch((err: any) => {
-        handleAxiosError(err);
-      })
-      .finally(() => setIsLoading(false));
+      }
+    } catch (err: any) {
+      handleAxiosError(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
