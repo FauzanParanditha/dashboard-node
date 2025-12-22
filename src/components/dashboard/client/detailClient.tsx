@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 
 type Values = {
   name: string;
-  notifyUrl: string;
+  notifyUrl?: string;
   userId: string;
   active: boolean;
 };
@@ -162,7 +162,6 @@ const DetailClnt = () => {
                   placeholder="your@email.id"
                   className="w-full"
                   {...register("notifyUrl")}
-                  required
                   error={errors.notifyUrl?.message}
                 />
               </div>
