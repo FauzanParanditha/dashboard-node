@@ -4,6 +4,7 @@ import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
 import TextArea from "@/components/form/text-area";
 import useStore from "@/store";
+import { getValidObjectId } from "@/utils/helper";
 import { updateClientKeySchema } from "@/utils/schema/client-key";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
@@ -42,8 +43,15 @@ const DetailClntKey = () => {
 
   const getData = () => {
     setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid client key ID"));
+      return;
+    }
+
     api()
-      .get("api/v1/client-key/" + id)
+      .get(`api/v1/client-key/${validId}`)
       .then((res) => {
         if (res.data.success) {
           const dt = res.data.data;
@@ -68,8 +76,15 @@ const DetailClntKey = () => {
 
   const onSubmit = (data: Values) => {
     setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid client key ID"));
+      return;
+    }
+
     api()
-      .put("api/v1/client-key/" + id, data)
+      .put(`api/v1/client-key/${validId}`, data)
       .then((res) => {
         if (res.data.success) {
           getData();

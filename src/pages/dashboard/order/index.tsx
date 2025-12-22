@@ -1,22 +1,22 @@
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
+import { useAdminAuthGuard } from "@/hooks/use-admin";
 import useStore from "@/store";
 import formatMoney from "@/utils/helper";
-import { checkAuthAdmin } from "@/utils/server";
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { HiEye } from "react-icons/hi";
 import useSWR from "swr";
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  // Use the checkAuth function to handle authentication
-  return checkAuthAdmin(context);
-};
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//   // Use the checkAuth function to handle authentication
+//   return checkAuthAdmin(context);
+// };
 
 const OrderPage = () => {
+  useAdminAuthGuard();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
@@ -87,6 +87,12 @@ const OrderPage = () => {
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
+                          Domain Name
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                        >
                           Payment Type
                         </th>
                         <th
@@ -131,6 +137,11 @@ const OrderPage = () => {
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             {order.items.map((item: any, index: any) => (
                               <div key={index}>{item.name}</div>
+                            ))}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                            {order.items.map((item: any, index: any) => (
+                              <div key={index}>{item.domain}</div>
                             ))}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">

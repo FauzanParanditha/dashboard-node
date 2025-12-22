@@ -1,11 +1,10 @@
 import api, { handleAxiosError } from "@/api";
 import { DashboardLayout } from "@/components/layout";
+import { useAdminAuthGuard } from "@/hooks/use-admin";
 import useStore from "@/store";
-import formatMoney from "@/utils/helper";
+import formatMoney, { getValidObjectId } from "@/utils/helper";
 import { OrderInterface } from "@/utils/order";
-import { checkAuthAdmin } from "@/utils/server";
 import dayjs from "dayjs";
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -18,12 +17,13 @@ type FormValues = {
   }[];
 };
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  // Use the checkAuth function to handle authentication
-  return checkAuthAdmin(context);
-};
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//   // Use the checkAuth function to handle authentication
+//   return checkAuthAdmin(context);
+// };
 
 const DetailOrderPage = () => {
+  useAdminAuthGuard();
   const { setIsLoading } = useStore();
   const [order, setOrder] = useState<OrderInterface>();
 
@@ -32,8 +32,15 @@ const DetailOrderPage = () => {
   useEffect(() => {
     if (id != undefined) {
       setIsLoading(true);
+
+      const validId = getValidObjectId(typeof id === "string" ? id : "");
+      if (!validId) {
+        handleAxiosError(new Error("Invalid status ID"));
+        return;
+      }
+
       api()
-        .get("/api/v1/order/status/" + id)
+        .get(`/api/v1/order/status/${validId}`)
         .then((res) => {
           if (res.data.success) {
             setOrder(res.data.data);
@@ -168,6 +175,7 @@ const DetailOrderPage = () => {
                           <div>Price: {formatMoney(item.price)}</div>
                           <div>Quantity: {item.quantity}</div>
                           <div>Type: {item.type}</div>
+                          <div>Domain: {item.domain}</div>
                         </div>
                       );
                     })}

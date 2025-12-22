@@ -1,18 +1,19 @@
 import { DashboardLayout } from "@/components/layout";
-import { checkAuthAdmin } from "@/utils/server";
+import { useAdminAuthGuard } from "@/hooks/use-admin";
 import { Col, Row } from "antd";
-import { GetServerSideProps } from "next";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useState } from "react";
 import useSWR from "swr";
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  // Use the checkAuth function to handle authentication
-  return checkAuthAdmin(context);
-};
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//   // Use the checkAuth function to handle authentication
+//   return checkAuthAdmin(context);
+// };
 
 const HomePage = () => {
+  useAdminAuthGuard();
+
   const { data: dashboard, mutate: revalidate } = useSWR(
     "/api/v1/adm/dashboard",
   );

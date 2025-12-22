@@ -49,3 +49,11 @@ export const getNameInitials = (name: string, count = 2) => {
   const filtered = initials.replace(/[^a-zA-Z]/g, "");
   return filtered.slice(0, count).toUpperCase();
 };
+
+export const isMongoObjectId = (value: unknown): value is string =>
+  typeof value === "string" && /^[a-f0-9]{24}$/i.test(value);
+
+export const getValidObjectId = (id: string): string | null => {
+  if (!isMongoObjectId(id)) return null;
+  return id;
+};

@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 
 type Values = {
   name: string;
-  notifyUrl: string;
+  notifyUrl?: string;
   userId: string;
 };
 

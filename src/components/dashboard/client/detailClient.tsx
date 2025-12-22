@@ -3,6 +3,7 @@ import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
 import useStore from "@/store";
+import { getValidObjectId } from "@/utils/helper";
 import { updateClientSchema } from "@/utils/schema/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
@@ -13,7 +14,7 @@ import { toast } from "react-toastify";
 
 type Values = {
   name: string;
-  notifyUrl: string;
+  notifyUrl?: string;
   userId: string;
   active: boolean;
 };
@@ -42,8 +43,15 @@ const DetailClnt = () => {
 
   const getData = () => {
     setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid client ID"));
+      return;
+    }
+
     api()
-      .get("api/v1/client/" + id)
+      .get(`api/v1/client/${validId}`)
       .then((res) => {
         if (res.data.success) {
           const dt = res.data.data;
@@ -87,8 +95,15 @@ const DetailClnt = () => {
 
   const onSubmit = (data: Values) => {
     setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid admin ID"));
+      return;
+    }
+
     api()
-      .put("api/v1/client/" + id, data)
+      .put(`api/v1/client/${validId}`, data)
       .then((res) => {
         if (res.data.success) {
           getData();
@@ -147,7 +162,6 @@ const DetailClnt = () => {
                   placeholder="your@email.id"
                   className="w-full"
                   {...register("notifyUrl")}
-                  required
                   error={errors.notifyUrl?.message}
                 />
               </div>

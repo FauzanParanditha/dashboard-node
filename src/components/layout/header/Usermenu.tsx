@@ -3,7 +3,6 @@ import Transition from "@/components/Transition";
 import { useUserContext } from "@/context/user";
 import useStore from "@/store";
 import { jwtConfig } from "@/utils/var";
-import { deleteCookie } from "cookies-next";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { FiLogOut } from "react-icons/fi";
@@ -44,7 +43,7 @@ function UserMenu() {
   });
 
   const Logout = () => {
-    deleteCookie(jwtConfig.admin.accessTokenName);
+    localStorage.removeItem(jwtConfig.admin.accessTokenName);
     setIsLoading(true);
     api()
       .post("/adm/auth/logout")
