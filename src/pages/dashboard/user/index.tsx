@@ -121,12 +121,6 @@ const UserPage = () => {
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
-                          Email
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
                           Verified
                         </th>
                         <th
@@ -150,11 +144,11 @@ const UserPage = () => {
                       )}
                       {users?.data?.map((usr: any, idx: any) => (
                         <tr key={idx}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
-                            {usr.fullName}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {usr.email}
+                          <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
+                            <div>{usr.fullName}</div>
+                            <div className="text-xs text-slate-400">
+                              {usr.email}
+                            </div>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             <span

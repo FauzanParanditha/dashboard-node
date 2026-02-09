@@ -12,6 +12,7 @@ import { HiOutlinePencil, HiOutlinePlus, HiOutlineTrash } from "react-icons/hi";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import useSWR from "swr";
+import dayjs from "dayjs";
 
 // export const getServerSideProps: GetServerSideProps = async (context) => {
 //   // Use the checkAuth function to handle authentication
@@ -165,26 +166,42 @@ const WhitelistPage = () => {
                             {ip.ipAddress}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {ip.adminId.email}
+                            <div className="font-medium text-slate-700 dark:text-white">
+                              {ip.adminId?.fullName || ip.adminId?.email}
+                            </div>
+                            {ip.adminId?.fullName && (
+                              <div className="text-xs text-slate-400">
+                                {ip.adminId?.email}
+                              </div>
+                            )}
+                            {ip.createdAt && (
+                              <div className="text-xs text-slate-400">
+                                Created: {dayjs(ip.createdAt).format("DD-MM-YYYY")}
+                              </div>
+                            )}
                           </td>
-                          {user._id === ip.adminId._id && (
-                            <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                              <HiOutlinePencil
-                                className="h-5 w-5 text-blue-400"
-                                onClick={(e: any) => {
-                                  e.stopPropagation();
-                                  UpdateIp(ip);
-                                }}
-                              />
-                              <HiOutlineTrash
-                                className="h-5 w-5 text-rose-400"
-                                onClick={(e: any) => {
-                                  e.stopPropagation();
-                                  DeleteIp(ip);
-                                }}
-                              />
-                            </td>
-                          )}
+                          <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                            {user._id === ip.adminId?._id ? (
+                              <>
+                                <HiOutlinePencil
+                                  className="h-5 w-5 text-blue-400"
+                                  onClick={(e: any) => {
+                                    e.stopPropagation();
+                                    UpdateIp(ip);
+                                  }}
+                                />
+                                <HiOutlineTrash
+                                  className="h-5 w-5 text-rose-400"
+                                  onClick={(e: any) => {
+                                    e.stopPropagation();
+                                    DeleteIp(ip);
+                                  }}
+                                />
+                              </>
+                            ) : (
+                              <span className="text-xs text-slate-400">-</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

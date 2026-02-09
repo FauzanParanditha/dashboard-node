@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
 import { useAdminAuthGuard } from "@/hooks/use-admin";
 import useStore from "@/store";
+import LogDetailModal from "@/components/dashboard/logs/LogDetailModal";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";
@@ -23,6 +24,9 @@ const LogFailedCallbackPage = () => {
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
+  const [detail, setDetail] = useState<{ title: string; content: string } | null>(
+    null,
+  );
 
   const { data: callback, mutate: revalidate } = useSWR(
     "api/v1/adm/failed-callbacklogs?perPage=10&page=" +
@@ -113,13 +117,7 @@ const LogFailedCallbackPage = () => {
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          Payload
-                        </th>
-                        <th
-                          scope="col"
-                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
-                        >
-                          Callback Url
+                          Error / Callback
                         </th>
                         <th
                           scope="col"
@@ -145,6 +143,12 @@ const LogFailedCallbackPage = () => {
                         >
                           Action
                         </th>
+                        <th
+                          scope="col"
+                          className="border-b border-gray-200 px-5 py-3 text-center text-sm font-normal uppercase"
+                        >
+                          Detail
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="text-slate-400">
@@ -167,12 +171,10 @@ const LogFailedCallbackPage = () => {
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">
-                                {JSON.stringify(dt.payload, null, 2)}
+                              <div className="max-w-[320px] truncate">
+                                {dt.errDesc || "-"}
                               </div>
-                            </td>
-                            <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">
+                              <div className="max-w-[320px] truncate text-xs text-slate-400">
                                 {dt.callbackUrl}
                               </div>
                             </td>
@@ -200,6 +202,23 @@ const LogFailedCallbackPage = () => {
                                 }}
                               />
                             </td>
+                            <td className="border-gray-200 p-5 text-center text-sm dark:text-white">
+                              <button
+                                className="rounded bg-slate-200 px-3 py-1 text-xs text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
+                                onClick={() => {
+                                  const payload =
+                                    typeof dt.payload === "string"
+                                      ? dt.payload
+                                      : JSON.stringify(dt.payload, null, 2);
+                                  setDetail({
+                                    title: "Failed Callback Detail",
+                                    content: `Error:\\n${dt.errDesc || "-"}\\n\\nCallback URL:\\n${dt.callbackUrl}\\n\\nPayload:\\n${payload}`,
+                                  });
+                                }}
+                              >
+                                Detail
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -220,6 +239,12 @@ const LogFailedCallbackPage = () => {
           </div>
         </div>
       </DashboardLayout>
+      <LogDetailModal
+        isOpen={!!detail}
+        title={detail?.title || ""}
+        content={detail?.content || ""}
+        onClose={() => setDetail(null)}
+      />
     </>
   );
 };

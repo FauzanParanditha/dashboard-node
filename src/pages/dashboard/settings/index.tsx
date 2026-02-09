@@ -5,7 +5,7 @@ import ChangePasswordProfile from "@/components/dashboard/settings/changePasswor
 import ModalVerification from "@/components/dashboard/settings/modalVerification";
 import { DashboardLayout } from "@/components/layout";
 import { useUserContext } from "@/context/user";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
 import Head from "next/head";
 import { useState } from "react";
@@ -17,7 +17,7 @@ import { toast } from "react-toastify";
 // };
 
 const SettingsPage = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
   const { setIsLoading } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);

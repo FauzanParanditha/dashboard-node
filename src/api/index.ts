@@ -13,7 +13,9 @@ const api = () => {
   Axios.interceptors.request.use(
     (config) => {
       if (typeof window !== "undefined") {
-        const token = localStorage.getItem(jwtConfig.admin.accessTokenName);
+        const token =
+          localStorage.getItem(jwtConfig.admin.accessTokenName) ||
+          localStorage.getItem(jwtConfig.user.accessTokenName);
 
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -30,6 +32,12 @@ const api = () => {
     (error) => {
       if (error.response?.status === 401) {
         localStorage.removeItem(jwtConfig.admin.accessTokenName);
+        localStorage.removeItem(jwtConfig.user.accessTokenName);
+        localStorage.removeItem(jwtConfig.admin.roleName);
+        localStorage.removeItem(jwtConfig.admin.adminIdName);
+        localStorage.removeItem(jwtConfig.admin.userIdName);
+        localStorage.removeItem(jwtConfig.user.roleName);
+        localStorage.removeItem(jwtConfig.user.userIdName);
 
         toast.error("Session expired. Please login again.", {
           theme: "colored",

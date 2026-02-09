@@ -144,18 +144,6 @@ const AvailablePaymentPage = () => {
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
-                          Image
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                          Category
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
                           Admin
                         </th>
                         <th
@@ -186,29 +174,22 @@ const AvailablePaymentPage = () => {
                       {availablePayment?.data?.map(
                         (available: any, idx: any) => (
                           <tr key={idx}>
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
-                              {available.name}
-                            </td>
-                            <td className="whitespace-nowrap p-2">
-                              <button
-                                className="flex items-center justify-start font-medium text-green-500"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  ShowImage(available.image);
-                                }}
-                              >
-                                <span className="mr-2">
-                                  <HiOutlineEye />
-                                </span>
-                                <p>View Document</p>
-                              </button>
-                            </td>
-
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                              {available.category}
+                            <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
+                              <div>{available.name}</div>
+                              <div className="text-xs text-slate-400">
+                                {available.category}
+                              </div>
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                              {available.adminId.email}
+                              <div className="font-medium text-slate-700 dark:text-white">
+                                {available.adminId?.fullName ||
+                                  available.adminId?.email}
+                              </div>
+                              {available.adminId?.fullName && (
+                                <div className="text-xs text-slate-400">
+                                  {available.adminId?.email}
+                                </div>
+                              )}
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                               <span
@@ -222,22 +203,33 @@ const AvailablePaymentPage = () => {
                                 {available.active ? "Active" : "NOT Active"}
                               </span>
                             </td>
-                            {user._id === available.adminId._id && (
-                              <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                                <Link
-                                  href={`/dashboard/available-payment/${available._id}`}
-                                >
-                                  <HiOutlinePencil className="h-5 w-5 text-blue-400" />
-                                </Link>
-                                <HiOutlineTrash
-                                  className="h-5 w-5 text-rose-400"
-                                  onClick={(e: any) => {
-                                    e.stopPropagation();
-                                    DeleteAvailablePayment(available);
-                                  }}
-                                />
-                              </td>
-                            )}
+                            <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                              <HiOutlineEye
+                                className="h-5 w-5 text-emerald-500"
+                                onClick={(e: any) => {
+                                  e.stopPropagation();
+                                  ShowImage(available.image);
+                                }}
+                              />
+                              {user._id === available.adminId?._id ? (
+                                <>
+                                  <Link
+                                    href={`/dashboard/available-payment/${available._id}`}
+                                  >
+                                    <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                                  </Link>
+                                  <HiOutlineTrash
+                                    className="h-5 w-5 text-rose-400"
+                                    onClick={(e: any) => {
+                                      e.stopPropagation();
+                                      DeleteAvailablePayment(available);
+                                    }}
+                                  />
+                                </>
+                              ) : (
+                                <span className="text-xs text-slate-400">-</span>
+                              )}
+                            </td>
                           </tr>
                         ),
                       )}

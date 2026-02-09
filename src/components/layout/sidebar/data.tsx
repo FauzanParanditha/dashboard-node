@@ -89,3 +89,21 @@ export const admin = [
     link: "/dashboard/settings",
   },
 ];
+
+export const user = [
+  {
+    title: "Home",
+    icon: <FcHome />,
+    link: "/dashboard/home",
+  },
+  {
+    title: "Order",
+    icon: <FcPaid />,
+    link: "/dashboard/order",
+  },
+  {
+    title: "Profile",
+    icon: <FcSettings />,
+    link: "/dashboard/settings",
+  },
+];

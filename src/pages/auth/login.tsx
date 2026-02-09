@@ -56,13 +56,37 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const res = await api().post("/adm/auth/login", data);
+      const res = await api().post("/api/v1/auth/login", data);
 
       if (res.data.success) {
-        const token = res.data.data.token;
+        const { token, role, adminId, userId } = res.data.data || {};
+        const normalizedRole = String(role || "").toLowerCase();
+        const isAdmin = normalizedRole.includes("admin");
 
-        // 🔐 Simpan token (bukan cookie)
-        localStorage.setItem(jwtConfig.admin.accessTokenName, token);
+        // 🔐 Simpan token (bukan cookie) berdasarkan role
+        localStorage.removeItem(jwtConfig.admin.accessTokenName);
+        localStorage.removeItem(jwtConfig.user.accessTokenName);
+        localStorage.removeItem(jwtConfig.admin.adminIdName);
+        localStorage.removeItem(jwtConfig.admin.userIdName);
+
+        if (token) {
+          if (isAdmin) {
+            localStorage.setItem(jwtConfig.admin.accessTokenName, token);
+          } else {
+            localStorage.setItem(jwtConfig.user.accessTokenName, token);
+          }
+        }
+        if (role) {
+          localStorage.setItem(jwtConfig.admin.roleName, String(role));
+          localStorage.setItem(jwtConfig.user.roleName, String(role));
+        }
+        if (adminId) {
+          localStorage.setItem(jwtConfig.admin.adminIdName, String(adminId));
+        }
+        if (userId) {
+          localStorage.setItem(jwtConfig.admin.userIdName, String(userId));
+          localStorage.setItem(jwtConfig.user.userIdName, String(userId));
+        }
 
         await revalidate({}, true);
 

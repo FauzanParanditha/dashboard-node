@@ -12,7 +12,8 @@ const useUserContextValue = () => {
 
   const hasToken =
     typeof window !== "undefined" &&
-    !!localStorage.getItem(jwtConfig.admin.accessTokenName);
+    (!!localStorage.getItem(jwtConfig.admin.accessTokenName) ||
+      !!localStorage.getItem(jwtConfig.user.accessTokenName));
 
   const { isValidating, data, error, mutate } = useSWR(
     hasToken ? "/me" : null,
@@ -24,6 +25,12 @@ const useUserContextValue = () => {
 
   const logout = () => {
     localStorage.removeItem(jwtConfig.admin.accessTokenName);
+    localStorage.removeItem(jwtConfig.user.accessTokenName);
+    localStorage.removeItem(jwtConfig.admin.roleName);
+    localStorage.removeItem(jwtConfig.admin.adminIdName);
+    localStorage.removeItem(jwtConfig.admin.userIdName);
+    localStorage.removeItem(jwtConfig.user.roleName);
+    localStorage.removeItem(jwtConfig.user.userIdName);
     setAuth("unauthorized");
     mutate(undefined, false);
   };

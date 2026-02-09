@@ -1,6 +1,6 @@
 import api, { handleAxiosError } from "@/api";
 import { DashboardLayout } from "@/components/layout";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
 import formatMoney, { getValidObjectId } from "@/utils/helper";
 import { OrderInterface } from "@/utils/order";
@@ -23,7 +23,7 @@ type FormValues = {
 // };
 
 const DetailOrderPage = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
   const { setIsLoading } = useStore();
   const [order, setOrder] = useState<OrderInterface>();
 
