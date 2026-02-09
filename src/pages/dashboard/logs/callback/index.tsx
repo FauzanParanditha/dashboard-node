@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
 import { useAdminAuthGuard } from "@/hooks/use-admin";
 import useStore from "@/store";
+import LogDetailModal from "@/components/dashboard/logs/LogDetailModal";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";
@@ -19,6 +20,9 @@ const LogCallbackPage = () => {
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
+  const [detail, setDetail] = useState<{ title: string; content: string } | null>(
+    null,
+  );
 
   const { data: callback, mutate: revalidate } = useSWR(
     "api/v1/adm/callbacklogs?perPage=10&page=" + page + "&query=" + search,
@@ -89,19 +93,19 @@ const LogCallbackPage = () => {
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          Payload
-                        </th>
-                        <th
-                          scope="col"
-                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
-                        >
-                          Response
+                          Payload / Response
                         </th>
                         <th
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
                           Created_at
+                        </th>
+                        <th
+                          scope="col"
+                          className="border-b border-gray-200 px-5 py-3 text-center text-sm font-normal uppercase"
+                        >
+                          Detail
                         </th>
                       </tr>
                     </thead>
@@ -138,19 +142,42 @@ const LogCallbackPage = () => {
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">
-                                {JSON.stringify(dt.payload, null, 2)}
+                              <div className="max-w-[320px] truncate">
+                                {typeof dt.payload === "string"
+                                  ? dt.payload
+                                  : JSON.stringify(dt.payload)}
                               </div>
-                            </td>
-                            <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">
-                                {JSON.stringify(dt.response, null, 2)}
+                              <div className="max-w-[320px] truncate text-xs text-slate-400">
+                                {typeof dt.response === "string"
+                                  ? dt.response
+                                  : JSON.stringify(dt.response)}
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <p className="whitespace-nowrap">
                                 {dayjs(dt.createdAt).format("DD-MM-YYYY")}
                               </p>
+                            </td>
+                            <td className="border-gray-200 p-5 text-center text-sm dark:text-white">
+                              <button
+                                className="rounded bg-slate-200 px-3 py-1 text-xs text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
+                                onClick={() => {
+                                  const payload =
+                                    typeof dt.payload === "string"
+                                      ? dt.payload
+                                      : JSON.stringify(dt.payload, null, 2);
+                                  const response =
+                                    typeof dt.response === "string"
+                                      ? dt.response
+                                      : JSON.stringify(dt.response, null, 2);
+                                  setDetail({
+                                    title: "Callback Detail",
+                                    content: `Payload:\\n${payload}\\n\\nResponse:\\n${response}`,
+                                  });
+                                }}
+                              >
+                                Detail
+                              </button>
                             </td>
                           </tr>
                         );
@@ -172,6 +199,12 @@ const LogCallbackPage = () => {
           </div>
         </div>
       </DashboardLayout>
+      <LogDetailModal
+        isOpen={!!detail}
+        title={detail?.title || ""}
+        content={detail?.content || ""}
+        onClose={() => setDetail(null)}
+      />
     </>
   );
 };

@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
 import { useAdminAuthGuard } from "@/hooks/use-admin";
 import useStore from "@/store";
+import LogDetailModal from "@/components/dashboard/logs/LogDetailModal";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";
@@ -19,6 +20,9 @@ const LogEmailPage = () => {
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
+  const [detail, setDetail] = useState<{ title: string; content: string } | null>(
+    null,
+  );
 
   const { data: email, mutate: revalidate } = useSWR(
     "api/v1/adm/emaillogs?perPage=10&page=" + page + "&query=" + search,
@@ -69,7 +73,7 @@ const LogEmailPage = () => {
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          Message
+                          Message (Preview)
                         </th>
                         <th
                           scope="col"
@@ -83,6 +87,12 @@ const LogEmailPage = () => {
                         >
                           Created_at
                         </th>
+                        <th
+                          scope="col"
+                          className="border-b border-gray-200 px-5 py-3 text-center text-sm font-normal uppercase"
+                        >
+                          Detail
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="text-slate-400">
@@ -90,7 +100,7 @@ const LogEmailPage = () => {
                         <tr>
                           <td
                             className="border-b border-gray-200 py-6 text-center text-sm font-normal uppercase"
-                            colSpan={4}
+                            colSpan={5}
                           >
                             Data Not Found
                           </td>
@@ -105,8 +115,10 @@ const LogEmailPage = () => {
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">
-                                {JSON.stringify(dt.messages, null, 2)}
+                              <div className="max-w-[320px] truncate">
+                                {typeof dt.messages === "string"
+                                  ? dt.messages
+                                  : JSON.stringify(dt.messages)}
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
@@ -118,6 +130,22 @@ const LogEmailPage = () => {
                               <p className="whitespace-nowrap">
                                 {dayjs(dt._created).format("DD-MM-YYYY")}
                               </p>
+                            </td>
+                            <td className="border-gray-200 p-5 text-center text-sm dark:text-white">
+                              <button
+                                className="rounded bg-slate-200 px-3 py-1 text-xs text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
+                                onClick={() =>
+                                  setDetail({
+                                    title: "Email Detail",
+                                    content:
+                                      typeof dt.messages === "string"
+                                        ? dt.messages
+                                        : JSON.stringify(dt.messages, null, 2),
+                                  })
+                                }
+                              >
+                                Detail
+                              </button>
                             </td>
                           </tr>
                         );
@@ -139,6 +167,12 @@ const LogEmailPage = () => {
           </div>
         </div>
       </DashboardLayout>
+      <LogDetailModal
+        isOpen={!!detail}
+        title={detail?.title || ""}
+        content={detail?.content || ""}
+        onClose={() => setDetail(null)}
+      />
     </>
   );
 };

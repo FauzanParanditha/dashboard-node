@@ -3,18 +3,15 @@ import { jwtConfig } from "@/utils/var";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-export const useAdminAuthGuard = () => {
+export const useAuthGuard = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem(jwtConfig.admin.accessTokenName);
-    const role =
-      localStorage.getItem(jwtConfig.admin.roleName) ||
-      localStorage.getItem(jwtConfig.user.roleName);
-    const normalizedRole = String(role || "").toLowerCase();
-    const isAdmin = normalizedRole.includes("admin");
+    const token =
+      localStorage.getItem(jwtConfig.admin.accessTokenName) ||
+      localStorage.getItem(jwtConfig.user.accessTokenName);
 
-    if (!token || !isAdmin) {
+    if (!token) {
       router.replace("/auth/login");
       return;
     }

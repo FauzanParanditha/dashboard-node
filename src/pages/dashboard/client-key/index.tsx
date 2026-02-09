@@ -117,12 +117,6 @@ const ClientKeyPage = () => {
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
-                          Client ID
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
                           Status
                         </th>
                         <th
@@ -146,28 +140,28 @@ const ClientKeyPage = () => {
                       )}
                       {clientsKey?.data?.map((client: any, idx: any) => (
                         <tr key={idx}>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {client?.clientId}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            <span
-                              className={clsx(
-                                client?.active === true
-                                  ? "bg-teal-400"
-                                  : "bg-rose-400",
-                                "inline-flex rounded px-4 py-1 text-xs text-white",
-                              )}
-                            >
-                              {client?.active ? "Active" : "NOT Active"}
-                            </span>
-                          </td>
-                          {user._id === client.adminId._id && (
-                            <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                              <Link
-                                href={`/dashboard/client-key/${client._id}`}
+                          <td className="px-3 py-4 text-sm text-gray-500 dark:text-white">
+                            <div className="font-medium text-slate-700 dark:text-white">
+                              {client?.clientId}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              <span
+                                className={clsx(
+                                  client?.active === true
+                                    ? "bg-teal-400"
+                                    : "bg-rose-400",
+                                  "inline-flex rounded px-4 py-1 text-xs text-white",
+                                )}
                               >
-                                <HiOutlinePencil className="h-5 w-5 text-blue-400" />
-                              </Link>
+                                {client?.active ? "Active" : "NOT Active"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                            <Link href={`/dashboard/client-key/${client._id}`}>
+                              <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                            </Link>
+                            {user._id === client.adminId?._id ? (
                               <HiOutlineTrash
                                 className="h-5 w-5 text-rose-400"
                                 onClick={(e: any) => {
@@ -175,8 +169,10 @@ const ClientKeyPage = () => {
                                   DeleteClient(client);
                                 }}
                               />
-                            </td>
-                          )}
+                            ) : (
+                              <span className="text-xs text-slate-400">-</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

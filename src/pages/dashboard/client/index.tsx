@@ -123,12 +123,6 @@ const ClientPage = () => {
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
-                          Client ID
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
                           Notify URL
                         </th>
                         <th
@@ -164,17 +158,26 @@ const ClientPage = () => {
                       )}
                       {clients?.data?.map((client: any, idx: any) => (
                         <tr key={idx}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
-                            {client?.name}
+                          <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
+                            <div>{client?.name}</div>
+                            <div className="text-xs text-slate-400">
+                              {client?.clientId}
+                            </div>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {client?.clientId}
+                            <div className="max-w-[260px] truncate">
+                              {client?.notifyUrl}
+                            </div>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {client?.notifyUrl}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {client?.userId?.email}
+                            <div className="font-medium text-slate-700 dark:text-white">
+                              {client?.userId?.fullName || client?.userId?.email}
+                            </div>
+                            {client?.userId?.fullName && (
+                              <div className="text-xs text-slate-400">
+                                {client?.userId?.email}
+                              </div>
+                            )}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             <span
@@ -188,11 +191,11 @@ const ClientPage = () => {
                               {client?.active ? "Active" : "NOT Active"}
                             </span>
                           </td>
-                          {user._id === client.adminId && (
-                            <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                              <Link href={`/dashboard/client/${client._id}`}>
-                                <HiOutlinePencil className="h-5 w-5 text-blue-400" />
-                              </Link>
+                          <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                            <Link href={`/dashboard/client/${client._id}`}>
+                              <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                            </Link>
+                            {user._id === client.adminId ? (
                               <HiOutlineTrash
                                 className="h-5 w-5 text-rose-400"
                                 onClick={(e: any) => {
@@ -200,8 +203,10 @@ const ClientPage = () => {
                                   DeleteClient(client);
                                 }}
                               />
-                            </td>
-                          )}
+                            ) : (
+                              <span className="text-xs text-slate-400">-</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

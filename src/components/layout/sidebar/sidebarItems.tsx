@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { admin } from "./data";
+import { admin, user } from "./data";
+import { jwtConfig } from "@/utils/var";
 
 const style = {
   title: "font-normal mx-4 text-sm",
@@ -15,8 +16,21 @@ const style = {
 export function SidebarItems() {
   const { pathname } = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  let sidebarData = admin;
+  const [role, setRole] = useState("");
+  let sidebarData = user;
   let rem = "";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
+
+  const isAdmin = String(role || "").toLowerCase().includes("admin");
+  sidebarData = isAdmin ? admin : user;
 
   if (pathname.startsWith("/__adm")) {
     sidebarData = admin;

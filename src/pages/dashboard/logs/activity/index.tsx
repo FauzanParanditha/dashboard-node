@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
 import { useAdminAuthGuard } from "@/hooks/use-admin";
 import useStore from "@/store";
+import LogDetailModal from "@/components/dashboard/logs/LogDetailModal";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";
@@ -19,6 +20,9 @@ const LogActivityPage = () => {
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
+  const [detail, setDetail] = useState<{ title: string; content: string } | null>(
+    null,
+  );
 
   const { data: activity, mutate: revalidate } = useSWR(
     "api/v1/adm/apilogs/?limit=10&page=" + page + "&query=" + search,
@@ -71,13 +75,7 @@ const LogActivityPage = () => {
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          Endpoint
-                        </th>
-                        <th
-                          scope="col"
-                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
-                        >
-                          Status Code
+                          Endpoint / Status
                         </th>
                         <th
                           scope="col"
@@ -90,6 +88,12 @@ const LogActivityPage = () => {
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
                           Do Time
+                        </th>
+                        <th
+                          scope="col"
+                          className="border-b border-gray-200 px-5 py-3 text-center text-sm font-normal uppercase"
+                        >
+                          Detail
                         </th>
                       </tr>
                     </thead>
@@ -114,12 +118,12 @@ const LogActivityPage = () => {
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
-                                {dt.endpoint}
-                              </div>
-                            </td>
-                            <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">
-                                {dt.statusCode}
+                                <span className="max-w-[280px] truncate">
+                                  {dt.endpoint}
+                                </span>
+                                <span className="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                                  {dt.statusCode}
+                                </span>
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
@@ -131,6 +135,19 @@ const LogActivityPage = () => {
                               <p className="whitespace-nowrap">
                                 {dayjs(dt.do_time).format("HH:mm:ss")}
                               </p>
+                            </td>
+                            <td className="border-gray-200 p-5 text-center text-sm dark:text-white">
+                              <button
+                                className="rounded bg-slate-200 px-3 py-1 text-xs text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
+                                onClick={() =>
+                                  setDetail({
+                                    title: "Activity Detail",
+                                    content: JSON.stringify(dt, null, 2),
+                                  })
+                                }
+                              >
+                                Detail
+                              </button>
                             </td>
                           </tr>
                         );
@@ -152,6 +169,12 @@ const LogActivityPage = () => {
           </div>
         </div>
       </DashboardLayout>
+      <LogDetailModal
+        isOpen={!!detail}
+        title={detail?.title || ""}
+        content={detail?.content || ""}
+        onClose={() => setDetail(null)}
+      />
     </>
   );
 };

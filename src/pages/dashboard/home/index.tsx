@@ -1,9 +1,10 @@
 import { DashboardLayout } from "@/components/layout";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import { Col, Row } from "antd";
 import dynamic from "next/dynamic";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { jwtConfig } from "@/utils/var";
 import useSWR from "swr";
 
 // export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -12,7 +13,19 @@ import useSWR from "swr";
 // };
 
 const HomePage = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
+
+  const isAdmin = String(role || "").toLowerCase().includes("admin");
 
   const { data: dashboard, mutate: revalidate } = useSWR(
     "/api/v1/adm/dashboard",
@@ -38,20 +51,24 @@ const HomePage = () => {
       </Head>
       <DashboardLayout>
         <Row gutter={[8, 8]}>
-          <Col xs={24} sm={24} xl={8}>
-            <DashboardTotalCountCard
-              resource="client"
-              isLoading={isLoading}
-              totalCount={dashboard?.data.client}
-            />
-          </Col>
-          <Col xs={24} sm={24} xl={8}>
-            <DashboardTotalCountCard
-              resource="user"
-              isLoading={isLoading}
-              totalCount={dashboard?.data.user}
-            />
-          </Col>
+          {isAdmin && (
+            <Col xs={24} sm={24} xl={8}>
+              <DashboardTotalCountCard
+                resource="client"
+                isLoading={isLoading}
+                totalCount={dashboard?.data.client}
+              />
+            </Col>
+          )}
+          {isAdmin && (
+            <Col xs={24} sm={24} xl={8}>
+              <DashboardTotalCountCard
+                resource="user"
+                isLoading={isLoading}
+                totalCount={dashboard?.data.user}
+              />
+            </Col>
+          )}
           <Col xs={24} sm={24} xl={8}>
             <DashboardTotalCountCard
               resource="order"
@@ -64,9 +81,11 @@ const HomePage = () => {
           <Col xs={24} sm={24} xl={8} style={{ height: "540px" }}>
             <Orders />
           </Col>
-          <Col xs={24} sm={24} xl={16} style={{ height: "460px" }}>
-            <DashboardLatestActivities />
-          </Col>
+          {isAdmin && (
+            <Col xs={24} sm={24} xl={16} style={{ height: "460px" }}>
+              <DashboardLatestActivities />
+            </Col>
+          )}
         </Row>
       </DashboardLayout>
     </>

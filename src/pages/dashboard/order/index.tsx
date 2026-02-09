@@ -1,7 +1,7 @@
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
 import formatMoney from "@/utils/helper";
 import Head from "next/head";
@@ -16,7 +16,7 @@ import useSWR from "swr";
 // };
 
 const OrderPage = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
@@ -67,21 +67,9 @@ const OrderPage = () => {
                       <tr>
                         <th
                           scope="col"
-                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 dark:text-white"
-                        >
-                          Client
-                        </th>
-                        <th
-                          scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Order ID
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                          Items
                         </th>
                         <th
                           scope="col"
@@ -128,21 +116,22 @@ const OrderPage = () => {
                       )}
                       {orders?.data?.map((order: any, idx: any) => (
                         <tr key={idx}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
-                            {order.clientId?.name}
+                          <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
+                            <div>{order.orderId}</div>
+                            <div className="text-xs text-slate-400">
+                              {order.clientId?.name}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {order.items?.length || 0} items
+                            </div>
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {order.orderId}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {order.items.map((item: any, index: any) => (
-                              <div key={index}>{item.name}</div>
-                            ))}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {order.items.map((item: any, index: any) => (
-                              <div key={index}>{item.domain}</div>
-                            ))}
+                          <td className="px-3 py-4 text-sm text-gray-500 dark:text-white">
+                            {order.items?.[0]?.domain || "-"}
+                            {order.items?.length > 1 && (
+                              <span className="ml-2 text-xs text-slate-400">
+                                +{order.items.length - 1} more
+                              </span>
+                            )}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             {order.paymentType}
