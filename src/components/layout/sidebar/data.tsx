@@ -14,8 +14,22 @@ import {
   FcSettings,
   FcSynchronize,
 } from "react-icons/fc";
+import type { ReactNode } from "react";
 
-export const admin = [
+export type SidebarSubItem = {
+  title: string;
+  icon: ReactNode;
+  link: string;
+};
+
+export type SidebarItem = {
+  title: string;
+  icon: ReactNode;
+  link: string;
+  subMenu?: SidebarSubItem[];
+};
+
+export const admin: SidebarItem[] = [
   {
     title: "Dashboard",
     icon: <FcHome />,
@@ -90,7 +104,7 @@ export const admin = [
   },
 ];
 
-export const user = [
+export const user: SidebarItem[] = [
   {
     title: "Home",
     icon: <FcHome />,
