@@ -1,4 +1,3 @@
-import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useAuthGuard } from "@/hooks/use-auth";
@@ -6,7 +5,7 @@ import useStore from "@/store";
 import formatMoney from "@/utils/helper";
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HiEye } from "react-icons/hi";
 import useSWR from "swr";
 
@@ -15,17 +14,46 @@ import useSWR from "swr";
 //   return checkAuthAdmin(context);
 // };
 
+const statusOptions = ["paid", "pending", "failed", "cancel"];
+
 const OrderPage = () => {
   useAuthGuard();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [limit, setLimit] = useState(20);
+  const [clientId, setClientId] = useState("");
+  const [domain, setDomain] = useState("");
+  const [statuses, setStatuses] = useState<string[]>([]);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [groupByClient, setGroupByClient] = useState(false);
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
-  const [isOpen, setIsOpen] = useState(false);
+
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams();
+    if (groupByClient) {
+      params.set("group_by", "client");
+    } else {
+      params.set("page", String(page));
+      params.set("limit", String(limit));
+    }
+    if (clientId.trim()) params.set("clientId", clientId.trim());
+    if (domain.trim()) params.set("domain", domain.trim());
+    if (statuses.length > 0) params.set("paymentStatus", statuses.join(","));
+    if (dateFrom) params.set("dateFrom", new Date(dateFrom).toISOString());
+    if (dateTo) params.set("dateTo", new Date(dateTo).toISOString());
+    return params.toString();
+  }, [clientId, domain, statuses, dateFrom, dateTo, page, limit, groupByClient]);
 
   const { data: orders, mutate: revalidate } = useSWR(
-    `api/v1/orders?limit=${10}&page=${page}&query=${search}`,
+    `api/v1/orders?${queryString}`,
   );
+
+  useEffect(() => {
+    if (!groupByClient) {
+      setPage(1);
+    }
+  }, [clientId, domain, statuses, dateFrom, dateTo, groupByClient, limit]);
 
   useEffect(() => {
     if (orders !== undefined) {
@@ -53,119 +81,288 @@ const OrderPage = () => {
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
             </div>
-            <SearchForm
-              search={search}
-              setSearch={setSearch}
-              revalidate={revalidate}
-              placeholder="name"
-            />
+            <div className="mt-4 rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
+                    Client ID
+                  </label>
+                  <input
+                    type="text"
+                    value={clientId}
+                    onChange={(e) => setClientId(e.target.value)}
+                    placeholder="CLNT-001"
+                    className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
+                    Domain
+                  </label>
+                  <input
+                    type="text"
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    placeholder="example.com"
+                    className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
+                    Date From
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
+                    Date To
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <div className="text-xs font-semibold text-slate-600 dark:text-slate-200">
+                  Payment Status
+                </div>
+                {statusOptions.map((status) => (
+                  <label
+                    key={status}
+                    className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-200"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={statuses.includes(status)}
+                      onChange={(e) => {
+                        setStatuses((prev) =>
+                          e.target.checked
+                            ? [...prev, status]
+                            : prev.filter((s) => s !== status),
+                        );
+                      }}
+                    />
+                    {status}
+                  </label>
+                ))}
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={groupByClient}
+                    onChange={(e) => setGroupByClient(e.target.checked)}
+                  />
+                  Group by client
+                </label>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
+                    Limit
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={limit}
+                    onChange={(e) => setLimit(Number(e.target.value || 1))}
+                    className="w-20 rounded border border-slate-200 px-2 py-1 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="rounded bg-slate-200 px-3 py-1 text-xs text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
+                    onClick={() => {
+                      setClientId("");
+                      setDomain("");
+                      setStatuses([]);
+                      setDateFrom("");
+                      setDateTo("");
+                      setGroupByClient(false);
+                      setLimit(20);
+                      setPage(1);
+                      revalidate();
+                    }}
+                  >
+                    Reset
+                  </button>
+                  <button
+                    className="rounded bg-cyan-600 px-3 py-1 text-xs text-white hover:bg-cyan-500"
+                    onClick={() => {
+                      setPage(1);
+                      revalidate();
+                    }}
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
             <div className="mt-8 flow-root">
               <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                   <table className="min-w-full divide-y divide-gray-300">
-                    <thead>
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                          Order ID
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                          Domain Name
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                          Payment Type
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                          Payment Status
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                          Total
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
+                    {groupByClient ? (
+                      <thead>
+                        <tr>
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Client
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Total Orders
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Total Amount
+                          </th>
+                        </tr>
+                      </thead>
+                    ) : (
+                      <thead>
+                        <tr>
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Order ID
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Domain Name
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Payment Type
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Payment Status
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Total
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Action
+                          </th>
+                        </tr>
+                      </thead>
+                    )}
                     <tbody className="divide-y divide-gray-200">
                       {empty && (
                         <tr>
                           <td
                             className="border-b border-gray-200 py-6 text-center text-sm font-normal uppercase"
-                            colSpan={7}
+                            colSpan={groupByClient ? 3 : 7}
                           >
                             Data Not Found
                           </td>
                         </tr>
                       )}
-                      {orders?.data?.map((order: any, idx: any) => (
-                        <tr key={idx}>
-                          <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
-                            <div>{order.orderId}</div>
-                            <div className="text-xs text-slate-400">
-                              {order.clientId?.name}
-                            </div>
-                            <div className="text-xs text-slate-400">
-                              {order.items?.length || 0} items
-                            </div>
-                          </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {order.items?.[0]?.domain || "-"}
-                            {order.items?.length > 1 && (
-                              <span className="ml-2 text-xs text-slate-400">
-                                +{order.items.length - 1} more
-                              </span>
-                            )}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {order.paymentType}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            <span
-                              className={`ml-2 inline-block rounded ${order?.paymentStatus === "paid" ? "bg-green-500" : order?.paymentStatus === "failed" ? "bg-red-500" : order?.paymentStatus === "pending" ? "bg-yellow-500" : order?.paymentStatus === "cancel" ? "bg-yellow-700" : "bg-gray-500"} px-2 py-1 text-sm font-medium text-white`}
-                            >
-                              {order.paymentStatus}
-                            </span>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            {formatMoney(order.totalAmount)}
-                          </td>
-                          <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                            <Link href={`/dashboard/order/${order._id}`}>
-                              <HiEye className="h-5 w-5 text-blue-400" />
-                            </Link>
-                            {/* <HiOutlineTrash
-                              className="h-5 w-5 text-rose-400"
-                              onClick={(e: any) => {
-                                e.stopPropagation();
-                                DeleteOrder(order);
-                              }}
-                            /> */}
-                          </td>
-                        </tr>
-                      ))}
+                      {groupByClient
+                        ? orders?.data?.map((row: any, idx: any) => {
+                            const clientLabel =
+                              row?.client?.name ||
+                              row?.clientName ||
+                              row?.clientId ||
+                              row?.client_id ||
+                              "-";
+                            const totalOrders =
+                              row?.totalOrders ?? row?.count ?? row?.total ?? "-";
+                            const rawAmount =
+                              row?.totalAmount ??
+                              row?.amount ??
+                              row?.totalAmountPaid;
+                            const totalAmount =
+                              typeof rawAmount === "number"
+                                ? formatMoney(rawAmount)
+                                : rawAmount || "-";
+                            return (
+                              <tr key={idx}>
+                                <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
+                                  {clientLabel}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                  {totalOrders}
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                  {totalAmount}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        : orders?.data?.map((order: any, idx: any) => (
+                            <tr key={idx}>
+                              <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
+                                <div>{order.orderId}</div>
+                                <div className="text-xs text-slate-400">
+                                  {order.clientId?.name}
+                                </div>
+                                <div className="text-xs text-slate-400">
+                                  {order.items?.length || 0} items
+                                </div>
+                              </td>
+                              <td className="px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                {order.items?.[0]?.domain || "-"}
+                                {order.items?.length > 1 && (
+                                  <span className="ml-2 text-xs text-slate-400">
+                                    +{order.items.length - 1} more
+                                  </span>
+                                )}
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                {order.paymentType}
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                <span
+                                  className={`ml-2 inline-block rounded ${order?.paymentStatus === "paid" ? "bg-green-500" : order?.paymentStatus === "failed" ? "bg-red-500" : order?.paymentStatus === "pending" ? "bg-yellow-500" : order?.paymentStatus === "cancel" ? "bg-yellow-700" : "bg-gray-500"} px-2 py-1 text-sm font-medium text-white`}
+                                >
+                                  {order.paymentStatus}
+                                </span>
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                {formatMoney(order.totalAmount)}
+                              </td>
+                              <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                                <Link href={`/dashboard/order/${order._id}`}>
+                                  <HiEye className="h-5 w-5 text-blue-400" />
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
-            {!empty && (
+            {!empty && !groupByClient && (
               <div className="flex items-center justify-center border-t py-4">
                 <Pagination
                   paginate={orders?.pagination || {}}
