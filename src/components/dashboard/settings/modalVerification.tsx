@@ -75,7 +75,7 @@ const ModalVerification = ({
     setIsLoading(true);
     // Proceed with API call
     api()
-      .patch("/adm/auth/verify-verification-code", {
+      .patch("/api/v1/auth/verify-verification-code", {
         email,
         provided_code: data.provided_code,
       })

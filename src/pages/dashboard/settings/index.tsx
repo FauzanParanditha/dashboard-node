@@ -28,7 +28,7 @@ const SettingsPage = () => {
     setSelectedEmail(email);
 
     api()
-      .patch("/adm/auth/send-verification-code", {
+      .patch("/api/v1/auth/send-verification-code", {
         email: email,
       })
       .then((res) => {
