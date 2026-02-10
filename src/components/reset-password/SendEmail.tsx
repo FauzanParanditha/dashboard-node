@@ -36,7 +36,7 @@ const SendEmail = () => {
   const submit = async (data: Values) => {
     setIsLoading(true);
     api()
-      .patch("/adm/auth/send-forgot-password-code", data)
+      .patch("/api/v1/auth/send-forgot-password-code", data)
       .then(async (res) => {
         if (res.data.success) {
           toast.success(res.data.message, { theme: "colored" });

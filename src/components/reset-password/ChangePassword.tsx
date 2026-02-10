@@ -66,7 +66,7 @@ const ChangePassword = () => {
       new_password: data.password,
     };
     api()
-      .patch(`/adm/auth/verify-forgot-password-code`, body)
+      .patch(`/api/v1/auth/verify-forgot-password-code`, body)
       .then((res) => {
         if (res.data.success) {
           toast.success("Reset Password Success", { theme: "colored" });
