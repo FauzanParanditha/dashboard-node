@@ -1,17 +1,17 @@
+import api, { handleAxiosError } from "@/api";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
-import api, { handleAxiosError } from "@/api";
 import formatMoney from "@/utils/helper";
 import { jwtConfig } from "@/utils/var";
+import { DatePicker } from "antd";
+import type { Dayjs } from "dayjs";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { HiEye } from "react-icons/hi";
 import useSWR from "swr";
-import { DatePicker } from "antd";
-import type { Dayjs } from "dayjs";
 
 // export const getServerSideProps: GetServerSideProps = async (context) => {
 //   // Use the checkAuth function to handle authentication
@@ -66,15 +66,7 @@ const OrderPage = () => {
     if (dateRange[0]) params.set("dateFrom", dateRange[0].toISOString());
     if (dateRange[1]) params.set("dateTo", dateRange[1].toISOString());
     return params.toString();
-  }, [
-    clientId,
-    domain,
-    statuses,
-    dateRange,
-    page,
-    limit,
-    groupByClient,
-  ]);
+  }, [clientId, domain, statuses, dateRange, page, limit, groupByClient]);
 
   const { data: orders, mutate: revalidate } = useSWR(
     `api/v1/orders?${queryString}`,
@@ -418,8 +410,11 @@ const OrderPage = () => {
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                                 {formatMoney(order.totalAmount)}
                               </td>
-                              <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                                <Link href={`/dashboard/order/${order._id}`}>
+                              <td className="whitespace-nowrap px-3 py-4 text-center text-sm text-gray-500 dark:text-white">
+                                <Link
+                                  href={`/dashboard/order/${order._id}`}
+                                  className="inline-flex items-center justify-center"
+                                >
                                   <HiEye className="h-5 w-5 text-blue-400" />
                                 </Link>
                               </td>
