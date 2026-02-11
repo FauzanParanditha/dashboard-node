@@ -137,16 +137,18 @@ const AvailablePaymentPage = () => {
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
-              <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(true)}
-                  className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
-                >
-                  Add Available Payment
-                  <HiOutlinePlus className="h-5 w-5" />
-                </button>
-              </div>
+              {isAdmin && (
+                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(true)}
+                    className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
+                  >
+                    Add Available Payment
+                    <HiOutlinePlus className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
             </div>
             <SearchForm
               search={search}
