@@ -5,8 +5,9 @@ import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useUserContext } from "@/context/user";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
+import { jwtConfig } from "@/utils/var";
 import clsx from "clsx";
 import Head from "next/head";
 import Link from "next/link";
@@ -27,7 +28,7 @@ import useSWR from "swr";
 // };
 
 const AvailablePaymentPage = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
@@ -36,9 +37,34 @@ const AvailablePaymentPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUserContext();
+  const [role, setRole] = useState("");
+  const [clientId, setClientId] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
+
+  const isAdmin = String(role || "")
+    .toLowerCase()
+    .includes("admin");
+
+  useEffect(() => {
+    if (isAdmin) return;
+    const firstClientId = user?.clients?.[0]?.clientId || "";
+    setClientId(firstClientId);
+  }, [isAdmin, user]);
 
   const { data: availablePayment, mutate: revalidate } = useSWR(
-    `api/v1/available-payment?limit=${10}&page=${page}&query=${search}`,
+    isAdmin
+      ? `api/v1/available-payment?limit=${10}&page=${page}&query=${search}`
+      : clientId
+        ? `api/v1/client-available-payments?limit=${10}&page=${page}&query=${search}&clientId=${clientId}`
+        : null,
   );
 
   useEffect(() => {
@@ -140,12 +166,14 @@ const AvailablePaymentPage = () => {
                         >
                           Name
                         </th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                          Admin
-                        </th>
+                        {isAdmin && (
+                          <th
+                            scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Admin
+                          </th>
+                        )}
                         <th
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
@@ -172,66 +200,82 @@ const AvailablePaymentPage = () => {
                         </tr>
                       )}
                       {availablePayment?.data?.map(
-                        (available: any, idx: any) => (
-                          <tr key={idx}>
-                            <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
-                              <div>{available.name}</div>
-                              <div className="text-xs text-slate-400">
-                                {available.category}
-                              </div>
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                              <div className="font-medium text-slate-700 dark:text-white">
-                                {available.adminId?.fullName ||
-                                  available.adminId?.email}
-                              </div>
-                              {available.adminId?.fullName && (
+                        (available: any, idx: any) => {
+                          const ap = available?.availablePayment || available;
+                          const displayName = ap?.name || available?.name;
+                          const displayCategory =
+                            ap?.category || available?.category;
+                          const displayImage = ap?.image || available?.image;
+                          const isActive =
+                            available?.active ?? ap?.active ?? false;
+                          const clientIds = available?.availablePayment?._id;
+
+                          return (
+                            <tr key={idx}>
+                              <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
+                                <div>{displayName}</div>
                                 <div className="text-xs text-slate-400">
-                                  {available.adminId?.email}
+                                  {displayCategory}
                                 </div>
+                              </td>
+                              {isAdmin && (
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                  <div className="font-medium text-slate-700 dark:text-white">
+                                    {available.adminId?.fullName ||
+                                      available.adminId?.email ||
+                                      "-"}
+                                  </div>
+                                  {available.adminId?.fullName && (
+                                    <div className="text-xs text-slate-400">
+                                      {available.adminId?.email}
+                                    </div>
+                                  )}
+                                </td>
                               )}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                              <span
-                                className={clsx(
-                                  available.active === true
-                                    ? "bg-teal-400"
-                                    : "bg-rose-400",
-                                  "inline-flex rounded px-4 py-1 text-xs text-white",
-                                )}
-                              >
-                                {available.active ? "Active" : "NOT Active"}
-                              </span>
-                            </td>
-                            <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                              <HiOutlineEye
-                                className="h-5 w-5 text-emerald-500"
-                                onClick={(e: any) => {
-                                  e.stopPropagation();
-                                  ShowImage(available.image);
-                                }}
-                              />
-                              {user._id === available.adminId?._id ? (
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                <span
+                                  className={clsx(
+                                    isActive ? "bg-teal-400" : "bg-rose-400",
+                                    "inline-flex rounded px-4 py-1 text-xs text-white",
+                                  )}
+                                >
+                                  {isActive ? "Active" : "NOT Active"}
+                                </span>
+                              </td>
+                              <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                                <HiOutlineEye
+                                  className="h-5 w-5 text-emerald-500"
+                                  onClick={(e: any) => {
+                                    e.stopPropagation();
+                                    ShowImage(displayImage);
+                                  }}
+                                />
+                                {/* {user._id === available.adminId?._id ? ( */}
                                 <>
                                   <Link
-                                    href={`/dashboard/available-payment/${available._id}`}
+                                    href={`/dashboard/available-payment/${isAdmin ? available._id : clientIds}`}
                                   >
                                     <HiOutlinePencil className="h-5 w-5 text-blue-400" />
                                   </Link>
-                                  <HiOutlineTrash
-                                    className="h-5 w-5 text-rose-400"
-                                    onClick={(e: any) => {
-                                      e.stopPropagation();
-                                      DeleteAvailablePayment(available);
-                                    }}
-                                  />
+                                  {isAdmin && (
+                                    <HiOutlineTrash
+                                      className="h-5 w-5 text-rose-400"
+                                      onClick={(e: any) => {
+                                        e.stopPropagation();
+                                        DeleteAvailablePayment(available);
+                                      }}
+                                    />
+                                  )}
                                 </>
-                              ) : (
-                                <span className="text-xs text-slate-400">-</span>
-                              )}
-                            </td>
-                          </tr>
-                        ),
+                                {/* ) : (
+                                  <span className="text-xs text-slate-400">
+                                    -
+                                  </span>
+                                )} */}
+                              </td>
+                            </tr>
+                          );
+                        },
                       )}
                     </tbody>
                   </table>

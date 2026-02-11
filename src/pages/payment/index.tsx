@@ -49,13 +49,17 @@ const PaymentPage = () => {
           const errorMessage =
             error.response?.data?.error || "Error fetching order data";
           toast.error(errorMessage);
+          setLoading(false);
         });
+      return;
     }
+    setLoading(false);
   }, [q]);
 
   useEffect(() => {
-    fetchPaymentMethods(setPaymentMethods, setLoading);
-  }, []);
+    if (!orderDetails?.clientId) return;
+    fetchPaymentMethods(setPaymentMethods, setLoading, orderDetails.clientId);
+  }, [orderDetails?.clientId]);
 
   const handlePaymentMethodSelect = (methodId: string) => {
     if (!isPaymentProcessing) {

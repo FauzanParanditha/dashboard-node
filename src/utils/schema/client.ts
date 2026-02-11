@@ -6,6 +6,7 @@ export const createClientSchema = yup.object().shape({
   name: yup.string().required("name is required"),
   notifyUrl: yup.string().url().optional(),
   userId: yup.string().required("userId is required"),
+  availablePaymentIds: yup.array().of(yup.string().required()).optional(),
 });
 
 export const updateClientSchema = yup.object({
@@ -13,4 +14,5 @@ export const updateClientSchema = yup.object({
   notifyUrl: yup.string().url().optional(),
   userId: yup.string().required("userId is required"),
   active: yup.boolean().required("status is required"),
+  availablePaymentIds: yup.array().of(yup.string().required()).optional(),
 });

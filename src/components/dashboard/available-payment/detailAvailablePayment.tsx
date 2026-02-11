@@ -2,9 +2,11 @@ import api, { handleAxiosError } from "@/api";
 import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
+import { useUserContext } from "@/context/user";
 import useStore from "@/store";
 import { getValidObjectId } from "@/utils/helper";
 import { updateAvailablePaymentSchema } from "@/utils/schema/available-payment";
+import { jwtConfig } from "@/utils/var";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -30,6 +32,8 @@ const DetailAvaPay = () => {
   const router = useRouter();
   const { id } = router.query;
   const [userOptions, setUserOptions] = useState([]);
+  const [role, setRole] = useState("");
+  const { user } = useUserContext();
 
   const {
     control,
@@ -89,11 +93,24 @@ const DetailAvaPay = () => {
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
+
+  const isAdmin = String(role || "").toLowerCase().includes("admin");
+
+  useEffect(() => {
     if (id != undefined) {
       getData();
     }
-    fetchUsers();
-  }, [id]);
+    if (isAdmin) {
+      fetchUsers();
+    }
+  }, [id, isAdmin]);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
@@ -101,6 +118,39 @@ const DetailAvaPay = () => {
   };
 
   const onSubmit = (data: Values) => {
+    setIsLoading(true);
+
+    const validId = getValidObjectId(typeof id === "string" ? id : "");
+    if (!validId) {
+      handleAxiosError(new Error("Invalid available payment ID"));
+      return;
+    }
+
+    if (!isAdmin) {
+      const clientId =
+        user?.clients?.[0]?.clientId || user?.clients?.[0]?.id || "";
+
+      api()
+        .patch("api/v1/client-available-payments", {
+          clientId,
+          availablePaymentId: validId,
+          active: data.active,
+        })
+        .then((res) => {
+          if (res.data.success) {
+            router.push("/dashboard/available-payment");
+            toast.success("Update Available Payment success", {
+              theme: "colored",
+            });
+          }
+        })
+        .catch((err) => {
+          handleAxiosError(err);
+        })
+        .finally(() => setIsLoading(false));
+      return;
+    }
+
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("category", data.category);
@@ -110,21 +160,12 @@ const DetailAvaPay = () => {
       formData.append("image", data.image); // Append the file
     }
 
-    setIsLoading(true);
-
-    const validId = getValidObjectId(typeof id === "string" ? id : "");
-    if (!validId) {
-      handleAxiosError(new Error("Invalid available payment ID"));
-      return;
-    }
-
     api()
       .put(`api/v1/available-payment/${validId}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((res) => {
         if (res.data.success) {
-          // getData();
           router.push("/dashboard/available-payment");
           toast.success("Update Available Payment success", {
             theme: "colored",
@@ -158,6 +199,7 @@ const DetailAvaPay = () => {
                   {...register("name")}
                   required
                   error={errors.name?.message}
+                  disabled={!isAdmin}
                 />
               </div>
               <div className="mb-4 hidden pr-3">
@@ -185,6 +227,7 @@ const DetailAvaPay = () => {
                   {...register("category")}
                   required
                   error={errors.category?.message}
+                  disabled={!isAdmin}
                 />
               </div>
               <div className="mb-4 pr-2">
@@ -204,20 +247,22 @@ const DetailAvaPay = () => {
                   )}
                 />
               </div>
-              <div className="mb-4 pr-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-white">
-                  Upload Picture
-                </label>
-                <input
-                  type="file"
-                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-black dark:file:text-white dark:hover:file:bg-slate-500"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-                {errors.image && (
-                  <p className="text-sm text-red-500">{errors.image.message}</p>
-                )}
-              </div>
+              {isAdmin && (
+                <div className="mb-4 pr-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-white">
+                    Upload Picture
+                  </label>
+                  <input
+                    type="file"
+                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-black dark:file:text-white dark:hover:file:bg-slate-500"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  {errors.image && (
+                    <p className="text-sm text-red-500">{errors.image.message}</p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="my-2">
               <Button success label="Update Data" block bold />

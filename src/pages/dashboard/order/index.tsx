@@ -2,19 +2,23 @@ import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
+import api, { handleAxiosError } from "@/api";
 import formatMoney from "@/utils/helper";
+import { jwtConfig } from "@/utils/var";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { HiEye } from "react-icons/hi";
 import useSWR from "swr";
+import { DatePicker } from "antd";
+import type { Dayjs } from "dayjs";
 
 // export const getServerSideProps: GetServerSideProps = async (context) => {
 //   // Use the checkAuth function to handle authentication
 //   return checkAuthAdmin(context);
 // };
 
-const statusOptions = ["paid", "pending", "failed", "cancel"];
+const statusOptions = ["paid", "pending", "expired", "cancel"];
 
 const OrderPage = () => {
   useAuthGuard();
@@ -23,11 +27,30 @@ const OrderPage = () => {
   const [clientId, setClientId] = useState("");
   const [domain, setDomain] = useState("");
   const [statuses, setStatuses] = useState<string[]>([]);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([
+    null,
+    null,
+  ]);
   const [groupByClient, setGroupByClient] = useState(false);
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
+
+  const isAdmin = String(role || "")
+    .toLowerCase()
+    .includes("admin");
+  const isFinance = String(role || "")
+    .toLowerCase()
+    .includes("finance");
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -40,10 +63,18 @@ const OrderPage = () => {
     if (clientId.trim()) params.set("clientId", clientId.trim());
     if (domain.trim()) params.set("domain", domain.trim());
     if (statuses.length > 0) params.set("paymentStatus", statuses.join(","));
-    if (dateFrom) params.set("dateFrom", new Date(dateFrom).toISOString());
-    if (dateTo) params.set("dateTo", new Date(dateTo).toISOString());
+    if (dateRange[0]) params.set("dateFrom", dateRange[0].toISOString());
+    if (dateRange[1]) params.set("dateTo", dateRange[1].toISOString());
     return params.toString();
-  }, [clientId, domain, statuses, dateFrom, dateTo, page, limit, groupByClient]);
+  }, [
+    clientId,
+    domain,
+    statuses,
+    dateRange,
+    page,
+    limit,
+    groupByClient,
+  ]);
 
   const { data: orders, mutate: revalidate } = useSWR(
     `api/v1/orders?${queryString}`,
@@ -53,7 +84,7 @@ const OrderPage = () => {
     if (!groupByClient) {
       setPage(1);
     }
-  }, [clientId, domain, statuses, dateFrom, dateTo, groupByClient, limit]);
+  }, [clientId, domain, statuses, dateRange, groupByClient, limit]);
 
   useEffect(() => {
     if (orders !== undefined) {
@@ -64,6 +95,39 @@ const OrderPage = () => {
       }
     }
   }, [orders]);
+
+  const handleExport = async () => {
+    try {
+      setIsLoading(true);
+      const params: Record<string, string> = {
+        sort_by: "createdAt",
+        sort: "-1",
+      };
+      if (clientId.trim()) params.clientId = clientId.trim();
+      if (domain.trim()) params.domain = domain.trim();
+      if (statuses.length > 0) params.paymentStatus = statuses.join(",");
+      if (dateRange[0]) params.dateFrom = dateRange[0].toISOString();
+      if (dateRange[1]) params.dateTo = dateRange[1].toISOString();
+
+      const res = await api().get("/api/v1/orders/export", {
+        params,
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "orders.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      handleAxiosError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -83,18 +147,20 @@ const OrderPage = () => {
             </div>
             <div className="mt-4 rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div>
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
-                    Client ID
-                  </label>
-                  <input
-                    type="text"
-                    value={clientId}
-                    onChange={(e) => setClientId(e.target.value)}
-                    placeholder="CLNT-001"
-                    className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
-                  />
-                </div>
+                {(isAdmin || isFinance) && (
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
+                      Client ID
+                    </label>
+                    <input
+                      type="text"
+                      value={clientId}
+                      onChange={(e) => setClientId(e.target.value)}
+                      placeholder="CLNT-001"
+                      className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
                     Domain
@@ -107,27 +173,21 @@ const OrderPage = () => {
                     className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
                   />
                 </div>
-                <div>
+                <div className="md:col-span-2">
                   <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
-                    Date From
+                    Date Range
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                    className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
-                    Date To
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                    className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
-                  />
+                  <div className="mt-1">
+                    <DatePicker.RangePicker
+                      showTime={false}
+                      showNow={false}
+                      needConfirm={false}
+                      value={dateRange}
+                      onChange={(range) => setDateRange(range ?? [null, null])}
+                      className="w-full"
+                      allowClear
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -179,13 +239,18 @@ const OrderPage = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
+                    className="rounded bg-emerald-600 px-3 py-1 text-xs text-white hover:bg-emerald-500"
+                    onClick={handleExport}
+                  >
+                    Export XLSX
+                  </button>
+                  <button
                     className="rounded bg-slate-200 px-3 py-1 text-xs text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
                     onClick={() => {
                       setClientId("");
                       setDomain("");
                       setStatuses([]);
-                      setDateFrom("");
-                      setDateTo("");
+                      setDateRange([null, null]);
                       setGroupByClient(false);
                       setLimit(20);
                       setPage(1);
@@ -295,7 +360,10 @@ const OrderPage = () => {
                               row?.client_id ||
                               "-";
                             const totalOrders =
-                              row?.totalOrders ?? row?.count ?? row?.total ?? "-";
+                              row?.totalOrders ??
+                              row?.count ??
+                              row?.total ??
+                              "-";
                             const rawAmount =
                               row?.totalAmount ??
                               row?.amount ??
@@ -342,7 +410,7 @@ const OrderPage = () => {
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                                 <span
-                                  className={`ml-2 inline-block rounded ${order?.paymentStatus === "paid" ? "bg-green-500" : order?.paymentStatus === "failed" ? "bg-red-500" : order?.paymentStatus === "pending" ? "bg-yellow-500" : order?.paymentStatus === "cancel" ? "bg-yellow-700" : "bg-gray-500"} px-2 py-1 text-sm font-medium text-white`}
+                                  className={`ml-2 inline-block rounded ${order?.paymentStatus === "paid" ? "bg-green-500" : order?.paymentStatus === "pending" ? "bg-yellow-500" : order?.paymentStatus === "cancel" ? "bg-red-700" : "bg-gray-500"} px-2 py-1 text-sm font-medium text-white`}
                                 >
                                   {order.paymentStatus}
                                 </span>

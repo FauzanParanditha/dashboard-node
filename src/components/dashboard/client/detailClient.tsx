@@ -2,6 +2,7 @@ import api, { handleAxiosError } from "@/api";
 import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
+import MultiSelectField from "@/components/form/multi-select";
 import useStore from "@/store";
 import { getValidObjectId } from "@/utils/helper";
 import { updateClientSchema } from "@/utils/schema/client";
@@ -17,6 +18,7 @@ type Values = {
   notifyUrl?: string;
   userId: string;
   active: boolean;
+  availablePaymentIds?: string[];
 };
 
 const options = [
@@ -29,6 +31,7 @@ const DetailClnt = () => {
   const router = useRouter();
   const { id } = router.query;
   const [userOptions, setUserOptions] = useState([]);
+  const [paymentOptions, setPaymentOptions] = useState([]);
 
   const {
     control,
@@ -55,17 +58,48 @@ const DetailClnt = () => {
       .then((res) => {
         if (res.data.success) {
           const dt = res.data.data;
+          const selectedFromAvailablePayments = Array.isArray(
+            dt.availablePayments,
+          )
+            ? dt.availablePayments
+                .map((p: any) => p?.availablePayment?._id || p?.id)
+                .filter(Boolean)
+            : [];
+
           reset({
             name: dt.name,
             notifyUrl: dt.notifyUrl,
             userId: dt.userId._id,
             active: dt.active,
+            availablePaymentIds: selectedFromAvailablePayments.length
+              ? selectedFromAvailablePayments
+              : (dt.availablePaymentIds || []).map((p: any) =>
+                  typeof p === "string" ? p : p._id,
+                ),
           });
         }
       })
       .catch((err) => {
         handleAxiosError(err);
       })
+      .finally(() => setIsLoading(false));
+  };
+
+
+  const fetchAvailablePayments = () => {
+    setIsLoading(true);
+    api()
+      .get("api/v1/available-payment?limit=1000&page=1")
+      .then((res) => {
+        if (res.data.success) {
+          const opts = res.data.data.map((p: any) => ({
+            label: p.name,
+            value: p._id,
+          }));
+          setPaymentOptions(opts);
+        }
+      })
+      .catch(handleAxiosError)
       .finally(() => setIsLoading(false));
   };
 
@@ -91,6 +125,7 @@ const DetailClnt = () => {
       getData();
     }
     fetchUsers();
+    fetchAvailablePayments();
   }, [id]);
 
   const onSubmit = (data: Values) => {
@@ -152,6 +187,22 @@ const DetailClnt = () => {
                       value={value}
                       onChange={onChange}
                       error={errors.userId?.message}
+                    />
+                  )}
+                />
+              </div>
+              <div className="mb-4 pr-3">
+                <Controller
+                  control={control}
+                  name="availablePaymentIds"
+                  render={({ field: { onChange, value } }) => (
+                    <MultiSelectField
+                      name="availablePaymentIds"
+                      label="Available Payments"
+                      options={paymentOptions}
+                      value={value || []}
+                      onChange={onChange}
+                      error={errors.availablePaymentIds?.message as any}
                     />
                   )}
                 />

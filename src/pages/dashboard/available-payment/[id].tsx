@@ -1,6 +1,6 @@
 import DetailAvaPay from "@/components/dashboard/available-payment/detailAvailablePayment";
 import { DashboardLayout } from "@/components/layout";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import clsx from "clsx";
 import { Fragment } from "react";
@@ -11,7 +11,7 @@ import { Fragment } from "react";
 // };
 
 const DetailAvailablePayment = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
   return (
     <>
       <DashboardLayout>

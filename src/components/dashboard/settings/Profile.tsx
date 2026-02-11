@@ -34,6 +34,10 @@ const Profile = () => {
   } = useForm<Values>({
     mode: "onBlur",
     resolver: yupResolver(schema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+    },
   });
   useEffect(() => {
     if (user !== undefined) {
@@ -86,7 +90,6 @@ const Profile = () => {
                   placeholder="your@email.id"
                   className="w-full"
                   {...register("email")}
-                  value={getValues("email")}
                   required
                   disabled
                   error={errors.email?.message}

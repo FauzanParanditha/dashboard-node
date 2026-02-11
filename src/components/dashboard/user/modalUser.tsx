@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 type Values = {
   fullName: string;
   email: string;
+  role: string;
   password: string;
   password_confirmation?: string;
 };
@@ -108,6 +109,15 @@ const ModalUser = ({ isOpen = false, setIsOpen, revalidate }: any) => {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2">
+                <div className="mb-4 pr-2">
+                  <InputField
+                    className="w-full"
+                    placeholder="ex: user"
+                    label="Role"
+                    {...register("role")}
+                    error={errors.role?.message}
+                  />
+                </div>
                 <div className="mb-4 pr-3">
                   <InputField
                     type="password"
