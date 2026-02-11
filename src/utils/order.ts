@@ -152,7 +152,7 @@ export interface OrderInterface {
   virtualAccountNo?: string;
   storeId?: string;
   createdAt?: string;
-  updateAt?: string;
+  updatedAt?: string;
   paymentPaylabs?: PaymentPaylabsInterface;
   paymentPaylabsVaSnap?: PaymentPaylabsVaSnapInterface;
 }

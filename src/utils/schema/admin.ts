@@ -18,6 +18,7 @@ export const verifyAdminSchema = yup.object().shape({
 export const createAdminSchema = yup.object().shape({
   email: yup.string().required().email("email is not valid"),
   fullName: yup.string().required("fullName is required"),
+  role: yup.string().required("role is required"),
   password: yup
     .string()
     .min(8, "min 8 character")

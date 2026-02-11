@@ -111,6 +111,11 @@ export const user: SidebarItem[] = [
     link: "/dashboard/home",
   },
   {
+    title: "Available Payment",
+    icon: <FcSalesPerformance />,
+    link: "/dashboard/available-payment",
+  },
+  {
     title: "Order",
     icon: <FcPaid />,
     link: "/dashboard/order",

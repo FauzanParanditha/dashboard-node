@@ -21,10 +21,14 @@ dayjs.extend(timezone);
 export const fetchPaymentMethods = async (
   setPaymentMethods: (methods: any) => void,
   setLoading: (loading: boolean) => void,
+  clientId?: string,
 ) => {
   try {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_CLIENT_API_URL}/api/v1/available-payment`,
+      {
+        params: clientId ? { clientId } : undefined,
+      },
     );
     if (response.data.success) {
       const groupedMethods = response.data.data.reduce(

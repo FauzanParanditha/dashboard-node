@@ -2,6 +2,7 @@ import api, { handleAxiosError } from "@/api";
 import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
+import MultiSelectField from "@/components/form/multi-select";
 import useStore from "@/store";
 import { createClientSchema } from "@/utils/schema/client";
 import {
@@ -21,6 +22,7 @@ type Values = {
   name: string;
   notifyUrl?: string;
   userId: string;
+  availablePaymentIds?: string[];
 };
 
 const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
@@ -37,7 +39,26 @@ const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
 
   const { setIsLoading } = useStore();
   const [userOptions, setUserOptions] = useState([]);
+  const [paymentOptions, setPaymentOptions] = useState([]);
   const router = useRouter();
+
+
+  const fetchAvailablePayments = () => {
+    setIsLoading(true);
+    api()
+      .get("api/v1/available-payment?limit=1000&page=1")
+      .then((res) => {
+        if (res.data.success) {
+          const opts = res.data.data.map((p: any) => ({
+            label: p.name,
+            value: p._id,
+          }));
+          setPaymentOptions(opts);
+        }
+      })
+      .catch(handleAxiosError)
+      .finally(() => setIsLoading(false));
+  };
 
   const fetchUsers = () => {
     setIsLoading(true);
@@ -58,6 +79,7 @@ const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
 
   useEffect(() => {
     fetchUsers();
+    fetchAvailablePayments();
   }, []);
 
   //create new data
@@ -148,6 +170,22 @@ const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
                         value={value}
                         onChange={onChange}
                         error={errors.userId?.message}
+                      />
+                    )}
+                  />
+                </div>
+                <div className="mb-4 pr-3">
+                  <Controller
+                    control={control}
+                    name="availablePaymentIds"
+                    render={({ field: { onChange, value } }) => (
+                      <MultiSelectField
+                        name="availablePaymentIds"
+                        label="Available Payments"
+                        options={paymentOptions}
+                        value={value || []}
+                        onChange={onChange}
+                        error={errors.availablePaymentIds?.message as any}
                       />
                     )}
                   />
