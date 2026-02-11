@@ -2,13 +2,14 @@ import { clsx } from "clsx";
 import {
   forwardRef,
   ForwardRefExoticComponent,
-  InputHTMLAttributes,
   ReactNode,
   useEffect,
 } from "react";
 import ReactSelect from "react-select";
 
-interface Props extends InputHTMLAttributes<HTMLInputElement> {
+interface Props {
+  name?: string;
+  required?: boolean;
   onChange: (...event: any[]) => void;
   value?: Array<string | number | boolean>;
   label?: string;
