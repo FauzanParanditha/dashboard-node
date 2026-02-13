@@ -1,6 +1,17 @@
-import { AuditOutlined, ShopOutlined, TeamOutlined } from "@ant-design/icons";
+import {
+  AuditOutlined,
+  CheckCircleOutlined,
+  DollarCircleOutlined,
+  ShopOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
 
-type Type = "client" | "user" | "order";
+type Type =
+  | "client"
+  | "user"
+  | "order"
+  | "totalTransactionSuccess"
+  | "totalAmountSuccess";
 
 export const IconWrapper = ({
   color,
@@ -158,5 +169,37 @@ export const variants: {
         value: 1800,
       },
     ],
+  },
+  totalTransactionSuccess: {
+    primaryColor: "#13C2C2",
+    secondaryColor: "#B5F5EC",
+    icon: (
+      <IconWrapper color="#E6FFFB">
+        <CheckCircleOutlined
+          className="md"
+          style={{
+            color: "#13C2C2",
+          }}
+        />
+      </IconWrapper>
+    ),
+    title: "Total Transaction Success",
+    data: [],
+  },
+  totalAmountSuccess: {
+    primaryColor: "#722ED1",
+    secondaryColor: "#EFDBFF",
+    icon: (
+      <IconWrapper color="#F9F0FF">
+        <DollarCircleOutlined
+          className="md"
+          style={{
+            color: "#722ED1",
+          }}
+        />
+      </IconWrapper>
+    ),
+    title: "Total Amount Success",
+    data: [],
   },
 };

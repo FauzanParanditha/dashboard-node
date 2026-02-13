@@ -1,10 +1,10 @@
 import { DashboardLayout } from "@/components/layout";
 import { useAuthGuard } from "@/hooks/use-auth";
+import { jwtConfig } from "@/utils/var";
 import { Col, Row } from "antd";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { jwtConfig } from "@/utils/var";
 import useSWR from "swr";
 
 // export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -25,20 +25,45 @@ const HomePage = () => {
     setRole(storedRole);
   }, []);
 
-  const isAdmin = String(role || "").toLowerCase().includes("admin");
+  const isAdmin = String(role || "")
+    .toLowerCase()
+    .includes("admin");
 
-  const { data: dashboard, mutate: revalidate } = useSWR(
-    "/api/v1/adm/dashboard",
-  );
-  const [isLoading, setIsLoading] = useState(false);
-
+  const { data: dashboard, isLoading } = useSWR("/api/v1/adm/dashboard");
   const DashboardTotalCountCard = dynamic(
     async () => await import("@/components/home/total-count"),
   );
-  const Orders = dynamic(async () => await import("@/components/home/orders"));
   const DashboardLatestActivities = dynamic(
     async () => await import("@/components/home/latest-activities"),
   );
+  const DashboardPerformanceChart = dynamic(
+    async () => await import("@/components/home/performance-chart"),
+  );
+  const metrics = isAdmin
+    ? [
+        { resource: "client" as const, value: dashboard?.data.client },
+        { resource: "user" as const, value: dashboard?.data.user },
+        { resource: "order" as const, value: dashboard?.data.order },
+        {
+          resource: "totalTransactionSuccess" as const,
+          value: dashboard?.data.totalTransactionSuccess,
+        },
+        {
+          resource: "totalAmountSuccess" as const,
+          value: dashboard?.data.totalAmountSuccess,
+        },
+      ]
+    : [
+        { resource: "order" as const, value: dashboard?.data.order },
+        {
+          resource: "totalTransactionSuccess" as const,
+          value: dashboard?.data.totalTransactionSuccess,
+        },
+        {
+          resource: "totalAmountSuccess" as const,
+          value: dashboard?.data.totalAmountSuccess,
+        },
+      ];
 
   return (
     <>
@@ -51,42 +76,28 @@ const HomePage = () => {
       </Head>
       <DashboardLayout>
         <Row gutter={[8, 8]}>
-          {isAdmin && (
-            <Col xs={24} sm={24} xl={8}>
+          {metrics.map((metric) => (
+            <Col key={metric.resource} xs={24} sm={12} xl={8}>
               <DashboardTotalCountCard
-                resource="client"
+                resource={metric.resource}
                 isLoading={isLoading}
-                totalCount={dashboard?.data.client}
+                totalCount={metric.value}
               />
             </Col>
-          )}
-          {isAdmin && (
-            <Col xs={24} sm={24} xl={8}>
-              <DashboardTotalCountCard
-                resource="user"
-                isLoading={isLoading}
-                totalCount={dashboard?.data.user}
-              />
-            </Col>
-          )}
-          <Col xs={24} sm={24} xl={8}>
-            <DashboardTotalCountCard
-              resource="order"
-              isLoading={isLoading}
-              totalCount={dashboard?.data.order}
-            />
+          ))}
+        </Row>
+        <Row gutter={[8, 8]}>
+          <Col xs={24} sm={24} xl={24}>
+            <DashboardPerformanceChart />
           </Col>
         </Row>
-        <Row gutter={[8, 8]} style={{ marginTop: "8px" }}>
-          <Col xs={24} sm={24} xl={8} style={{ height: "540px" }}>
-            <Orders />
-          </Col>
-          {isAdmin && (
-            <Col xs={24} sm={24} xl={16} style={{ height: "460px" }}>
+        {isAdmin && (
+          <Row gutter={[8, 8]} style={{ marginTop: "8px" }}>
+            <Col xs={24} sm={24} xl={24} style={{ height: "460px" }}>
               <DashboardLatestActivities />
             </Col>
-          )}
-        </Row>
+          </Row>
+        )}
       </DashboardLayout>
     </>
   );

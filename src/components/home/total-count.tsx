@@ -3,7 +3,12 @@ import { Card, Skeleton } from "antd";
 import { Text } from "../text";
 
 type Props = {
-  resource: "client" | "user" | "order";
+  resource:
+    | "client"
+    | "user"
+    | "order"
+    | "totalTransactionSuccess"
+    | "totalAmountSuccess";
   isLoading: boolean;
   totalCount?: number;
 };
@@ -14,6 +19,14 @@ const DashboardTotalCountCard = ({
   totalCount,
 }: Props) => {
   const { primaryColor, secondaryColor, icon, title } = variants[resource];
+  const formattedValue =
+    resource === "totalAmountSuccess"
+      ? new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          maximumFractionDigits: 0,
+        }).format(totalCount || 0)
+      : (totalCount || 0).toLocaleString("id-ID");
 
   return (
     <Card
@@ -61,7 +74,7 @@ const DashboardTotalCountCard = ({
           {isLoading ? (
             <Skeleton.Button style={{ marginTop: "8px", width: "74px" }} />
           ) : (
-            totalCount
+            formattedValue
           )}
         </Text>
       </div>
