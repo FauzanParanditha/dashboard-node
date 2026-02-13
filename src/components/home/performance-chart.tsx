@@ -12,6 +12,12 @@ type ChartSeries = {
   data: number[];
 };
 
+type GroupByClientRow = {
+  clientId: string;
+  totalAmountSuccess: number;
+  totalTransactionSuccess: number;
+};
+
 type ClientOption = {
   _id: string;
   clientId: string;
@@ -163,8 +169,36 @@ const DashboardPerformanceChart = () => {
   const { data: response, isLoading } = useSWR(endpoint);
 
   const chart = response?.data;
-  const labels: string[] = chart?.labels || [];
-  const series: ChartSeries[] = chart?.series || [];
+  const { labels, series } = useMemo(() => {
+    if (Array.isArray(chart?.labels) && Array.isArray(chart?.series)) {
+      return {
+        labels: chart.labels as string[],
+        series: chart.series as ChartSeries[],
+      };
+    }
+
+    if (Array.isArray(chart?.data)) {
+      const groupedData = chart.data as GroupByClientRow[];
+      return {
+        labels: groupedData.map((item) => item.clientId),
+        series: [
+          {
+            name: "totalAmountSuccess",
+            data: groupedData.map((item) => item.totalAmountSuccess || 0),
+          },
+          {
+            name: "totalTransactionSuccess",
+            data: groupedData.map((item) => item.totalTransactionSuccess || 0),
+          },
+        ] as ChartSeries[],
+      };
+    }
+
+    return {
+      labels: [] as string[],
+      series: [] as ChartSeries[],
+    };
+  }, [chart]);
   const seriesByName = useMemo(
     () =>
       series.reduce<Record<string, ChartSeries>>((acc, item) => {
