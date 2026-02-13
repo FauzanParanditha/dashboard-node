@@ -1,11 +1,12 @@
 import { jwtConfig } from "@/utils/var";
-import { Card, DatePicker, Segmented, Select, Skeleton, Switch } from "antd";
+import { Card, DatePicker, Segmented, Select, Skeleton } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { Text } from "../text";
 
-type Period = "day" | "month" | "year";
+type Period = "day" | "month" | "year" | "monthly" | "yearly";
+type GroupBy = "time" | "client";
 type GroupMetric = "totalAmountSuccess" | "totalTransactionSuccess";
 
 type ChartSeries = {
@@ -25,13 +26,21 @@ type ClientOption = {
   name: string;
 };
 
-type HoveredPoint = {
+type HoveredLinePoint = {
   x: number;
   y: number;
   index: number;
   seriesName: string;
-  value: number;
   label: string;
+  color: string;
+};
+
+type HoveredBar = {
+  x: number;
+  y: number;
+  clientId: string;
+  totalAmountSuccess: number;
+  totalTransactionSuccess: number;
   color: string;
 };
 
@@ -57,14 +66,11 @@ const CLIENT_SERIES_COLORS = [
   "#FA541C",
 ];
 
-const formatLabel = (value: string, period: Period) => {
-  const date = dayjs(value);
-  if (!date.isValid()) return value;
-
-  if (period === "day") return date.format("HH:mm");
-  if (period === "month") return date.format("DD MMM");
-  return date.format("MMM YYYY");
-};
+const getSeriesStyle = (name: string, index = 0) =>
+  SERIES_STYLES[name] || {
+    color: CLIENT_SERIES_COLORS[index % CLIENT_SERIES_COLORS.length],
+    label: name,
+  };
 
 const formatValue = (name: string, value: number) => {
   if (name === "totalAmountSuccess") {
@@ -78,15 +84,30 @@ const formatValue = (name: string, value: number) => {
   return Math.round(value || 0).toLocaleString("id-ID");
 };
 
-const getSeriesStyle = (name: string, index: number) =>
-  SERIES_STYLES[name] || {
-    color: CLIENT_SERIES_COLORS[index % CLIENT_SERIES_COLORS.length],
-    label: name,
-  };
+const formatXAxisLabel = (value: string, period: Period) => {
+  if (!value) return "";
 
-const getSeriesAxis = (name: string, useDualAxis: boolean) => {
-  if (!useDualAxis) return "left" as const;
-  return name === "totalTransactionSuccess" ? ("right" as const) : ("left" as const);
+  if (period === "day") {
+    if (/^\d{2}:\d{2}$/.test(value)) return value;
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.format("HH:mm") : value;
+  }
+
+  if (period === "month" || period === "monthly") {
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.format("DD MMM") : value;
+  }
+
+  if (period === "year" || period === "yearly") {
+    if (/^\d{4}-\d{2}$/.test(value)) {
+      const parsed = dayjs(`${value}-01`);
+      return parsed.isValid() ? parsed.format("MMM YYYY") : value;
+    }
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.format("MMM YYYY") : value;
+  }
+
+  return value;
 };
 
 const buildSmoothPath = (points: Array<{ x: number; y: number }>) => {
@@ -121,14 +142,18 @@ const getVisibleLabelIndexes = (length: number) => {
 
 const DashboardPerformanceChart = () => {
   const [period, setPeriod] = useState<Period>("month");
+  const [groupBy, setGroupBy] = useState<GroupBy>("time");
+  const [groupMetric, setGroupMetric] = useState<GroupMetric>("totalAmountSuccess");
+
   const [selectedDay, setSelectedDay] = useState<Dayjs>(dayjs());
   const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
   const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs());
+
   const [role, setRole] = useState("");
   const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined);
-  const [groupByClient, setGroupByClient] = useState(false);
-  const [groupMetric, setGroupMetric] = useState<GroupMetric>("totalAmountSuccess");
-  const [hoveredPoint, setHoveredPoint] = useState<HoveredPoint | null>(null);
+
+  const [hoveredLinePoint, setHoveredLinePoint] = useState<HoveredLinePoint | null>(null);
+  const [hoveredBar, setHoveredBar] = useState<HoveredBar | null>(null);
 
   const isAdmin = String(role || "").toLowerCase().includes("admin");
   const isFinance = String(role || "").toLowerCase().includes("finance");
@@ -143,6 +168,12 @@ const DashboardPerformanceChart = () => {
     setRole(storedRole);
   }, []);
 
+  useEffect(() => {
+    if (!canFilterClient && groupBy === "client") {
+      setGroupBy("time");
+    }
+  }, [canFilterClient, groupBy]);
+
   const { data: clientsResponse, isLoading: isClientsLoading } = useSWR(
     canFilterClient ? "/api/v1/client" : null,
   );
@@ -151,6 +182,7 @@ const DashboardPerformanceChart = () => {
   const endpoint = useMemo(() => {
     const params = new URLSearchParams();
     params.set("period", period);
+    params.set("groupBy", groupBy);
 
     if (period === "day") {
       params.set("date", selectedDay.format("YYYY-MM-DD"));
@@ -165,129 +197,81 @@ const DashboardPerformanceChart = () => {
       params.set("year", String(selectedYear.year()));
     }
 
-    if (canFilterClient && groupByClient) {
-      params.set("groupBy", "client");
-    }
-
-    if (canFilterClient && !groupByClient && selectedClientId) {
+    if (groupBy === "time" && canFilterClient && selectedClientId) {
       params.set("clientId", selectedClientId);
     }
 
     return `/api/v1/adm/dashboard/chart?${params.toString()}`;
   }, [
     period,
+    groupBy,
     selectedDay,
     selectedMonth,
     selectedYear,
     canFilterClient,
-    groupByClient,
     selectedClientId,
   ]);
 
   useEffect(() => {
-    setHoveredPoint(null);
+    setHoveredLinePoint(null);
+    setHoveredBar(null);
   }, [endpoint, groupMetric]);
 
   const { data: response, isLoading } = useSWR(endpoint);
   const chart = response?.data;
 
-  const groupedClientData = useMemo<GroupByClientRow[]>(
-    () => (Array.isArray(chart?.data) ? (chart.data as GroupByClientRow[]) : []),
-    [chart],
-  );
+  const timeLabels: string[] = Array.isArray(chart?.labels) ? (chart.labels as string[]) : [];
+  const timeSeries: ChartSeries[] = Array.isArray(chart?.series)
+    ? (chart.series as ChartSeries[])
+    : [];
+  const clientRows: GroupByClientRow[] = Array.isArray(chart?.data)
+    ? (chart.data as GroupByClientRow[])
+    : [];
 
-  const isClientSeriesMode = groupByClient && groupedClientData.length > 1;
+  const isClientMode = groupBy === "client" && clientRows.length > 0;
 
-  const { labels, series } = useMemo(() => {
-    if (isClientSeriesMode) {
-      const clientLabels = groupedClientData.map((item) => item.clientId);
-      return {
-        labels: clientLabels,
-        series: groupedClientData.map((item) => {
-          const metricValue =
-            groupMetric === "totalAmountSuccess"
-              ? item.totalAmountSuccess || 0
-              : item.totalTransactionSuccess || 0;
-          return {
-            name: item.clientId,
-            data: clientLabels.map(() => metricValue),
-          };
-        }),
-      };
-    }
-
-    if (Array.isArray(chart?.labels) && Array.isArray(chart?.series)) {
-      return {
-        labels: chart.labels as string[],
-        series: chart.series as ChartSeries[],
-      };
-    }
-
-    if (Array.isArray(chart?.data)) {
-      const rows = chart.data as GroupByClientRow[];
-      return {
-        labels: rows.map((item) => item.clientId),
-        series: [
-          {
-            name: "totalAmountSuccess",
-            data: rows.map((item) => item.totalAmountSuccess || 0),
-          },
-          {
-            name: "totalTransactionSuccess",
-            data: rows.map((item) => item.totalTransactionSuccess || 0),
-          },
-        ],
-      };
-    }
-
-    return {
-      labels: [] as string[],
-      series: [] as ChartSeries[],
-    };
-  }, [chart, groupMetric, groupedClientData, isClientSeriesMode]);
-
-  const seriesByName = useMemo(
+  const lineSeriesByName = useMemo(
     () =>
-      series.reduce<Record<string, ChartSeries>>((acc, item) => {
+      timeSeries.reduce<Record<string, ChartSeries>>((acc, item) => {
         acc[item.name] = item;
         return acc;
       }, {}),
-    [series],
+    [timeSeries],
   );
 
-  const labelIndexes = getVisibleLabelIndexes(labels.length);
+  const lineLabelIndexes = getVisibleLabelIndexes(timeLabels.length);
+  const clientLabelIndexes = getVisibleLabelIndexes(clientRows.length);
 
-  const chartGeometry = useMemo(() => {
+  const lineChartGeometry = useMemo(() => {
     const chartWidth = 1000;
     const chartHeight = 320;
-    const useDualAxis = !isClientSeriesMode;
-    const padding = { top: 20, right: useDualAxis ? 66 : 20, bottom: 50, left: 72 };
+    const padding = { top: 20, right: 66, bottom: 50, left: 72 };
     const plotWidth = chartWidth - padding.left - padding.right;
     const plotHeight = chartHeight - padding.top - padding.bottom;
 
-    const leftValues = series
-      .filter((item) => getSeriesAxis(item.name, useDualAxis) === "left")
+    const amountValues = timeSeries
+      .filter((item) => item.name === "totalAmountSuccess")
       .flatMap((item) => item.data)
       .filter((v) => v >= 0);
-    const rightValues = series
-      .filter((item) => getSeriesAxis(item.name, useDualAxis) === "right")
+    const transactionValues = timeSeries
+      .filter((item) => item.name === "totalTransactionSuccess")
       .flatMap((item) => item.data)
       .filter((v) => v >= 0);
 
-    const maxLeftValue = Math.max(...leftValues, 1);
-    const maxRightValue = Math.max(...rightValues, 1);
+    const maxAmount = Math.max(...amountValues, 1);
+    const maxTransaction = Math.max(...transactionValues, 1);
 
     const getPoint = (index: number, value: number, axis: "left" | "right") => {
-      const axisMax = axis === "left" ? maxLeftValue : maxRightValue;
+      const axisMax = axis === "left" ? maxAmount : maxTransaction;
       const x =
         padding.left +
-        (labels.length <= 1 ? 0 : (index / (labels.length - 1)) * plotWidth);
+        (timeLabels.length <= 1 ? 0 : (index / (timeLabels.length - 1)) * plotWidth);
       const y = padding.top + (1 - value / axisMax) * plotHeight;
       return { x, y };
     };
 
-    const plottedSeries = series.map((item) => {
-      const axis = getSeriesAxis(item.name, useDualAxis);
+    const plottedSeries = timeSeries.map((item) => {
+      const axis = item.name === "totalTransactionSuccess" ? "right" : "left";
       const points = item.data.map((value, index) => getPoint(index, value, axis));
       return {
         ...item,
@@ -303,13 +287,72 @@ const DashboardPerformanceChart = () => {
       padding,
       plotWidth,
       plotHeight,
-      maxLeftValue,
-      maxRightValue,
-      useDualAxis,
+      maxAmount,
+      maxTransaction,
       axisSteps: [1, 0.75, 0.5, 0.25, 0],
       plottedSeries,
     };
-  }, [isClientSeriesMode, labels, series]);
+  }, [timeLabels, timeSeries]);
+
+  const clientChartGeometry = useMemo(() => {
+    const chartWidth = 1000;
+    const chartHeight = 320;
+    const padding = { top: 20, right: 20, bottom: 50, left: 72 };
+    const plotWidth = chartWidth - padding.left - padding.right;
+    const plotHeight = chartHeight - padding.top - padding.bottom;
+
+    const values = clientRows.map((item) =>
+      groupMetric === "totalAmountSuccess"
+        ? item.totalAmountSuccess || 0
+        : item.totalTransactionSuccess || 0,
+    );
+    const maxValue = Math.max(...values, 1);
+
+    const barGap = 16;
+    const barWidth =
+      clientRows.length === 0
+        ? 0
+        : Math.max((plotWidth - barGap * (clientRows.length + 1)) / clientRows.length, 24);
+
+    const bars = clientRows.map((row, index) => {
+      const value =
+        groupMetric === "totalAmountSuccess"
+          ? row.totalAmountSuccess || 0
+          : row.totalTransactionSuccess || 0;
+      const height = (value / maxValue) * plotHeight;
+      const x = padding.left + barGap + index * (barWidth + barGap);
+      const y = padding.top + plotHeight - height;
+      return {
+        ...row,
+        value,
+        x,
+        y,
+        width: barWidth,
+        height,
+        color: CLIENT_SERIES_COLORS[index % CLIENT_SERIES_COLORS.length],
+      };
+    });
+
+    return {
+      chartWidth,
+      chartHeight,
+      padding,
+      plotWidth,
+      plotHeight,
+      maxValue,
+      axisSteps: [1, 0.75, 0.5, 0.25, 0],
+      bars,
+    };
+  }, [clientRows, groupMetric]);
+
+  const totalAmount = clientRows.reduce(
+    (acc, row) => acc + (row.totalAmountSuccess || 0),
+    0,
+  );
+  const totalTransaction = clientRows.reduce(
+    (acc, row) => acc + (row.totalTransactionSuccess || 0),
+    0,
+  );
 
   return (
     <Card
@@ -333,10 +376,13 @@ const DashboardPerformanceChart = () => {
                 { label: "Day", value: "day" },
                 { label: "Month", value: "month" },
                 { label: "Year", value: "year" },
+                { label: "Monthly", value: "monthly" },
+                { label: "Yearly", value: "yearly" },
               ]}
               value={period}
               onChange={(value) => setPeriod(value as Period)}
             />
+
             {period === "day" && (
               <DatePicker
                 value={selectedDay}
@@ -365,25 +411,17 @@ const DashboardPerformanceChart = () => {
             )}
 
             {canFilterClient && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  padding: "0 4px",
-                }}
-              >
-                <Text className="dark:text-white">Group by client</Text>
-                <Switch
-                  checked={groupByClient}
-                  onChange={setGroupByClient}
-                  checkedChildren="ON"
-                  unCheckedChildren="OFF"
-                />
-              </div>
+              <Segmented
+                options={[
+                  { label: "By Time", value: "time" },
+                  { label: "By Client", value: "client" },
+                ]}
+                value={groupBy}
+                onChange={(value) => setGroupBy(value as GroupBy)}
+              />
             )}
 
-            {canFilterClient && groupByClient && (
+            {canFilterClient && groupBy === "client" && (
               <Segmented
                 options={[
                   { label: "Amount", value: "totalAmountSuccess" },
@@ -394,7 +432,7 @@ const DashboardPerformanceChart = () => {
               />
             )}
 
-            {canFilterClient && (
+            {canFilterClient && groupBy === "time" && (
               <Select
                 showSearch
                 allowClear
@@ -403,7 +441,6 @@ const DashboardPerformanceChart = () => {
                 loading={isClientsLoading}
                 value={selectedClientId}
                 onChange={(value) => setSelectedClientId(value)}
-                disabled={groupByClient}
                 style={{ minWidth: 220 }}
                 options={clients.map((client) => ({
                   value: client.clientId,
@@ -418,7 +455,8 @@ const DashboardPerformanceChart = () => {
     >
       {isLoading ? (
         <Skeleton active paragraph={{ rows: 8 }} />
-      ) : labels.length === 0 || series.length === 0 ? (
+      ) : (groupBy === "time" && (timeLabels.length === 0 || timeSeries.length === 0)) ||
+        (groupBy === "client" && clientRows.length === 0) ? (
         <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}>
           <Text className="dark:text-white">No chart data</Text>
         </div>
@@ -432,195 +470,257 @@ const DashboardPerformanceChart = () => {
               marginBottom: "12px",
             }}
           >
-            {series.map((item, seriesIndex) => {
-              const style = getSeriesStyle(item.name, seriesIndex);
-              let summaryName = item.name;
-              let summaryValue = item.data[item.data.length - 1] || 0;
+            {isClientMode ? (
+              <>
+                <Text className="dark:text-white">
+                  Total Amount Success: <strong>{formatValue("totalAmountSuccess", totalAmount)}</strong>
+                </Text>
+                <Text className="dark:text-white">
+                  Total Transaction Success: <strong>{formatValue("totalTransactionSuccess", totalTransaction)}</strong>
+                </Text>
+              </>
+            ) : (
+              timeSeries.map((item) => {
+                const style = getSeriesStyle(item.name);
+                const summaryValue = item.data[item.data.length - 1] || 0;
 
-              if (isClientSeriesMode) {
-                const row = groupedClientData.find((client) => client.clientId === item.name);
-                summaryName = groupMetric;
-                summaryValue =
-                  groupMetric === "totalAmountSuccess"
-                    ? row?.totalAmountSuccess || 0
-                    : row?.totalTransactionSuccess || 0;
-              } else if (groupByClient) {
-                summaryValue = item.data.reduce((acc, value) => acc + (value || 0), 0);
-              }
-
-              return (
-                <div
-                  key={item.name}
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <span
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      borderRadius: "50%",
-                      backgroundColor: style.color,
-                      display: "inline-block",
-                    }}
-                  />
-                  <Text className="dark:text-white">
-                    {style.label}: <strong>{formatValue(summaryName, summaryValue)}</strong>
-                  </Text>
-                </div>
-              );
-            })}
+                return (
+                  <div
+                    key={item.name}
+                    style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                  >
+                    <span
+                      style={{
+                        width: "10px",
+                        height: "10px",
+                        borderRadius: "50%",
+                        backgroundColor: style.color,
+                        display: "inline-block",
+                      }}
+                    />
+                    <Text className="dark:text-white">
+                      {style.label}: <strong>{formatValue(item.name, summaryValue)}</strong>
+                    </Text>
+                  </div>
+                );
+              })
+            )}
           </div>
 
           <div style={{ width: "100%", overflowX: "auto" }}>
             <svg
               width="100%"
               height="320"
-              viewBox={`0 0 ${chartGeometry.chartWidth} ${chartGeometry.chartHeight}`}
+              viewBox={`0 0 ${
+                isClientMode ? clientChartGeometry.chartWidth : lineChartGeometry.chartWidth
+              } 320`}
               role="img"
               style={{ minWidth: "720px" }}
             >
-              {chartGeometry.axisSteps.map((ratio, idx) => {
-                const y =
-                  chartGeometry.padding.top + (1 - ratio) * chartGeometry.plotHeight;
-                const leftAxisValue = chartGeometry.maxLeftValue * ratio;
-                const rightAxisValue = chartGeometry.maxRightValue * ratio;
+              {isClientMode
+                ? clientChartGeometry.axisSteps.map((ratio, idx) => {
+                    const y =
+                      clientChartGeometry.padding.top +
+                      (1 - ratio) * clientChartGeometry.plotHeight;
+                    const axisValue = clientChartGeometry.maxValue * ratio;
 
-                return (
-                  <g key={idx}>
-                    <line
-                      x1={chartGeometry.padding.left}
-                      y1={y}
-                      x2={chartGeometry.padding.left + chartGeometry.plotWidth}
-                      y2={y}
-                      stroke="#f0f0f0"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={chartGeometry.padding.left - 10}
-                      y={y + 4}
-                      textAnchor="end"
-                      fontSize="11"
-                      fill="#8c8c8c"
-                    >
-                      {Math.round(leftAxisValue).toLocaleString("id-ID")}
-                    </text>
-                    {chartGeometry.useDualAxis && (
+                    return (
+                      <g key={idx}>
+                        <line
+                          x1={clientChartGeometry.padding.left}
+                          y1={y}
+                          x2={clientChartGeometry.padding.left + clientChartGeometry.plotWidth}
+                          y2={y}
+                          stroke="#f0f0f0"
+                          strokeWidth="1"
+                        />
+                        <text
+                          x={clientChartGeometry.padding.left - 10}
+                          y={y + 4}
+                          textAnchor="end"
+                          fontSize="11"
+                          fill="#8c8c8c"
+                        >
+                          {formatValue(groupMetric, axisValue)}
+                        </text>
+                      </g>
+                    );
+                  })
+                : lineChartGeometry.axisSteps.map((ratio, idx) => {
+                    const y =
+                      lineChartGeometry.padding.top + (1 - ratio) * lineChartGeometry.plotHeight;
+                    const leftAxisValue = lineChartGeometry.maxAmount * ratio;
+                    const rightAxisValue = lineChartGeometry.maxTransaction * ratio;
+
+                    return (
+                      <g key={idx}>
+                        <line
+                          x1={lineChartGeometry.padding.left}
+                          y1={y}
+                          x2={lineChartGeometry.padding.left + lineChartGeometry.plotWidth}
+                          y2={y}
+                          stroke="#f0f0f0"
+                          strokeWidth="1"
+                        />
+                        <text
+                          x={lineChartGeometry.padding.left - 10}
+                          y={y + 4}
+                          textAnchor="end"
+                          fontSize="11"
+                          fill="#8c8c8c"
+                        >
+                          {Math.round(leftAxisValue).toLocaleString("id-ID")}
+                        </text>
+                        <text
+                          x={lineChartGeometry.padding.left + lineChartGeometry.plotWidth + 10}
+                          y={y + 4}
+                          textAnchor="start"
+                          fontSize="11"
+                          fill="#8c8c8c"
+                        >
+                          {Math.round(rightAxisValue).toLocaleString("id-ID")}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+              {isClientMode
+                ? clientChartGeometry.bars.map((bar, index) => (
+                    <g key={bar.clientId}>
+                      <rect
+                        x={bar.x}
+                        y={bar.y}
+                        width={bar.width}
+                        height={bar.height}
+                        rx="6"
+                        fill={bar.color}
+                      />
+                      <rect
+                        x={bar.x}
+                        y={bar.y}
+                        width={bar.width}
+                        height={bar.height}
+                        rx="6"
+                        fill="transparent"
+                        onMouseEnter={() =>
+                          setHoveredBar({
+                            x: bar.x + bar.width / 2,
+                            y: bar.y,
+                            clientId: bar.clientId,
+                            totalAmountSuccess: bar.totalAmountSuccess,
+                            totalTransactionSuccess: bar.totalTransactionSuccess,
+                            color: bar.color,
+                          })
+                        }
+                        onMouseLeave={() => setHoveredBar(null)}
+                      />
                       <text
-                        x={chartGeometry.padding.left + chartGeometry.plotWidth + 10}
-                        y={y + 4}
-                        textAnchor="start"
-                        fontSize="11"
+                        x={bar.x + bar.width / 2}
+                        y={clientChartGeometry.chartHeight - 18}
+                        textAnchor="middle"
+                        fontSize="12"
                         fill="#8c8c8c"
                       >
-                        {Math.round(rightAxisValue).toLocaleString("id-ID")}
+                        {clientLabelIndexes.includes(index) ? bar.clientId : ""}
                       </text>
-                    )}
+                    </g>
+                  ))
+                : lineChartGeometry.plottedSeries.map((item, seriesIndex) => {
+                    const style = getSeriesStyle(item.name, seriesIndex);
+
+                    return (
+                      <g key={item.name}>
+                        <path
+                          d={item.path}
+                          fill="none"
+                          stroke={style.color}
+                          strokeWidth="3"
+                          strokeLinejoin="round"
+                          strokeLinecap="round"
+                        />
+                        {item.points.map((point, index) => {
+                          const pointLabel = formatXAxisLabel(timeLabels[index] || "", period);
+
+                          return (
+                            <g key={`${item.name}-${index}`}>
+                              <circle cx={point.x} cy={point.y} r="4" fill={style.color} />
+                              <circle
+                                cx={point.x}
+                                cy={point.y}
+                                r="12"
+                                fill="transparent"
+                                onMouseEnter={() =>
+                                  setHoveredLinePoint({
+                                    x: point.x,
+                                    y: point.y,
+                                    index,
+                                    seriesName: item.name,
+                                    label: pointLabel,
+                                    color: style.color,
+                                  })
+                                }
+                                onMouseLeave={() => setHoveredLinePoint(null)}
+                              />
+                            </g>
+                          );
+                        })}
+                      </g>
+                    );
+                  })}
+
+              {hoveredBar && (
+                <g pointerEvents="none">
+                  <line
+                    x1={hoveredBar.x}
+                    y1={clientChartGeometry.padding.top}
+                    x2={hoveredBar.x}
+                    y2={clientChartGeometry.padding.top + clientChartGeometry.plotHeight}
+                    stroke={hoveredBar.color}
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
+                    opacity="0.45"
+                  />
+                  <g
+                    transform={`translate(${Math.min(
+                      Math.max(hoveredBar.x + 12, clientChartGeometry.padding.left + 8),
+                      clientChartGeometry.chartWidth - 290,
+                    )}, ${Math.max(hoveredBar.y - 72, clientChartGeometry.padding.top + 4)})`}
+                  >
+                    <rect width="278" height="64" rx="8" fill="#111827" fillOpacity="0.95" />
+                    <text x="10" y="18" fontSize="12" fill="#e5e7eb">
+                      {hoveredBar.clientId}
+                    </text>
+                    <text x="10" y="36" fontSize="12" fill="#ffffff">
+                      {`Total Amount Success: ${formatValue("totalAmountSuccess", hoveredBar.totalAmountSuccess)}`}
+                    </text>
+                    <text x="10" y="53" fontSize="12" fill="#ffffff">
+                      {`Total Transaction Success: ${formatValue(
+                        "totalTransactionSuccess",
+                        hoveredBar.totalTransactionSuccess,
+                      )}`}
+                    </text>
                   </g>
-                );
-              })}
+                </g>
+              )}
 
-              {chartGeometry.plottedSeries.map((item, seriesIndex) => {
-                const style = getSeriesStyle(item.name, seriesIndex);
-
-                return (
-                  <g key={item.name}>
-                    <path
-                      d={item.path}
-                      fill="none"
-                      stroke={style.color}
-                      strokeWidth="3"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    />
-                    {item.points.map((point, index) => {
-                      const pointLabel = formatLabel(labels[index] || "", period);
-                      const pointValue = item.data[index] || 0;
-
-                      return (
-                        <g key={`${item.name}-${index}`}>
-                          <circle cx={point.x} cy={point.y} r="4" fill={style.color} />
-                          <circle
-                            cx={point.x}
-                            cy={point.y}
-                            r="12"
-                            fill="transparent"
-                            onMouseEnter={() =>
-                              setHoveredPoint({
-                                x: point.x,
-                                y: point.y,
-                                index,
-                                seriesName: item.name,
-                                value: pointValue,
-                                label: pointLabel,
-                                color: style.color,
-                              })
-                            }
-                            onMouseLeave={() => setHoveredPoint(null)}
-                          />
-                        </g>
-                      );
-                    })}
-                  </g>
-                );
-              })}
-
-              {hoveredPoint && (
+              {hoveredLinePoint && (
                 <g pointerEvents="none">
                   {(() => {
-                    if (isClientSeriesMode) {
-                      const row = groupedClientData.find(
-                        (item) => item.clientId === hoveredPoint.seriesName,
-                      );
-                      const amountValue = row?.totalAmountSuccess || 0;
-                      const transactionValue = row?.totalTransactionSuccess || 0;
-
-                      return (
-                        <g
-                          transform={`translate(${Math.min(
-                            Math.max(hoveredPoint.x + 12, chartGeometry.padding.left + 8),
-                            chartGeometry.chartWidth - 290,
-                          )}, ${Math.max(hoveredPoint.y - 72, chartGeometry.padding.top + 4)})`}
-                        >
-                          <rect
-                            width="278"
-                            height="64"
-                            rx="8"
-                            fill="#111827"
-                            fillOpacity="0.95"
-                          />
-                          <text x="10" y="18" fontSize="12" fill="#e5e7eb">
-                            {hoveredPoint.seriesName}
-                          </text>
-                          <text x="10" y="36" fontSize="12" fill="#ffffff">
-                            {`Total Amount Success: ${formatValue("totalAmountSuccess", amountValue)}`}
-                          </text>
-                          <text x="10" y="53" fontSize="12" fill="#ffffff">
-                            {`Total Transaction Success: ${formatValue("totalTransactionSuccess", transactionValue)}`}
-                          </text>
-                        </g>
-                      );
-                    }
-
                     const amountValue =
-                      seriesByName.totalAmountSuccess?.data[hoveredPoint.index] || 0;
+                      lineSeriesByName.totalAmountSuccess?.data[hoveredLinePoint.index] || 0;
                     const transactionValue =
-                      seriesByName.totalTransactionSuccess?.data[hoveredPoint.index] || 0;
+                      lineSeriesByName.totalTransactionSuccess?.data[hoveredLinePoint.index] || 0;
 
                     return (
                       <g
                         transform={`translate(${Math.min(
-                          Math.max(hoveredPoint.x + 12, chartGeometry.padding.left + 8),
-                          chartGeometry.chartWidth - 290,
-                        )}, ${Math.max(hoveredPoint.y - 72, chartGeometry.padding.top + 4)})`}
+                          Math.max(hoveredLinePoint.x + 12, lineChartGeometry.padding.left + 8),
+                          lineChartGeometry.chartWidth - 290,
+                        )}, ${Math.max(hoveredLinePoint.y - 72, lineChartGeometry.padding.top + 4)})`}
                       >
-                        <rect
-                          width="278"
-                          height="64"
-                          rx="8"
-                          fill="#111827"
-                          fillOpacity="0.95"
-                        />
+                        <rect width="278" height="64" rx="8" fill="#111827" fillOpacity="0.95" />
                         <text x="10" y="18" fontSize="12" fill="#e5e7eb">
-                          {hoveredPoint.label}
+                          {hoveredLinePoint.label}
                         </text>
                         <text x="10" y="36" fontSize="12" fill="#ffffff">
                           {`Total Amount Success: ${formatValue("totalAmountSuccess", amountValue)}`}
@@ -631,48 +731,50 @@ const DashboardPerformanceChart = () => {
                       </g>
                     );
                   })()}
-
                   <line
-                    x1={hoveredPoint.x}
-                    y1={chartGeometry.padding.top}
-                    x2={hoveredPoint.x}
-                    y2={chartGeometry.padding.top + chartGeometry.plotHeight}
-                    stroke={hoveredPoint.color}
+                    x1={hoveredLinePoint.x}
+                    y1={lineChartGeometry.padding.top}
+                    x2={hoveredLinePoint.x}
+                    y2={lineChartGeometry.padding.top + lineChartGeometry.plotHeight}
+                    stroke={hoveredLinePoint.color}
                     strokeWidth="1"
                     strokeDasharray="4 4"
                     opacity="0.45"
                   />
                   <circle
-                    cx={hoveredPoint.x}
-                    cy={hoveredPoint.y}
+                    cx={hoveredLinePoint.x}
+                    cy={hoveredLinePoint.y}
                     r="6"
-                    fill={hoveredPoint.color}
+                    fill={hoveredLinePoint.color}
                     stroke="#ffffff"
                     strokeWidth="2"
                   />
                 </g>
               )}
 
-              {labels.map((label, index) => {
-                if (!labelIndexes.includes(index)) return null;
-                const x =
-                  chartGeometry.padding.left +
-                  (labels.length <= 1 ? 0 : (index / (labels.length - 1)) * chartGeometry.plotWidth);
-                const y = chartGeometry.chartHeight - 18;
+              {!isClientMode &&
+                timeLabels.map((label, index) => {
+                  if (!lineLabelIndexes.includes(index)) return null;
+                  const x =
+                    lineChartGeometry.padding.left +
+                    (timeLabels.length <= 1
+                      ? 0
+                      : (index / (timeLabels.length - 1)) * lineChartGeometry.plotWidth);
+                  const y = lineChartGeometry.chartHeight - 18;
 
-                return (
-                  <text
-                    key={`${label}-${index}`}
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    fontSize="12"
-                    fill="#8c8c8c"
-                  >
-                    {formatLabel(label, period)}
-                  </text>
-                );
-              })}
+                  return (
+                    <text
+                      key={`${label}-${index}`}
+                      x={x}
+                      y={y}
+                      textAnchor="middle"
+                      fontSize="12"
+                      fill="#8c8c8c"
+                    >
+                      {formatXAxisLabel(label, period)}
+                    </text>
+                  );
+                })}
             </svg>
           </div>
         </>
