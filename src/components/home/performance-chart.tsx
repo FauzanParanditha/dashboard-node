@@ -69,16 +69,6 @@ const formatValue = (name: string, value: number) => {
 const getSeriesLabel = (name: string) =>
   SERIES_STYLES[name]?.label ? SERIES_STYLES[name].label : name;
 
-const getSeriesAxis = (name: string) =>
-  name === "totalTransactionSuccess" ? "right" : "left";
-
-const formatAxisValue = (axis: "left" | "right", value: number) => {
-  if (axis === "left") {
-    return value.toLocaleString("id-ID");
-  }
-  return Math.round(value).toLocaleString("id-ID");
-};
-
 const buildSmoothPath = (points: Array<{ x: number; y: number }>) => {
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
@@ -222,40 +212,25 @@ const DashboardPerformanceChart = () => {
   const chartGeometry = useMemo(() => {
     const chartWidth = 1000;
     const chartHeight = 320;
-    const padding = { top: 20, right: 66, bottom: 50, left: 72 };
+    const padding = { top: 20, right: 20, bottom: 50, left: 56 };
     const plotWidth = chartWidth - padding.left - padding.right;
     const plotHeight = chartHeight - padding.top - padding.bottom;
 
-    const leftValues = series
-      .filter((item) => getSeriesAxis(item.name) === "left")
-      .flatMap((item) => item.data)
-      .filter((v) => v >= 0);
-    const rightValues = series
-      .filter((item) => getSeriesAxis(item.name) === "right")
-      .flatMap((item) => item.data)
-      .filter((v) => v >= 0);
-    const maxLeftValue = Math.max(...leftValues, 1);
-    const maxRightValue = Math.max(...rightValues, 1);
+    const allValues = series.flatMap((item) => item.data).filter((v) => v >= 0);
+    const maxValue = Math.max(...allValues, 1);
 
-    const getPoint = (
-      index: number,
-      value: number,
-      axis: "left" | "right",
-    ) => {
-      const axisMax = axis === "left" ? maxLeftValue : maxRightValue;
+    const getPoint = (index: number, value: number) => {
       const x =
         padding.left +
         (labels.length <= 1 ? 0 : (index / (labels.length - 1)) * plotWidth);
-      const y = padding.top + (1 - value / axisMax) * plotHeight;
+      const y = padding.top + (1 - value / maxValue) * plotHeight;
       return { x, y };
     };
 
     const plottedSeries = series.map((item) => {
-      const axis = getSeriesAxis(item.name);
-      const points = item.data.map((value, index) => getPoint(index, value, axis));
+      const points = item.data.map((value, index) => getPoint(index, value));
       return {
         ...item,
-        axis,
         points,
         path: buildSmoothPath(points),
       };
@@ -267,8 +242,7 @@ const DashboardPerformanceChart = () => {
       padding,
       plotWidth,
       plotHeight,
-      maxLeftValue,
-      maxRightValue,
+      maxValue,
       axisSteps: [1, 0.75, 0.5, 0.25, 0],
       plottedSeries,
     };
@@ -429,8 +403,7 @@ const DashboardPerformanceChart = () => {
                 const y =
                   chartGeometry.padding.top +
                   (1 - ratio) * chartGeometry.plotHeight;
-                const leftAxisValue = chartGeometry.maxLeftValue * ratio;
-                const rightAxisValue = chartGeometry.maxRightValue * ratio;
+                const axisValue = Math.round(chartGeometry.maxValue * ratio);
 
                 return (
                   <g key={idx}>
@@ -449,16 +422,7 @@ const DashboardPerformanceChart = () => {
                       fontSize="11"
                       fill="#8c8c8c"
                     >
-                      {formatAxisValue("left", leftAxisValue)}
-                    </text>
-                    <text
-                      x={chartGeometry.padding.left + chartGeometry.plotWidth + 10}
-                      y={y + 4}
-                      textAnchor="start"
-                      fontSize="11"
-                      fill="#8c8c8c"
-                    >
-                      {formatAxisValue("right", rightAxisValue)}
+                      {axisValue.toLocaleString("id-ID")}
                     </text>
                   </g>
                 );
