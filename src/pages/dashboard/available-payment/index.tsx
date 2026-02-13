@@ -7,6 +7,7 @@ import Pagination from "@/components/pagination";
 import { useUserContext } from "@/context/user";
 import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
+import { formatRupiah, getTransactionLimit } from "@/utils/transaction-limit";
 import { jwtConfig } from "@/utils/var";
 import clsx from "clsx";
 import Head from "next/head";
@@ -84,10 +85,6 @@ const AvailablePaymentPage = () => {
     setModalOpen(true);
   };
 
-  useEffect(() => {
-    // console.log(modalImageData);
-  }, [ShowImage]);
-
   //delete client
   const DeleteAvailablePayment = (data: any) => {
     const id = data._id;
@@ -112,6 +109,48 @@ const AvailablePaymentPage = () => {
               toast.success("Delete Available Payment Success", {
                 theme: "colored",
               });
+            }
+          })
+          .catch((err) => {
+            handleAxiosError(err);
+          })
+          .finally(() => setIsLoading(false));
+      }
+    });
+  };
+
+  const ToggleAvailablePayment = (availablePaymentId: string, active: boolean) => {
+    if (!clientId || !availablePaymentId) return;
+
+    const nextActive = !active;
+    const actionLabel = nextActive ? "ACTIVE" : "INACTIVE";
+
+    Swal.fire({
+      title: "Are you sure?",
+      text: `Set payment to ${actionLabel}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#0E7490",
+      cancelButtonColor: "#1E293B",
+      confirmButtonText: "CONFIRM",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setIsLoading(true);
+        api()
+          .patch("api/v1/client-available-payments", {
+            clientId,
+            availablePaymentId,
+            active: nextActive,
+          })
+          .then((res) => {
+            if (res.data.success) {
+              revalidate({}, true);
+              toast.success(
+                `Set Available Payment ${nextActive ? "Active" : "Inactive"} Success`,
+                {
+                  theme: "colored",
+                },
+              );
             }
           })
           .catch((err) => {
@@ -184,6 +223,12 @@ const AvailablePaymentPage = () => {
                         </th>
                         <th
                           scope="col"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                        >
+                          Limit
+                        </th>
+                        <th
+                          scope="col"
                           className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white"
                         >
                           Action
@@ -210,7 +255,9 @@ const AvailablePaymentPage = () => {
                           const displayImage = ap?.image || available?.image;
                           const isActive =
                             available?.active ?? ap?.active ?? false;
-                          const clientIds = available?.availablePayment?._id;
+                          const displayLimit = getTransactionLimit(displayName);
+                          const clientAvailablePaymentId =
+                            available?.availablePayment?._id || ap?._id || "";
 
                           return (
                             <tr key={idx}>
@@ -244,22 +291,31 @@ const AvailablePaymentPage = () => {
                                   {isActive ? "Active" : "NOT Active"}
                                 </span>
                               </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                <div className="text-xs">
+                                  <span className="font-semibold">Min:</span>{" "}
+                                  {formatRupiah(displayLimit.min)}
+                                </div>
+                                <div className="text-xs">
+                                  <span className="font-semibold">Max:</span>{" "}
+                                  {formatRupiah(displayLimit.max)}
+                                </div>
+                              </td>
                               <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                                <HiOutlineEye
-                                  className="h-5 w-5 text-emerald-500"
-                                  onClick={(e: any) => {
-                                    e.stopPropagation();
-                                    ShowImage(displayImage);
-                                  }}
-                                />
-                                {/* {user._id === available.adminId?._id ? ( */}
-                                <>
-                                  <Link
-                                    href={`/dashboard/available-payment/${isAdmin ? available._id : clientIds}`}
-                                  >
-                                    <HiOutlinePencil className="h-5 w-5 text-blue-400" />
-                                  </Link>
-                                  {isAdmin && (
+                                {isAdmin ? (
+                                  <>
+                                    <HiOutlineEye
+                                      className="h-5 w-5 text-emerald-500"
+                                      onClick={(e: any) => {
+                                        e.stopPropagation();
+                                        ShowImage(displayImage);
+                                      }}
+                                    />
+                                    <Link
+                                      href={`/dashboard/available-payment/${available._id}`}
+                                    >
+                                      <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                                    </Link>
                                     <HiOutlineTrash
                                       className="h-5 w-5 text-rose-400"
                                       onClick={(e: any) => {
@@ -267,13 +323,44 @@ const AvailablePaymentPage = () => {
                                         DeleteAvailablePayment(available);
                                       }}
                                     />
-                                  )}
-                                </>
-                                {/* ) : (
-                                  <span className="text-xs text-slate-400">
-                                    -
-                                  </span>
-                                )} */}
+                                  </>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={isActive}
+                                    className={clsx(
+                                      isActive
+                                        ? "bg-teal-500 hover:bg-teal-400"
+                                        : "bg-slate-400 hover:bg-slate-300",
+                                      "relative inline-flex h-7 w-14 items-center rounded-full px-1 transition-colors duration-200",
+                                      !clientAvailablePaymentId &&
+                                        "cursor-not-allowed opacity-50",
+                                    )}
+                                    onClick={() =>
+                                      ToggleAvailablePayment(
+                                        clientAvailablePaymentId,
+                                        isActive,
+                                      )
+                                    }
+                                    disabled={!clientAvailablePaymentId}
+                                  >
+                                    <span
+                                      className={clsx(
+                                        isActive
+                                          ? "translate-x-7"
+                                          : "translate-x-0",
+                                        "inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-200",
+                                      )}
+                                    />
+                                    <span className="sr-only">
+                                      {isActive ? "Set Inactive" : "Set Active"}
+                                    </span>
+                                    <span className="absolute -right-10 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                      {isActive ? "ON" : "OFF"}
+                                    </span>
+                                  </button>
+                                )}
                               </td>
                             </tr>
                           );
