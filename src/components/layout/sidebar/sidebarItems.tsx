@@ -1,8 +1,8 @@
+import { jwtConfig } from "@/utils/var";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { admin, user } from "./data";
-import { jwtConfig } from "@/utils/var";
+import { admin, finance, user } from "./data";
 
 const style = {
   title: "font-normal mx-4 text-sm",
@@ -29,8 +29,13 @@ export function SidebarItems() {
     setRole(storedRole);
   }, []);
 
-  const isAdmin = String(role || "").toLowerCase().includes("admin");
-  sidebarData = isAdmin ? admin : user;
+  const isAdmin = String(role || "")
+    .toLowerCase()
+    .includes("admin");
+  const isFinance = String(role || "")
+    .toLocaleLowerCase()
+    .includes("finance");
+  sidebarData = isAdmin ? admin : isFinance ? finance : user;
 
   if (pathname.startsWith("/__adm")) {
     sidebarData = admin;

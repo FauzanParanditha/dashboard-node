@@ -100,6 +100,7 @@ const OrderPage = () => {
       if (statuses.length > 0) params.paymentStatus = statuses.join(",");
       if (dateRange[0]) params.dateFrom = dateRange[0].toISOString();
       if (dateRange[1]) params.dateTo = dateRange[1].toISOString();
+      if (groupByClient) params.group_by = "client";
 
       const res = await api().get("/api/v1/orders/export", {
         params,

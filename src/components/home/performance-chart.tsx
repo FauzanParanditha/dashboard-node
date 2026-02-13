@@ -1,4 +1,5 @@
-import { Card, DatePicker, Segmented, Skeleton } from "antd";
+import { jwtConfig } from "@/utils/var";
+import { Card, DatePicker, Segmented, Select, Skeleton, Switch } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
@@ -9,6 +10,12 @@ type Period = "day" | "month" | "year";
 type ChartSeries = {
   name: string;
   data: number[];
+};
+
+type ClientOption = {
+  _id: string;
+  clientId: string;
+  name: string;
 };
 
 type HoveredPoint = {
@@ -91,7 +98,29 @@ const DashboardPerformanceChart = () => {
   const [selectedDay, setSelectedDay] = useState<Dayjs>(dayjs());
   const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
   const [selectedYear, setSelectedYear] = useState<Dayjs>(dayjs());
+  const [role, setRole] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(
+    undefined,
+  );
+  const [groupByClient, setGroupByClient] = useState(false);
   const [hoveredPoint, setHoveredPoint] = useState<HoveredPoint | null>(null);
+  const isAdmin = String(role || "").toLowerCase().includes("admin");
+  const isFinance = String(role || "").toLowerCase().includes("finance");
+  const canFilterClient = isAdmin || isFinance;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
+
+  const { data: clientsResponse, isLoading: isClientsLoading } = useSWR(
+    canFilterClient ? "/api/v1/client" : null,
+  );
+  const clients: ClientOption[] = clientsResponse?.data || [];
 
   const endpoint = useMemo(() => {
     const params = new URLSearchParams();
@@ -109,9 +138,23 @@ const DashboardPerformanceChart = () => {
     if (period === "year") {
       params.set("year", String(selectedYear.year()));
     }
+    if (canFilterClient && groupByClient) {
+      params.set("groupBy", "client");
+    }
+    if (canFilterClient && !groupByClient && selectedClientId) {
+      params.set("clientId", selectedClientId);
+    }
 
     return `/api/v1/adm/dashboard/chart?${params.toString()}`;
-  }, [period, selectedDay, selectedMonth, selectedYear]);
+  }, [
+    period,
+    selectedDay,
+    selectedMonth,
+    selectedYear,
+    canFilterClient,
+    groupByClient,
+    selectedClientId,
+  ]);
 
   useEffect(() => {
     setHoveredPoint(null);
@@ -227,6 +270,41 @@ const DashboardPerformanceChart = () => {
                 }}
                 format="YYYY"
                 allowClear={false}
+              />
+            )}
+            {canFilterClient && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "0 4px",
+                }}
+              >
+                <Text className="dark:text-white">Group by client</Text>
+                <Switch
+                  checked={groupByClient}
+                  onChange={setGroupByClient}
+                  checkedChildren="ON"
+                  unCheckedChildren="OFF"
+                />
+              </div>
+            )}
+            {canFilterClient && (
+              <Select
+                showSearch
+                allowClear
+                placeholder="Select client"
+                optionFilterProp="label"
+                loading={isClientsLoading}
+                value={selectedClientId}
+                onChange={(value) => setSelectedClientId(value)}
+                disabled={groupByClient}
+                style={{ minWidth: 220 }}
+                options={clients.map((client) => ({
+                  value: client.clientId,
+                  label: `${client.name} (${client.clientId})`,
+                }))}
               />
             )}
           </div>
