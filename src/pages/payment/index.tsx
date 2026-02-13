@@ -5,7 +5,9 @@ import {
   PaymentMethodsResponse,
 } from "@/utils/order";
 import { fetchPaymentMethods, processPayment } from "@/utils/payment";
+import { formatRupiah, getTransactionLimit } from "@/utils/transaction-limit";
 import axios from "axios";
+import clsx from "clsx";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -61,10 +63,22 @@ const PaymentPage = () => {
     fetchPaymentMethods(setPaymentMethods, setLoading, orderDetails.clientId);
   }, [orderDetails?.clientId]);
 
-  const handlePaymentMethodSelect = (methodId: string) => {
-    if (!isPaymentProcessing) {
-      setSelectedPaymentMethod(methodId);
+  const handlePaymentMethodSelect = (method: any) => {
+    if (isPaymentProcessing || !orderDetails) return;
+
+    const totalAmount = parseFloat(orderDetails.totalAmount || "0");
+    const limit = getTransactionLimit(method.name);
+    const isOutOfLimit = totalAmount < limit.min || totalAmount > limit.max;
+
+    if (isOutOfLimit) {
+      toast.warn(
+        `${method.name} hanya untuk nominal ${formatRupiah(limit.min)} - ${formatRupiah(limit.max)}`,
+        { theme: "colored" },
+      );
+      return;
     }
+
+    setSelectedPaymentMethod(method.name);
   };
 
   // const handleCancel = () => {
@@ -98,6 +112,29 @@ const PaymentPage = () => {
 
     if (!orderDetails) {
       toast.warn("Order details is not found", { theme: "colored" });
+      return;
+    }
+
+    const selectedMethod = paymentMethods
+      .flatMap(({ methods }: any) => methods)
+      .find((method: any) => method.name === selectedPaymentMethod);
+
+    if (!selectedMethod) {
+      toast.warn("Selected payment method not found.", { theme: "colored" });
+      return;
+    }
+
+    const selectedMethodLimit = getTransactionLimit(selectedMethod.name);
+    const orderAmount = parseFloat(orderDetails.totalAmount || "0");
+    const isOutOfLimit =
+      orderAmount < selectedMethodLimit.min ||
+      orderAmount > selectedMethodLimit.max;
+
+    if (isOutOfLimit) {
+      toast.warn(
+        `${selectedMethod.name} hanya untuk nominal ${formatRupiah(selectedMethodLimit.min)} - ${formatRupiah(selectedMethodLimit.max)}`,
+        { theme: "colored" },
+      );
       return;
     }
 
@@ -205,20 +242,37 @@ const PaymentPage = () => {
               <div key={category} className="mb-6">
                 <h3 className="mb-2 text-lg font-semibold">{category}</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {methods.map((method: any) => (
-                    <div
-                      key={method._id}
-                      className={`flex cursor-pointer flex-col items-center rounded-lg border p-4 transition-shadow hover:shadow-lg ${selectedPaymentMethod === method.name ? "border-blue-500" : "border-gray-300"}`}
-                      onClick={() => handlePaymentMethodSelect(method.name)}
-                    >
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_CLIENT_API_URL}/${method.image}`}
-                        alt={method.name}
-                        className="mb-2 h-5 w-16"
-                      />
-                      <span>{method.name}</span>
-                    </div>
-                  ))}
+                  {methods.map((method: any) => {
+                    const limit = getTransactionLimit(method.name);
+                    const isOutOfLimit =
+                      totalAmount < limit.min || totalAmount > limit.max;
+
+                    return (
+                      <div
+                        key={method._id}
+                        className={clsx(
+                          "flex flex-col items-center rounded-lg border p-4 transition-shadow",
+                          selectedPaymentMethod === method.name
+                            ? "border-blue-500"
+                            : "border-gray-300",
+                          isOutOfLimit
+                            ? "cursor-not-allowed opacity-50"
+                            : "cursor-pointer hover:shadow-lg",
+                        )}
+                        onClick={() => handlePaymentMethodSelect(method)}
+                      >
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_CLIENT_API_URL}/${method.image}`}
+                          alt={method.name}
+                          className="mb-2 h-5 w-16"
+                        />
+                        <span>{method.name}</span>
+                        <span className="mt-1 text-xs text-slate-500">
+                          {formatRupiah(limit.min)} - {formatRupiah(limit.max)}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))
