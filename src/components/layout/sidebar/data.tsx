@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   FcBarChart,
   FcCallback,
@@ -14,7 +15,6 @@ import {
   FcSettings,
   FcSynchronize,
 } from "react-icons/fc";
-import type { ReactNode } from "react";
 
 export type SidebarSubItem = {
   title: string;
@@ -99,6 +99,24 @@ export const admin: SidebarItem[] = [
   },
   {
     title: "Settings",
+    icon: <FcSettings />,
+    link: "/dashboard/settings",
+  },
+];
+
+export const finance: SidebarItem[] = [
+  {
+    title: "Home",
+    icon: <FcHome />,
+    link: "/dashboard/home",
+  },
+  {
+    title: "Order",
+    icon: <FcPaid />,
+    link: "/dashboard/order",
+  },
+  {
+    title: "Profile",
     icon: <FcSettings />,
     link: "/dashboard/settings",
   },
