@@ -326,6 +326,12 @@ const OrderPage = () => {
                           </th>
                           <th
                             scope="col"
+                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          >
+                            Transaction Date
+                          </th>
+                          <th
+                            scope="col"
                             className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white"
                           >
                             Action
@@ -410,6 +416,11 @@ const OrderPage = () => {
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                                 {formatMoney(order.totalAmount)}
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                                {order.updatedAt
+                                  ? new Date(order.updatedAt).toLocaleString()
+                                  : "-"}
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-center text-sm text-gray-500 dark:text-white">
                                 <Link
