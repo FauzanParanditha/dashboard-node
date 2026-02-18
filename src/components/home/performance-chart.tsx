@@ -529,8 +529,8 @@ const DashboardPerformanceChart = () => {
                 </Text>
               </>
             ) : (
-              displayedTimeSeries.map((item) => {
-                const style = getSeriesStyle(item.name);
+              displayedTimeSeries.map((item, seriesIndex) => {
+                const style = getSeriesStyle(item.name, seriesIndex);
                 const summaryValue = item.data.reduce(
                   (acc, value) => acc + (value || 0),
                   0,
@@ -736,11 +736,10 @@ const DashboardPerformanceChart = () => {
                         )}
                         {item.points.map((point, index) => {
                           const pointLabel = formatXAxisLabel(timeLabels[index] || "", period);
+                          const totalVisibleSeries = lineChartGeometry.plottedSeries.length;
                           const markerOffsetX =
-                            timeMetricView === "both"
-                              ? item.name === "totalAmountSuccess"
-                                ? -4
-                                : 4
+                            totalVisibleSeries > 1
+                              ? (seriesIndex - (totalVisibleSeries - 1) / 2) * 6
                               : 0;
                           const pointX = point.x + markerOffsetX;
 
@@ -814,12 +813,10 @@ const DashboardPerformanceChart = () => {
               {hoveredLinePoint && (
                 <g pointerEvents="none">
                   {(() => {
-                    const amountValue =
-                      lineSeriesByName.totalAmountSuccess?.data[hoveredLinePoint.index] || 0;
-                    const transactionValue =
-                      lineSeriesByName.totalTransactionSuccess?.data[hoveredLinePoint.index] || 0;
-                    const isAmountHovered =
-                      hoveredLinePoint.seriesName === "totalAmountSuccess";
+                    const hoveredSeries = lineSeriesByName[hoveredLinePoint.seriesName];
+                    const hoveredValue =
+                      hoveredSeries?.data?.[hoveredLinePoint.index] || 0;
+                    const hoveredStyle = getSeriesStyle(hoveredLinePoint.seriesName);
 
                     return (
                       <g
@@ -832,15 +829,12 @@ const DashboardPerformanceChart = () => {
                         <text x="10" y="18" fontSize="12" fill="#e5e7eb">
                           {hoveredLinePoint.label}
                         </text>
-                        {isAmountHovered ? (
-                          <text x="10" y="44" fontSize="12" fill="#ffffff">
-                            {`Total Amount Success: ${formatValue("totalAmountSuccess", amountValue)}`}
-                          </text>
-                        ) : (
-                          <text x="10" y="44" fontSize="12" fill="#ffffff">
-                            {`Total Transaction Success: ${formatValue("totalTransactionSuccess", transactionValue)}`}
-                          </text>
-                        )}
+                        <text x="10" y="44" fontSize="12" fill="#ffffff">
+                          {`${hoveredStyle.label}: ${formatValue(
+                            hoveredLinePoint.seriesName,
+                            hoveredValue,
+                          )}`}
+                        </text>
                       </g>
                     );
                   })()}
