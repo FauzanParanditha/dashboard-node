@@ -51,6 +51,10 @@ const SERIES_STYLES: Record<string, { color: string; label: string }> = {
     color: "#722ED1",
     label: "Total Amount Success",
   },
+  totalRealAmountSuccess: {
+    color: "#FA8C16",
+    label: "Total Real Amount Success",
+  },
   totalTransactionSuccess: {
     color: "#13C2C2",
     label: "Total Transaction Success",
@@ -75,7 +79,7 @@ const getSeriesStyle = (name: string, index = 0) =>
   };
 
 const formatValue = (name: string, value: number) => {
-  if (name === "totalAmountSuccess") {
+  if (name === "totalAmountSuccess" || name === "totalRealAmountSuccess") {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
@@ -245,7 +249,11 @@ const DashboardPerformanceChart = () => {
 
   const displayedTimeSeries = useMemo(() => {
     if (timeMetricView === "amount") {
-      return timeSeries.filter((item) => item.name === "totalAmountSuccess");
+      return timeSeries.filter(
+        (item) =>
+          item.name === "totalAmountSuccess" ||
+          item.name === "totalRealAmountSuccess",
+      );
     }
     if (timeMetricView === "transaction") {
       return timeSeries.filter((item) => item.name === "totalTransactionSuccess");
@@ -264,7 +272,7 @@ const DashboardPerformanceChart = () => {
     const plotHeight = chartHeight - padding.top - padding.bottom;
 
     const amountValues = displayedTimeSeries
-      .filter((item) => item.name === "totalAmountSuccess")
+      .filter((item) => item.name !== "totalTransactionSuccess")
       .flatMap((item) => item.data)
       .filter((v) => v >= 0);
     const transactionValues = displayedTimeSeries
