@@ -8,6 +8,8 @@ import { Text } from "../text";
 type Period = "day" | "month" | "year" | "monthly" | "yearly";
 type GroupBy = "time" | "client";
 type GroupMetric = "totalAmountSuccess" | "totalTransactionSuccess";
+type TimeChartType = "line" | "bar";
+type TimeMetricView = "both" | "amount" | "transaction";
 
 type ChartSeries = {
   name: string;
@@ -144,6 +146,8 @@ const DashboardPerformanceChart = () => {
   const [period, setPeriod] = useState<Period>("month");
   const [groupBy, setGroupBy] = useState<GroupBy>("time");
   const [groupMetric, setGroupMetric] = useState<GroupMetric>("totalAmountSuccess");
+  const [timeChartType, setTimeChartType] = useState<TimeChartType>("line");
+  const [timeMetricView, setTimeMetricView] = useState<TimeMetricView>("both");
 
   const [selectedDay, setSelectedDay] = useState<Dayjs>(dayjs());
   const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
@@ -197,7 +201,7 @@ const DashboardPerformanceChart = () => {
       params.set("year", String(selectedYear.year()));
     }
 
-    if (groupBy === "time" && canFilterClient && selectedClientId) {
+    if (canFilterClient && selectedClientId) {
       params.set("clientId", selectedClientId);
     }
 
@@ -239,6 +243,16 @@ const DashboardPerformanceChart = () => {
     [timeSeries],
   );
 
+  const displayedTimeSeries = useMemo(() => {
+    if (timeMetricView === "amount") {
+      return timeSeries.filter((item) => item.name === "totalAmountSuccess");
+    }
+    if (timeMetricView === "transaction") {
+      return timeSeries.filter((item) => item.name === "totalTransactionSuccess");
+    }
+    return timeSeries;
+  }, [timeSeries, timeMetricView]);
+
   const lineLabelIndexes = getVisibleLabelIndexes(timeLabels.length);
   const clientLabelIndexes = getVisibleLabelIndexes(clientRows.length);
 
@@ -249,20 +263,29 @@ const DashboardPerformanceChart = () => {
     const plotWidth = chartWidth - padding.left - padding.right;
     const plotHeight = chartHeight - padding.top - padding.bottom;
 
-    const amountValues = timeSeries
+    const amountValues = displayedTimeSeries
       .filter((item) => item.name === "totalAmountSuccess")
       .flatMap((item) => item.data)
       .filter((v) => v >= 0);
-    const transactionValues = timeSeries
+    const transactionValues = displayedTimeSeries
       .filter((item) => item.name === "totalTransactionSuccess")
       .flatMap((item) => item.data)
       .filter((v) => v >= 0);
 
     const maxAmount = Math.max(...amountValues, 1);
     const maxTransaction = Math.max(...transactionValues, 1);
+    const useDualAxis =
+      timeMetricView === "both" &&
+      displayedTimeSeries.some((item) => item.name === "totalAmountSuccess") &&
+      displayedTimeSeries.some((item) => item.name === "totalTransactionSuccess");
+    const leftAxisMax =
+      !useDualAxis && timeMetricView === "transaction"
+        ? maxTransaction
+        : maxAmount;
+    const rightAxisMax = maxTransaction;
 
     const getPoint = (index: number, value: number, axis: "left" | "right") => {
-      const axisMax = axis === "left" ? maxAmount : maxTransaction;
+      const axisMax = axis === "left" ? leftAxisMax : rightAxisMax;
       const x =
         padding.left +
         (timeLabels.length <= 1 ? 0 : (index / (timeLabels.length - 1)) * plotWidth);
@@ -270,8 +293,9 @@ const DashboardPerformanceChart = () => {
       return { x, y };
     };
 
-    const plottedSeries = timeSeries.map((item) => {
-      const axis = item.name === "totalTransactionSuccess" ? "right" : "left";
+    const plottedSeries = displayedTimeSeries.map((item) => {
+      const axis =
+        useDualAxis && item.name === "totalTransactionSuccess" ? "right" : "left";
       const points = item.data.map((value, index) => getPoint(index, value, axis));
       return {
         ...item,
@@ -287,12 +311,15 @@ const DashboardPerformanceChart = () => {
       padding,
       plotWidth,
       plotHeight,
+      leftAxisMax,
+      rightAxisMax,
       maxAmount,
       maxTransaction,
+      useDualAxis,
       axisSteps: [1, 0.75, 0.5, 0.25, 0],
       plottedSeries,
     };
-  }, [timeLabels, timeSeries]);
+  }, [displayedTimeSeries, timeLabels, timeMetricView]);
 
   const clientChartGeometry = useMemo(() => {
     const chartWidth = 1000;
@@ -432,7 +459,29 @@ const DashboardPerformanceChart = () => {
               />
             )}
 
-            {canFilterClient && groupBy === "time" && (
+            {groupBy === "time" && (
+              <Segmented
+                options={[
+                  { label: "Line", value: "line" },
+                  { label: "Bar", value: "bar" },
+                ]}
+                value={timeChartType}
+                onChange={(value) => setTimeChartType(value as TimeChartType)}
+              />
+            )}
+            {groupBy === "time" && (
+              <Segmented
+                options={[
+                  { label: "Both", value: "both" },
+                  { label: "Amount", value: "amount" },
+                  { label: "Transaction", value: "transaction" },
+                ]}
+                value={timeMetricView}
+                onChange={(value) => setTimeMetricView(value as TimeMetricView)}
+              />
+            )}
+
+            {canFilterClient && (
               <Select
                 showSearch
                 allowClear
@@ -480,9 +529,12 @@ const DashboardPerformanceChart = () => {
                 </Text>
               </>
             ) : (
-              timeSeries.map((item) => {
+              displayedTimeSeries.map((item) => {
                 const style = getSeriesStyle(item.name);
-                const summaryValue = item.data[item.data.length - 1] || 0;
+                const summaryValue = item.data.reduce(
+                  (acc, value) => acc + (value || 0),
+                  0,
+                );
 
                 return (
                   <div
@@ -499,7 +551,8 @@ const DashboardPerformanceChart = () => {
                       }}
                     />
                     <Text className="dark:text-white">
-                      {style.label}: <strong>{formatValue(item.name, summaryValue)}</strong>
+                      {style.label} (Total periode):{" "}
+                      <strong>{formatValue(item.name, summaryValue)}</strong>
                     </Text>
                   </div>
                 );
@@ -549,8 +602,12 @@ const DashboardPerformanceChart = () => {
                 : lineChartGeometry.axisSteps.map((ratio, idx) => {
                     const y =
                       lineChartGeometry.padding.top + (1 - ratio) * lineChartGeometry.plotHeight;
-                    const leftAxisValue = lineChartGeometry.maxAmount * ratio;
-                    const rightAxisValue = lineChartGeometry.maxTransaction * ratio;
+                    const leftAxisValue = lineChartGeometry.leftAxisMax * ratio;
+                    const rightAxisValue = lineChartGeometry.rightAxisMax * ratio;
+                    const leftAxisMetric =
+                      timeMetricView === "transaction"
+                        ? "totalTransactionSuccess"
+                        : "totalAmountSuccess";
 
                     return (
                       <g key={idx}>
@@ -569,17 +626,19 @@ const DashboardPerformanceChart = () => {
                           fontSize="11"
                           fill="#8c8c8c"
                         >
-                          {Math.round(leftAxisValue).toLocaleString("id-ID")}
+                          {formatValue(leftAxisMetric, leftAxisValue)}
                         </text>
-                        <text
-                          x={lineChartGeometry.padding.left + lineChartGeometry.plotWidth + 10}
-                          y={y + 4}
-                          textAnchor="start"
-                          fontSize="11"
-                          fill="#8c8c8c"
-                        >
-                          {Math.round(rightAxisValue).toLocaleString("id-ID")}
-                        </text>
+                        {lineChartGeometry.useDualAxis && (
+                          <text
+                            x={lineChartGeometry.padding.left + lineChartGeometry.plotWidth + 10}
+                            y={y + 4}
+                            textAnchor="start"
+                            fontSize="11"
+                            fill="#8c8c8c"
+                          >
+                            {formatValue("totalTransactionSuccess", rightAxisValue)}
+                          </text>
+                        )}
                       </g>
                     );
                   })}
@@ -630,28 +689,77 @@ const DashboardPerformanceChart = () => {
 
                     return (
                       <g key={item.name}>
-                        <path
-                          d={item.path}
-                          fill="none"
-                          stroke={style.color}
-                          strokeWidth="3"
-                          strokeLinejoin="round"
-                          strokeLinecap="round"
-                        />
+                        {timeChartType === "line" ? (
+                          <path
+                            d={item.path}
+                            fill="none"
+                            stroke={style.color}
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                            strokeLinecap="round"
+                          />
+                        ) : (
+                          item.points.map((point, index) => {
+                            const value = item.data[index] || 0;
+                            const axisMax =
+                              item.axis === "right"
+                                ? lineChartGeometry.rightAxisMax
+                                : item.name === "totalTransactionSuccess" &&
+                                    timeMetricView === "transaction"
+                                  ? lineChartGeometry.leftAxisMax
+                                  : lineChartGeometry.leftAxisMax;
+                            const barHeight =
+                              axisMax === 0
+                                ? 0
+                                : (value / axisMax) * lineChartGeometry.plotHeight;
+                            const barWidth = 12;
+                            const xOffset = seriesIndex === 0 ? -7 : 7;
+                            const barX = point.x + xOffset - barWidth / 2;
+                            const barY =
+                              lineChartGeometry.padding.top +
+                              lineChartGeometry.plotHeight -
+                              barHeight;
+
+                            return (
+                              <rect
+                                key={`${item.name}-bar-${index}`}
+                                x={barX}
+                                y={barY}
+                                width={barWidth}
+                                height={Math.max(barHeight, 1)}
+                                rx="3"
+                                fill={style.color}
+                                opacity={0.9}
+                              />
+                            );
+                          })
+                        )}
                         {item.points.map((point, index) => {
                           const pointLabel = formatXAxisLabel(timeLabels[index] || "", period);
+                          const markerOffsetX =
+                            timeMetricView === "both"
+                              ? item.name === "totalAmountSuccess"
+                                ? -4
+                                : 4
+                              : 0;
+                          const pointX = point.x + markerOffsetX;
 
                           return (
                             <g key={`${item.name}-${index}`}>
-                              <circle cx={point.x} cy={point.y} r="4" fill={style.color} />
                               <circle
-                                cx={point.x}
+                                cx={pointX}
+                                cy={point.y}
+                                r={timeChartType === "line" ? 4 : 2}
+                                fill={style.color}
+                              />
+                              <circle
+                                cx={pointX}
                                 cy={point.y}
                                 r="12"
                                 fill="transparent"
                                 onMouseEnter={() =>
                                   setHoveredLinePoint({
-                                    x: point.x,
+                                    x: pointX,
                                     y: point.y,
                                     index,
                                     seriesName: item.name,
@@ -710,6 +818,8 @@ const DashboardPerformanceChart = () => {
                       lineSeriesByName.totalAmountSuccess?.data[hoveredLinePoint.index] || 0;
                     const transactionValue =
                       lineSeriesByName.totalTransactionSuccess?.data[hoveredLinePoint.index] || 0;
+                    const isAmountHovered =
+                      hoveredLinePoint.seriesName === "totalAmountSuccess";
 
                     return (
                       <g
@@ -722,12 +832,15 @@ const DashboardPerformanceChart = () => {
                         <text x="10" y="18" fontSize="12" fill="#e5e7eb">
                           {hoveredLinePoint.label}
                         </text>
-                        <text x="10" y="36" fontSize="12" fill="#ffffff">
-                          {`Total Amount Success: ${formatValue("totalAmountSuccess", amountValue)}`}
-                        </text>
-                        <text x="10" y="53" fontSize="12" fill="#ffffff">
-                          {`Total Transaction Success: ${formatValue("totalTransactionSuccess", transactionValue)}`}
-                        </text>
+                        {isAmountHovered ? (
+                          <text x="10" y="44" fontSize="12" fill="#ffffff">
+                            {`Total Amount Success: ${formatValue("totalAmountSuccess", amountValue)}`}
+                          </text>
+                        ) : (
+                          <text x="10" y="44" fontSize="12" fill="#ffffff">
+                            {`Total Transaction Success: ${formatValue("totalTransactionSuccess", transactionValue)}`}
+                          </text>
+                        )}
                       </g>
                     );
                   })()}
@@ -744,7 +857,7 @@ const DashboardPerformanceChart = () => {
                   <circle
                     cx={hoveredLinePoint.x}
                     cy={hoveredLinePoint.y}
-                    r="6"
+                    r={timeChartType === "line" ? 6 : 4}
                     fill={hoveredLinePoint.color}
                     stroke="#ffffff"
                     strokeWidth="2"
@@ -775,6 +888,30 @@ const DashboardPerformanceChart = () => {
                     </text>
                   );
                 })}
+              {!isClientMode && (
+                <text
+                  x={lineChartGeometry.padding.left}
+                  y={14}
+                  textAnchor="start"
+                  fontSize="11"
+                  fill="#8c8c8c"
+                >
+                  {timeMetricView === "transaction"
+                    ? "Y Left: Total Transaction Success"
+                    : "Y Left: Total Amount Success"}
+                </text>
+              )}
+              {!isClientMode && lineChartGeometry.useDualAxis && (
+                <text
+                  x={lineChartGeometry.padding.left + lineChartGeometry.plotWidth}
+                  y={14}
+                  textAnchor="end"
+                  fontSize="11"
+                  fill="#8c8c8c"
+                >
+                  Y Right: Total Transaction Success
+                </text>
+              )}
             </svg>
           </div>
         </>
