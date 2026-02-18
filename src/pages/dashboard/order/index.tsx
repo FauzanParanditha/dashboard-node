@@ -390,7 +390,8 @@ const OrderPage = () => {
                               <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
                                 <div>{order.orderId}</div>
                                 <div className="text-xs text-slate-400">
-                                  {order.clientId?.name}
+                                  {order.clientId?.name} -{" "}
+                                  {order.clientId?.clientId}
                                 </div>
                                 <div className="text-xs text-slate-400">
                                   {order.items?.length || 0} items
