@@ -21,7 +21,7 @@ import { toast } from "react-toastify";
 type Values = {
   name: string;
   notifyUrl?: string;
-  userId: string;
+  userIds: string[];
   availablePaymentIds?: string[];
 };
 
@@ -160,16 +160,16 @@ const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
                 <div className="mb-4 pr-3">
                   <Controller
                     control={control}
-                    name="userId"
+                    name="userIds"
                     render={({ field: { onChange, value } }) => (
                       <SelectField
-                        name="userId"
+                        name="userIds"
                         label="Assign User"
                         required
                         options={userOptions}
-                        value={value}
-                        onChange={onChange}
-                        error={errors.userId?.message}
+                        value={value?.[0] || ""}
+                        onChange={(selected: string) => onChange([selected])}
+                        error={errors.userIds?.message as string}
                       />
                     )}
                   />
