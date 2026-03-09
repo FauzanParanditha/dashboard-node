@@ -267,9 +267,9 @@ const PaymentPage = () => {
                           className="mb-2 h-5 w-16"
                         />
                         <span>{method.name}</span>
-                        <span className="mt-1 text-xs text-slate-500">
+                        {/* <span className="mt-1 text-xs text-slate-500">
                           {formatRupiah(limit.min)} - {formatRupiah(limit.max)}
-                        </span>
+                        </span> */}
                       </div>
                     );
                   })}
