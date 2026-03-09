@@ -15,8 +15,8 @@ const DashboardLatestActivities = () => {
   const { isLoading, setIsLoading } = useStore();
   const [error, setError] = useState<string | null>(null);
 
-  const { data: apilogs, mutate: revalidate } = useSWR(
-    `/api/v1/adm/apilogs?limit=${5}&page=${page}&query=${search}`,
+  const { data: activitylogs, mutate: revalidate } = useSWR(
+    `/api/v1/adm/activitylogs?limit=${5}&page=${page}&query=${search}`,
   );
 
   return (
@@ -24,7 +24,7 @@ const DashboardLatestActivities = () => {
       styles={{
         header: { padding: "16px" },
         body: {
-          padding: "0 1rem",
+          padding: 0,
         },
       }}
       title={
@@ -55,23 +55,21 @@ const DashboardLatestActivities = () => {
       ) : (
         <List
           itemLayout="horizontal"
-          dataSource={apilogs?.data || []}
+          dataSource={activitylogs?.data || []}
           renderItem={(item) => {
-            const { endpoint, ipAddress, method, statusCode, createdAt }: any =
-              item;
+            const { action, role, ipAddress, createdAt }: any = item;
 
             return (
-              <List.Item>
+              <List.Item style={{ padding: "16px" }}>
                 <List.Item.Meta
                   avatar={
                     <CustomAvatar
-                      status={statusCode}
+                      status={200}
                       shape="square"
-                      size={72}
+                      size={42}
                       style={{
-                        backgroundColor: `${getStatusResponseColor(
-                          statusCode,
-                        )}`,
+                        backgroundColor: `${getStatusResponseColor(200)}`,
+                        borderRadius: "8px",
                       }}
                     />
                   }
@@ -81,18 +79,21 @@ const DashboardLatestActivities = () => {
                     </div>
                   }
                   description={
-                    <>
-                      <Text className="dark:text-white">
-                        Endpoint :{" "}
-                        <strong>
-                          {method}:&quot;{endpoint}&quot;
-                        </strong>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        marginTop: "4px",
+                      }}
+                    >
+                      <Text className="dark:text-white" size="sm">
+                        Action: <strong>{action}</strong>
                       </Text>
-                      <br />
-                      <Text className="dark:text-white">
-                        Ip : <strong>{ipAddress}</strong>
+                      <Text className="dark:text-gray-400" size="xs">
+                        Role: {role} | IP: {ipAddress}
                       </Text>
-                    </>
+                    </div>
                   }
                 />
               </List.Item>

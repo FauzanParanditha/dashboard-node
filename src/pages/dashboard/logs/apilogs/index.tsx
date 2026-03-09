@@ -14,7 +14,7 @@ import useSWR from "swr";
 //   return checkAuthAdmin(context);
 // };
 
-const LogActivityPage = () => {
+const ApiLogPage = () => {
   useAdminAuthGuard();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -26,7 +26,7 @@ const LogActivityPage = () => {
   } | null>(null);
 
   const { data: activity, mutate: revalidate } = useSWR(
-    "api/v1/adm/activitylogs/?limit=10&page=" + page + "&query=" + search,
+    "api/v1/adm/apilogs/?limit=10&page=" + page + "&query=" + search,
   );
   useEffect(() => {
     setIsLoading(true);
@@ -44,11 +44,11 @@ const LogActivityPage = () => {
   return (
     <>
       <Head>
-        <title>Activity List</title>
+        <title>API Logs</title>
       </Head>
       <DashboardLayout>
         <h4 className="my-4 text-2xl font-bold dark:text-white">
-          List Activity
+          List API Logs
         </h4>
         <div className="mt-8 rounded-2xl bg-white text-slate-700 dark:bg-black dark:text-white">
           <div className="flex items-center justify-between px-8 pt-4">
@@ -70,25 +70,25 @@ const LogActivityPage = () => {
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          Action
+                          Method
                         </th>
                         <th
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          Role
+                          Endpoint / Status
                         </th>
                         <th
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          IP Address
+                          Created_at
                         </th>
                         <th
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
-                          Created At
+                          Do Time
                         </th>
                         <th
                           scope="col"
@@ -114,26 +114,27 @@ const LogActivityPage = () => {
                           <tr key={index} className="border-b">
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
-                                {dt.action}
+                                {dt.method}
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
-                                <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-                                  {dt.role}
+                                <span className="max-w-[280px] truncate">
+                                  {dt.endpoint}
+                                </span>
+                                <span className="ml-2 rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                                  {dt.statusCode}
                                 </span>
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
-                              <div className="flex items-center">
-                                {dt.ipAddress}
-                              </div>
+                              <p className="whitespace-nowrap">
+                                {dayjs(dt.createdAt).format("DD-MM-YYYY")}
+                              </p>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <p className="whitespace-nowrap">
-                                {dayjs(dt.createdAt).format(
-                                  "DD-MM-YYYY HH:mm:ss",
-                                )}
+                                {dayjs(dt.do_time).format("HH:mm:ss")}
                               </p>
                             </td>
                             <td className="border-gray-200 p-5 text-center text-sm dark:text-white">
@@ -179,4 +180,4 @@ const LogActivityPage = () => {
   );
 };
 
-export default LogActivityPage;
+export default ApiLogPage;

@@ -81,6 +81,11 @@ export const admin: SidebarItem[] = [
         link: "/dashboard/logs/activity",
       },
       {
+        title: "API Logs",
+        icon: <FcSynchronize />,
+        link: "/dashboard/logs/apilogs",
+      },
+      {
         title: "Email Logs",
         icon: <FcFeedback />,
         link: "/dashboard/logs/email",
