@@ -11,7 +11,8 @@ type Type =
   | "user"
   | "order"
   | "totalTransactionSuccess"
-  | "totalAmountSuccess";
+  | "totalAmountSuccess"
+  | "totalRealAmountSuccess";
 
 export const IconWrapper = ({
   color,
@@ -200,6 +201,22 @@ export const variants: {
       </IconWrapper>
     ),
     title: "Total Amount Success",
+    data: [],
+  },
+  totalRealAmountSuccess: {
+    primaryColor: "#FA8C16",
+    secondaryColor: "#FFD591",
+    icon: (
+      <IconWrapper color="#FFF7E6">
+        <DollarCircleOutlined
+          className="md"
+          style={{
+            color: "#FA8C16",
+          }}
+        />
+      </IconWrapper>
+    ),
+    title: "Total Real Amount Success",
     data: [],
   },
 };

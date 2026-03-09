@@ -1,16 +1,15 @@
 import { DashboardLayout } from "@/components/layout";
+import { Text } from "@/components/text";
 import { useAuthGuard } from "@/hooks/use-auth";
 import { jwtConfig } from "@/utils/var";
-import { Col, Row } from "antd";
+import { Card, Col, DatePicker, Row, Segmented, Select, Space } from "antd";
+import { Dayjs } from "dayjs";
 import dynamic from "next/dynamic";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
-// export const getServerSideProps: GetServerSideProps = async (context) => {
-//   // Use the checkAuth function to handle authentication
-//   return checkAuthAdmin(context);
-// };
+const { RangePicker } = DatePicker;
 
 const HomePage = () => {
   useAuthGuard();
@@ -28,8 +27,52 @@ const HomePage = () => {
   const isAdmin = String(role || "")
     .toLowerCase()
     .includes("admin");
+  const isFinance = String(role || "")
+    .toLowerCase()
+    .includes("finance");
+  const canFilterClient = isAdmin || isFinance;
 
-  const { data: dashboard, isLoading } = useSWR("/api/v1/adm/dashboard");
+  // Global Dashboard Filters
+  const [period, setPeriod] = useState<string>("last_month");
+  const [customRange, setCustomRange] = useState<
+    [Dayjs | null, Dayjs | null] | null
+  >(null);
+  const [clientId, setClientId] = useState<string | undefined>(undefined);
+  const [status, setStatus] = useState<string | undefined>(undefined);
+
+  // Chart Filters (lifted up from performance-chart)
+  const [chartPeriod, setChartPeriod] = useState<string>("month");
+  const [groupBy, setGroupBy] = useState<"time" | "client">("time");
+
+  const { data: clientsResponse, isLoading: isClientsLoading } = useSWR(
+    canFilterClient ? "/api/v1/client" : null,
+  );
+  const clients: any[] = clientsResponse?.data || [];
+
+  const endpoint = useMemo(() => {
+    const params = new URLSearchParams();
+    if (period) params.set("period", period);
+    if (
+      period === "custom" &&
+      customRange &&
+      customRange[0] &&
+      customRange[1]
+    ) {
+      params.set("startDate", customRange[0].format("YYYY-MM-DD"));
+      params.set("endDate", customRange[1].format("YYYY-MM-DD"));
+    }
+    if (clientId) params.set("clientId", clientId);
+    if (status) params.set("status", status);
+
+    // No need for separate chartPeriod/chartDate parameters
+    params.set("groupBy", groupBy);
+
+    return `/api/v1/adm/dashboard?${params.toString()}`;
+  }, [period, customRange, clientId, status, groupBy]);
+
+  const { data: response, isLoading } = useSWR(endpoint);
+  const dashboard = response?.data;
+
   const DashboardTotalCountCard = dynamic(
     async () => await import("@/components/home/total-count"),
   );
@@ -39,29 +82,95 @@ const HomePage = () => {
   const DashboardPerformanceChart = dynamic(
     async () => await import("@/components/home/performance-chart"),
   );
+  const DashboardBreakdownStatus = dynamic(
+    async () => await import("@/components/home/breakdown-status"),
+  );
+  const DashboardBreakdownPaymentMethod = dynamic(
+    async () => await import("@/components/home/breakdown-payment-method"),
+  );
+  const DashboardBreakdownClient = dynamic(
+    async () => await import("@/components/home/breakdown-client"),
+  );
+
   const metrics = isAdmin
     ? [
-        { resource: "client" as const, value: dashboard?.data.client },
-        { resource: "user" as const, value: dashboard?.data.user },
-        { resource: "order" as const, value: dashboard?.data.order },
         {
-          resource: "totalTransactionSuccess" as const,
-          value: dashboard?.data.totalTransactionSuccess,
+          id: "client",
+          xl: 8,
+          resources: [
+            { resource: "client" as const, totalCount: dashboard?.client },
+          ],
         },
         {
-          resource: "totalAmountSuccess" as const,
-          value: dashboard?.data.totalAmountSuccess,
+          id: "user",
+          xl: 8,
+          resources: [
+            { resource: "user" as const, totalCount: dashboard?.user },
+          ],
+        },
+        {
+          id: "order",
+          xl: 8,
+          resources: [
+            { resource: "order" as const, totalCount: dashboard?.order },
+          ],
+        },
+        {
+          id: "totalTransactionSuccess",
+          xl: 12,
+          resources: [
+            {
+              resource: "totalTransactionSuccess" as const,
+              totalCount: dashboard?.totalTransactionSuccess,
+            },
+          ],
+        },
+        {
+          id: "amountGroup",
+          xl: 12,
+          resources: [
+            {
+              resource: "totalAmountSuccess" as const,
+              totalCount: dashboard?.totalAmountSuccess,
+            },
+            {
+              resource: "totalRealAmountSuccess" as const,
+              totalCount: dashboard?.totalRealAmountSuccess,
+            },
+          ],
         },
       ]
     : [
-        { resource: "order" as const, value: dashboard?.data.order },
         {
-          resource: "totalTransactionSuccess" as const,
-          value: dashboard?.data.totalTransactionSuccess,
+          id: "order",
+          xl: 8,
+          resources: [
+            { resource: "order" as const, totalCount: dashboard?.order },
+          ],
         },
         {
-          resource: "totalAmountSuccess" as const,
-          value: dashboard?.data.totalAmountSuccess,
+          id: "totalTransactionSuccess",
+          xl: 8,
+          resources: [
+            {
+              resource: "totalTransactionSuccess" as const,
+              totalCount: dashboard?.totalTransactionSuccess,
+            },
+          ],
+        },
+        {
+          id: "amountGroup",
+          xl: 8,
+          resources: [
+            {
+              resource: "totalAmountSuccess" as const,
+              totalCount: dashboard?.totalAmountSuccess,
+            },
+            {
+              resource: "totalRealAmountSuccess" as const,
+              totalCount: dashboard?.totalRealAmountSuccess,
+            },
+          ],
         },
       ];
 
@@ -75,29 +184,160 @@ const HomePage = () => {
         />
       </Head>
       <DashboardLayout>
+        {/* Global Filter Bar */}
+        <Card
+          className="dark:bg-black"
+          style={{ marginBottom: "16px" }}
+          styles={{ body: { padding: "12px 16px" } }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "16px",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                flexWrap: "wrap",
+                width: "100%",
+              }}
+            >
+              <Text
+                strong
+                className="dark:text-white"
+                style={{ whiteSpace: "nowrap" }}
+              >
+                Dashboard Filters:
+              </Text>
+              <div style={{ overflowX: "auto", maxWidth: "100%" }}>
+                <Segmented
+                  options={[
+                    { label: "Last Week", value: "last_week" },
+                    { label: "Last Month", value: "last_month" },
+                    { label: "Last 3 Months", value: "last_3_months" },
+                    { label: "Custom", value: "custom" },
+                  ]}
+                  value={period}
+                  onChange={(val) => setPeriod(val as string)}
+                />
+              </div>
+              {period === "custom" && (
+                <RangePicker
+                  value={customRange as any}
+                  onChange={(dates) => setCustomRange(dates as any)}
+                  format="YYYY-MM-DD"
+                  allowClear={false}
+                  style={{
+                    touchAction: "manipulation",
+                    flex: "1 1 auto",
+                    minWidth: "240px",
+                  }}
+                />
+              )}
+            </div>
+
+            <Space wrap style={{ width: "100%", justifyContent: "flex-start" }}>
+              {canFilterClient && (
+                <Select
+                  showSearch
+                  allowClear
+                  placeholder="Filter by Client"
+                  optionFilterProp="label"
+                  loading={isClientsLoading}
+                  value={clientId}
+                  onChange={setClientId}
+                  style={{
+                    width: "100%",
+                    minWidth: "180px",
+                    maxWidth: "400px",
+                  }}
+                  options={clients.map((client) => ({
+                    value: client.clientId,
+                    label: `${client.name} (${client.clientId})`,
+                  }))}
+                />
+              )}
+            </Space>
+          </div>
+        </Card>
+
+        {/* Summary Cards */}
         <Row gutter={[8, 8]}>
           {metrics.map((metric) => (
-            <Col key={metric.resource} xs={24} sm={12} xl={8}>
+            <Col key={metric.id} xs={24} sm={12} xl={metric.xl}>
               <DashboardTotalCountCard
-                resource={metric.resource}
+                resources={metric.resources}
                 isLoading={isLoading}
-                totalCount={metric.value}
+                status={status}
+                setStatus={
+                  metric.id === "totalTransactionSuccess" ||
+                  metric.id === "amountGroup"
+                    ? setStatus
+                    : undefined
+                }
               />
             </Col>
           ))}
         </Row>
-        <Row gutter={[8, 8]}>
-          <Col xs={24} sm={24} xl={24}>
-            <DashboardPerformanceChart />
+
+        {/* Charts and Data Breakdowns */}
+        <Row gutter={[16, 16]} style={{ marginTop: "16px" }}>
+          {/* Main 66% Column */}
+          <Col xs={24} xl={16}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24}>
+                <DashboardPerformanceChart
+                  chartData={dashboard?.chart}
+                  isLoading={isLoading}
+                  groupBy={groupBy}
+                  setGroupBy={setGroupBy}
+                  canFilterClient={canFilterClient}
+                />
+              </Col>
+
+              <Col xs={24} sm={12}>
+                <DashboardBreakdownStatus
+                  data={dashboard?.byStatus}
+                  isLoading={isLoading}
+                />
+              </Col>
+
+              <Col xs={24} sm={12}>
+                <DashboardBreakdownPaymentMethod
+                  data={dashboard?.byPaymentMethod}
+                  isLoading={isLoading}
+                />
+              </Col>
+            </Row>
+          </Col>
+
+          {/* Right sidebar 33% Column */}
+          <Col xs={24} xl={8}>
+            <Row gutter={[16, 16]}>
+              {canFilterClient && (
+                <Col xs={24}>
+                  <DashboardBreakdownClient
+                    data={dashboard?.byClient}
+                    isLoading={isLoading}
+                  />
+                </Col>
+              )}
+              {isAdmin && (
+                <Col xs={24}>
+                  <div style={{ height: canFilterClient ? "auto" : "100%" }}>
+                    <DashboardLatestActivities />
+                  </div>
+                </Col>
+              )}
+            </Row>
           </Col>
         </Row>
-        {isAdmin && (
-          <Row gutter={[8, 8]} style={{ marginTop: "8px" }}>
-            <Col xs={24} sm={24} xl={24} style={{ height: "460px" }}>
-              <DashboardLatestActivities />
-            </Col>
-          </Row>
-        )}
       </DashboardLayout>
     </>
   );

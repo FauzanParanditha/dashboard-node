@@ -1,8 +1,8 @@
 import api, { handleAxiosError } from "@/api";
 import Button from "@/components/button";
 import InputField from "@/components/form/input";
-import SelectField from "@/components/form/select";
 import MultiSelectField from "@/components/form/multi-select";
+import SelectField from "@/components/form/select";
 import useStore from "@/store";
 import { getValidObjectId } from "@/utils/helper";
 import { updateClientSchema } from "@/utils/schema/client";
@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 type Values = {
   name: string;
   notifyUrl?: string;
-  userId: string;
+  userIds: string[];
   active: boolean;
   availablePaymentIds?: string[];
 };
@@ -69,7 +69,10 @@ const DetailClnt = () => {
           reset({
             name: dt.name,
             notifyUrl: dt.notifyUrl,
-            userId: dt.userId._id,
+            userIds:
+              dt.userIds?.map((u: any) =>
+                typeof u === "string" ? u : u._id,
+              ) || (dt.userId?._id ? [dt.userId._id] : []),
             active: dt.active,
             availablePaymentIds: selectedFromAvailablePayments.length
               ? selectedFromAvailablePayments
@@ -84,7 +87,6 @@ const DetailClnt = () => {
       })
       .finally(() => setIsLoading(false));
   };
-
 
   const fetchAvailablePayments = () => {
     setIsLoading(true);
@@ -177,16 +179,15 @@ const DetailClnt = () => {
               <div className="mb-4 pr-3">
                 <Controller
                   control={control}
-                  name="userId"
+                  name="userIds"
                   render={({ field: { onChange, value } }) => (
-                    <SelectField
-                      name="userId"
-                      label="Assign User"
-                      required
+                    <MultiSelectField
+                      name="userIds"
+                      label="Assign Users"
                       options={userOptions}
-                      value={value}
+                      value={value || []}
                       onChange={onChange}
-                      error={errors.userId?.message}
+                      error={errors.userIds?.message as any}
                     />
                   )}
                 />

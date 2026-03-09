@@ -119,7 +119,10 @@ const AvailablePaymentPage = () => {
     });
   };
 
-  const ToggleAvailablePayment = (availablePaymentId: string, active: boolean) => {
+  const ToggleAvailablePayment = (
+    availablePaymentId: string,
+    active: boolean,
+  ) => {
     if (!clientId || !availablePaymentId) return;
 
     const nextActive = !active;

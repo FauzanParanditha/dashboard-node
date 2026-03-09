@@ -5,14 +5,22 @@ YupPassword(yup);
 export const createClientSchema = yup.object().shape({
   name: yup.string().required("name is required"),
   notifyUrl: yup.string().url().optional(),
-  userId: yup.string().required("userId is required"),
+  userIds: yup
+    .array()
+    .of(yup.string().required())
+    .min(1, "userId is required")
+    .required("userId is required"),
   availablePaymentIds: yup.array().of(yup.string().required()).optional(),
 });
 
 export const updateClientSchema = yup.object({
   name: yup.string().required("name is required"),
   notifyUrl: yup.string().url().optional(),
-  userId: yup.string().required("userId is required"),
+  userIds: yup
+    .array()
+    .of(yup.string().required())
+    .min(1, "userId is required")
+    .required("userId is required"),
   active: yup.boolean().required("status is required"),
   availablePaymentIds: yup.array().of(yup.string().required()).optional(),
 });
