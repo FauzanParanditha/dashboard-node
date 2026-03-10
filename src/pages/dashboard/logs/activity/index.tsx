@@ -20,19 +20,28 @@ const LogActivityPage = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
+  const [roleFilter, setRoleFilter] = useState<string | null>(null);
   const { setIsLoading } = useStore();
   const [detail, setDetail] = useState<{
     title: string;
     content: string;
   } | null>(null);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    setRoleFilter(localStorage.getItem(jwtConfig.admin.roleName) || "");
+  }, []);
+
   const { data: activity, mutate: revalidate } = useSWR(
-    "api/v1/adm/activitylogs/?limit=10&page=" +
-      page +
-      "&query=" +
-      search +
-      "&role=" +
-      localStorage.getItem(jwtConfig.admin.roleName),
+    roleFilter === null
+      ? null
+      : "api/v1/adm/activitylogs/?limit=10&page=" +
+          page +
+          "&query=" +
+          search +
+          "&role=" +
+          encodeURIComponent(roleFilter),
   );
   useEffect(() => {
     setIsLoading(true);
