@@ -2,8 +2,9 @@ import LogDetailModal from "@/components/dashboard/logs/LogDetailModal";
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
+import { jwtConfig } from "@/utils/var";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";
@@ -15,7 +16,7 @@ import useSWR from "swr";
 // };
 
 const LogActivityPage = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
@@ -26,7 +27,12 @@ const LogActivityPage = () => {
   } | null>(null);
 
   const { data: activity, mutate: revalidate } = useSWR(
-    "api/v1/adm/activitylogs/?limit=10&page=" + page + "&query=" + search,
+    "api/v1/adm/activitylogs/?limit=10&page=" +
+      page +
+      "&query=" +
+      search +
+      "&role=" +
+      localStorage.getItem(jwtConfig.admin.roleName),
   );
   useEffect(() => {
     setIsLoading(true);
