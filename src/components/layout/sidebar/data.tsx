@@ -121,6 +121,18 @@ export const finance: SidebarItem[] = [
     link: "/dashboard/order",
   },
   {
+    title: "Logs",
+    icon: <FcNook />,
+    link: "#",
+    subMenu: [
+      {
+        title: "Activity Logs",
+        icon: <FcBarChart />,
+        link: "/dashboard/logs/activity",
+      },
+    ],
+  },
+  {
     title: "Profile",
     icon: <FcSettings />,
     link: "/dashboard/settings",
@@ -142,6 +154,18 @@ export const user: SidebarItem[] = [
     title: "Order",
     icon: <FcPaid />,
     link: "/dashboard/order",
+  },
+  {
+    title: "Logs",
+    icon: <FcNook />,
+    link: "#",
+    subMenu: [
+      {
+        title: "Activity Logs",
+        icon: <FcBarChart />,
+        link: "/dashboard/logs/activity",
+      },
+    ],
   },
   {
     title: "Profile",
