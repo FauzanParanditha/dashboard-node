@@ -4,8 +4,9 @@ import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useUserContext } from "@/context/user";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
+import { jwtConfig } from "@/utils/var";
 import clsx from "clsx";
 import Head from "next/head";
 import Link from "next/link";
@@ -21,13 +22,27 @@ import useSWR from "swr";
 // };
 
 const ClientPage = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
   const { user } = useUserContext();
   const [isOpen, setIsOpen] = useState(false);
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
+
+  const isAdmin = String(role || "")
+    .toLowerCase()
+    .includes("admin");
 
   const { data: clients, mutate: revalidate } = useSWR(
     `api/v1/client?limit=${10}&page=${page}&query=${search}`,
@@ -81,7 +96,7 @@ const ClientPage = () => {
         <Head>
           <title>Dashboard - Client</title>
         </Head>
-        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-5 shadow dark:bg-black sm:p-6">
+        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-5 shadow sm:p-6 dark:bg-black">
           <div className="px-4 pt-2 sm:px-6 sm:pt-3 lg:px-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -90,14 +105,16 @@ const ClientPage = () => {
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(true)}
-                className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
-              >
-                Add Client
-                <HiOutlinePlus className="h-5 w-5" />
-              </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(true)}
+                  className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
+                >
+                  Add Client
+                  <HiOutlinePlus className="h-5 w-5" />
+                </button>
+              )}
             </div>
             <div className="mt-6 max-w-md">
               <SearchForm
@@ -121,15 +138,15 @@ const ClientPage = () => {
                         </th>
                         <th
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 dark:text-white"
                         >
-                          Notify URL
+                          Client ID
                         </th>
                         <th
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
-                          User
+                          Notify URL
                         </th>
                         <th
                           scope="col"
@@ -150,7 +167,7 @@ const ClientPage = () => {
                         <tr>
                           <td
                             className="border-b border-gray-200 py-6 text-center text-sm font-normal uppercase"
-                            colSpan={6}
+                            colSpan={5}
                           >
                             Data Not Found
                           </td>
@@ -160,24 +177,14 @@ const ClientPage = () => {
                         <tr key={idx}>
                           <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
                             <div>{client?.name}</div>
-                            <div className="text-xs text-slate-400">
-                              {client?.clientId}
-                            </div>
+                          </td>
+                          <td className="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0 dark:text-white">
+                            <div>{client?.clientId}</div>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             <div className="max-w-[260px] truncate">
                               {client?.notifyUrl}
                             </div>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            <div className="font-medium text-slate-700 dark:text-white">
-                              {client?.userId?.fullName || client?.userId?.email}
-                            </div>
-                            {client?.userId?.fullName && (
-                              <div className="text-xs text-slate-400">
-                                {client?.userId?.email}
-                              </div>
-                            )}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             <span
@@ -195,17 +202,19 @@ const ClientPage = () => {
                             <Link href={`/dashboard/client/${client._id}`}>
                               <HiOutlinePencil className="h-5 w-5 text-blue-400" />
                             </Link>
-                            {user._id === client.adminId ? (
-                              <HiOutlineTrash
-                                className="h-5 w-5 text-rose-400"
-                                onClick={(e: any) => {
-                                  e.stopPropagation();
-                                  DeleteClient(client);
-                                }}
-                              />
-                            ) : (
-                              <span className="text-xs text-slate-400">-</span>
-                            )}
+                            {isAdmin ? (
+                              user._id === client.adminId ? (
+                                <HiOutlineTrash
+                                  className="h-5 w-5 text-rose-400"
+                                  onClick={(e: any) => {
+                                    e.stopPropagation();
+                                    DeleteClient(client);
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-xs text-slate-400">-</span>
+                              )
+                            ) : null}
                           </td>
                         </tr>
                       ))}
@@ -224,11 +233,13 @@ const ClientPage = () => {
               </div>
             )}
           </div>
-          <ModalClient
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            revalidate={revalidate}
-          />
+          {isAdmin && (
+            <ModalClient
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              revalidate={revalidate}
+            />
+          )}
         </div>
       </DashboardLayout>
     </>

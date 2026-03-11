@@ -10,8 +10,8 @@ import {
 
 import {
   HiCheck,
-  HiLockClosed,
   HiOutlineEye,
+  HiOutlineEyeOff,
   HiSearch,
   HiX,
 } from "react-icons/hi";
@@ -111,7 +111,7 @@ const Input: ForwardRefExoticComponent<Props> = forwardRef<
               title={isShow ? "Hide password" : "Show password"}
             >
               <span className="flex h-6 w-6 items-center justify-center text-slate-100">
-                {isShow ? <HiOutlineEye /> : <HiLockClosed />}
+                {isShow ? <HiOutlineEye /> : <HiOutlineEyeOff />}
               </span>
             </button>
           )}

@@ -7,7 +7,7 @@ import useStore from "@/store";
 import { jwtConfig } from "@/utils/var";
 import dayjs from "dayjs";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 // export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -33,15 +33,25 @@ const LogActivityPage = () => {
     setRoleFilter(localStorage.getItem(jwtConfig.admin.roleName) || "");
   }, []);
 
+  const activityEndpoint = useMemo(() => {
+    if (roleFilter === null) return null;
+
+    const params = new URLSearchParams({
+      limit: "10",
+      page: String(page),
+      query: search,
+    });
+
+    const normalizedRole = String(roleFilter || "").toLowerCase();
+    if (normalizedRole && !normalizedRole.includes("admin")) {
+      params.set("role", roleFilter);
+    }
+
+    return `api/v1/adm/activitylogs/?${params.toString()}`;
+  }, [page, roleFilter, search]);
+
   const { data: activity, mutate: revalidate } = useSWR(
-    roleFilter === null
-      ? null
-      : "api/v1/adm/activitylogs/?limit=10&page=" +
-          page +
-          "&query=" +
-          search +
-          "&role=" +
-          encodeURIComponent(roleFilter),
+    activityEndpoint,
   );
   useEffect(() => {
     setIsLoading(true);
@@ -104,6 +114,12 @@ const LogActivityPage = () => {
                           scope="col"
                           className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
                         >
+                          Email
+                        </th>
+                        <th
+                          scope="col"
+                          className="border-b border-gray-200 px-5 py-3 text-left text-sm font-normal uppercase"
+                        >
                           IP Address
                         </th>
                         <th
@@ -125,7 +141,7 @@ const LogActivityPage = () => {
                         <tr>
                           <td
                             className="border-b border-gray-200 py-6 text-center text-sm font-normal uppercase"
-                            colSpan={5}
+                            colSpan={6}
                           >
                             Data Not Found
                           </td>
@@ -144,6 +160,11 @@ const LogActivityPage = () => {
                                 <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
                                   {dt.role}
                                 </span>
+                              </div>
+                            </td>
+                            <td className="border-gray-200 p-5 text-sm dark:text-white">
+                              <div className="flex items-center">
+                                {dt.email || "-"}
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">

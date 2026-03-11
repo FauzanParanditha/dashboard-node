@@ -31,6 +31,7 @@ const HomePage = () => {
     .toLowerCase()
     .includes("finance");
   const canFilterClient = isAdmin || isFinance;
+  const showRightSidebar = canFilterClient || isAdmin;
 
   // Global Dashboard Filters
   const [period, setPeriod] = useState<string>("last_month");
@@ -290,7 +291,7 @@ const HomePage = () => {
         {/* Charts and Data Breakdowns */}
         <Row gutter={[16, 16]} style={{ marginTop: "16px" }}>
           {/* Main 66% Column */}
-          <Col xs={24} xl={16}>
+          <Col xs={24} xl={showRightSidebar ? 16 : 24}>
             <Row gutter={[16, 16]}>
               <Col xs={24}>
                 <DashboardPerformanceChart
@@ -299,6 +300,7 @@ const HomePage = () => {
                   groupBy={groupBy}
                   setGroupBy={setGroupBy}
                   canFilterClient={canFilterClient}
+                  status={status}
                 />
               </Col>
 
@@ -319,25 +321,27 @@ const HomePage = () => {
           </Col>
 
           {/* Right sidebar 33% Column */}
-          <Col xs={24} xl={8}>
-            <Row gutter={[16, 16]}>
-              {canFilterClient && (
-                <Col xs={24}>
-                  <DashboardBreakdownClient
-                    data={dashboard?.byClient}
-                    isLoading={isLoading}
-                  />
-                </Col>
-              )}
-              {isAdmin && (
-                <Col xs={24}>
-                  <div style={{ height: canFilterClient ? "auto" : "100%" }}>
-                    <DashboardLatestActivities />
-                  </div>
-                </Col>
-              )}
-            </Row>
-          </Col>
+          {showRightSidebar && (
+            <Col xs={24} xl={8}>
+              <Row gutter={[16, 16]}>
+                {canFilterClient && (
+                  <Col xs={24}>
+                    <DashboardBreakdownClient
+                      data={dashboard?.byClient}
+                      isLoading={isLoading}
+                    />
+                  </Col>
+                )}
+                {isAdmin && (
+                  <Col xs={24}>
+                    <div style={{ height: canFilterClient ? "auto" : "100%" }}>
+                      <DashboardLatestActivities />
+                    </div>
+                  </Col>
+                )}
+              </Row>
+            </Col>
+          )}
         </Row>
       </DashboardLayout>
     </>

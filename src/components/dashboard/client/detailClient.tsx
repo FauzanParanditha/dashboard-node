@@ -5,6 +5,7 @@ import MultiSelectField from "@/components/form/multi-select";
 import SelectField from "@/components/form/select";
 import useStore from "@/store";
 import { getValidObjectId } from "@/utils/helper";
+import { jwtConfig } from "@/utils/var";
 import { updateClientSchema } from "@/utils/schema/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
@@ -12,6 +13,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import * as yup from "yup";
 
 type Values = {
   name: string;
@@ -26,12 +28,29 @@ const options = [
   { label: "Inactive", value: false },
 ];
 
+const notifyUrlOnlySchema = yup.object({
+  name: yup.string().optional().default(""),
+  notifyUrl: yup.string().url().optional(),
+  userIds: yup.array().of(yup.string().required()).optional().default([]),
+  active: yup.boolean().optional().default(false),
+  availablePaymentIds: yup
+    .array()
+    .of(yup.string().required())
+    .optional()
+    .default([]),
+});
+
 const DetailClnt = () => {
   const { setIsLoading } = useStore();
   const router = useRouter();
   const { id } = router.query;
   const [userOptions, setUserOptions] = useState([]);
   const [paymentOptions, setPaymentOptions] = useState([]);
+  const [role, setRole] = useState("");
+
+  const isAdmin = String(role || "")
+    .toLowerCase()
+    .includes("admin");
 
   const {
     control,
@@ -41,8 +60,17 @@ const DetailClnt = () => {
     formState: { errors },
   } = useForm<Values>({
     mode: "onBlur",
-    resolver: yupResolver(updateClientSchema),
+    resolver: yupResolver(isAdmin ? updateClientSchema : notifyUrlOnlySchema),
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
 
   const getData = () => {
     setIsLoading(true);
@@ -126,9 +154,11 @@ const DetailClnt = () => {
     if (id != undefined) {
       getData();
     }
-    fetchUsers();
-    fetchAvailablePayments();
-  }, [id]);
+    if (isAdmin) {
+      fetchUsers();
+      fetchAvailablePayments();
+    }
+  }, [id, isAdmin]);
 
   const onSubmit = (data: Values) => {
     setIsLoading(true);
@@ -166,48 +196,54 @@ const DetailClnt = () => {
 
           <form className="mt-2" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 sm:grid-cols-1">
-              <div className="mb-4 pr-3">
-                <InputField
-                  placeholder="example"
-                  label="Full Name"
-                  className="w-full"
-                  {...register("name")}
-                  required
-                  error={errors.name?.message}
-                />
-              </div>
-              <div className="mb-4 pr-3">
-                <Controller
-                  control={control}
-                  name="userIds"
-                  render={({ field: { onChange, value } }) => (
-                    <MultiSelectField
-                      name="userIds"
-                      label="Assign Users"
-                      options={userOptions}
-                      value={value || []}
-                      onChange={onChange}
-                      error={errors.userIds?.message as any}
-                    />
-                  )}
-                />
-              </div>
-              <div className="mb-4 pr-3">
-                <Controller
-                  control={control}
-                  name="availablePaymentIds"
-                  render={({ field: { onChange, value } }) => (
-                    <MultiSelectField
-                      name="availablePaymentIds"
-                      label="Available Payments"
-                      options={paymentOptions}
-                      value={value || []}
-                      onChange={onChange}
-                      error={errors.availablePaymentIds?.message as any}
-                    />
-                  )}
-                />
-              </div>
+              {isAdmin && (
+                <div className="mb-4 pr-3">
+                  <InputField
+                    placeholder="example"
+                    label="Full Name"
+                    className="w-full"
+                    {...register("name")}
+                    required
+                    error={errors.name?.message}
+                  />
+                </div>
+              )}
+              {isAdmin && (
+                <div className="mb-4 pr-3">
+                  <Controller
+                    control={control}
+                    name="userIds"
+                    render={({ field: { onChange, value } }) => (
+                      <MultiSelectField
+                        name="userIds"
+                        label="Assign Users"
+                        options={userOptions}
+                        value={value || []}
+                        onChange={onChange}
+                        error={errors.userIds?.message as any}
+                      />
+                    )}
+                  />
+                </div>
+              )}
+              {isAdmin && (
+                <div className="mb-4 pr-3">
+                  <Controller
+                    control={control}
+                    name="availablePaymentIds"
+                    render={({ field: { onChange, value } }) => (
+                      <MultiSelectField
+                        name="availablePaymentIds"
+                        label="Available Payments"
+                        options={paymentOptions}
+                        value={value || []}
+                        onChange={onChange}
+                        error={errors.availablePaymentIds?.message as any}
+                      />
+                    )}
+                  />
+                </div>
+              )}
               <div className="mb-4 pr-3">
                 <InputField
                   label="Notify Url"
@@ -217,23 +253,25 @@ const DetailClnt = () => {
                   error={errors.notifyUrl?.message}
                 />
               </div>
-              <div className="mb-4 pr-2">
-                <Controller
-                  control={control}
-                  name="active"
-                  render={({ field: { onChange, value } }) => (
-                    <SelectField
-                      name="active"
-                      label="Status"
-                      required
-                      options={options}
-                      value={value}
-                      onChange={onChange}
-                      error={errors.active?.message}
-                    />
-                  )}
-                />
-              </div>
+              {isAdmin && (
+                <div className="mb-4 pr-2">
+                  <Controller
+                    control={control}
+                    name="active"
+                    render={({ field: { onChange, value } }) => (
+                      <SelectField
+                        name="active"
+                        label="Status"
+                        required
+                        options={options}
+                        value={value}
+                        onChange={onChange}
+                        error={errors.active?.message}
+                      />
+                    )}
+                  />
+                </div>
+              )}
             </div>
             <div className="my-2">
               <Button success label="Update Data" block bold />

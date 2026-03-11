@@ -15,6 +15,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 
+const AUTH_LAST_EMAIL_KEY = "auth:last-email";
+
 type Values = {
   email: string;
   password: string;
@@ -46,14 +48,30 @@ const LoginPage = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<Values>({
     mode: "onBlur",
     resolver: yupResolver(schema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const lastEmail = localStorage.getItem(AUTH_LAST_EMAIL_KEY) || "";
+    if (lastEmail) {
+      setValue("email", lastEmail);
+    }
+  }, [setValue]);
 
   const submit = async (data: Values) => {
     setIsLoading(true);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(AUTH_LAST_EMAIL_KEY, data.email);
+    }
 
     try {
       const res = await api().post("/api/v1/auth/login", data);
@@ -102,7 +120,17 @@ const LoginPage = () => {
         }
       }
     } catch (err: any) {
-      handleAxiosError(err);
+      const status = err?.response?.status;
+      if (status === 403) {
+        toast.info("Please verify your account before signing in.", {
+          theme: "colored",
+        });
+        router.push(
+          `/auth/verify-account?email=${encodeURIComponent(data.email)}`,
+        );
+      } else {
+        handleAxiosError(err);
+      }
     } finally {
       setIsLoading(false);
     }

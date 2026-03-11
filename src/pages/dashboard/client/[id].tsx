@@ -1,6 +1,6 @@
 import DetailClnt from "@/components/dashboard/client/detailClient";
 import { DashboardLayout } from "@/components/layout";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import clsx from "clsx";
 import { Fragment } from "react";
@@ -11,7 +11,7 @@ import { Fragment } from "react";
 // };
 
 const DetailClient = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
   return (
     <>
       <DashboardLayout>

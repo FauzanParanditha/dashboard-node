@@ -45,6 +45,7 @@ type Props = {
   groupBy: GroupBy;
   setGroupBy: (groupBy: GroupBy) => void;
   canFilterClient: boolean;
+  status?: string;
 };
 
 const SERIES_STYLES: Record<string, { color: string; label: string }> = {
@@ -78,6 +79,29 @@ const getSeriesStyle = (name: string, index = 0) =>
     color: CLIENT_SERIES_COLORS[index % CLIENT_SERIES_COLORS.length],
     label: name,
   };
+
+const getStatusSuffix = (status?: string) => {
+  if (!status) return "Success";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const getSeriesLabel = (name: string, status?: string, index = 0) => {
+  const suffix = getStatusSuffix(status);
+
+  if (name === "totalAmountSuccess") {
+    return `Total Amount ${suffix}`;
+  }
+
+  if (name === "totalRealAmountSuccess") {
+    return `Net Amount ${suffix}`;
+  }
+
+  if (name === "totalTransactionSuccess") {
+    return `Total Transaction ${suffix}`;
+  }
+
+  return getSeriesStyle(name, index).label;
+};
 
 const formatValue = (name: string, value: number) => {
   if (name === "totalAmountSuccess" || name === "totalRealAmountSuccess") {
@@ -145,6 +169,7 @@ const DashboardPerformanceChart = ({
   groupBy,
   setGroupBy,
   canFilterClient,
+  status,
 }: Props) => {
   const [groupMetric, setGroupMetric] =
     useState<GroupMetric>("totalAmountSuccess");
@@ -395,13 +420,13 @@ const DashboardPerformanceChart = ({
             {isClientMode ? (
               <>
                 <Text className="dark:text-white">
-                  Total Amount Success:{" "}
+                  {`${getSeriesLabel("totalAmountSuccess", status)}: `}
                   <strong>
                     {formatValue("totalAmountSuccess", totalAmount)}
                   </strong>
                 </Text>
                 <Text className="dark:text-white">
-                  Total Transaction Success:{" "}
+                  {`${getSeriesLabel("totalTransactionSuccess", status)}: `}
                   <strong>
                     {formatValue("totalTransactionSuccess", totalTransaction)}
                   </strong>
@@ -434,7 +459,7 @@ const DashboardPerformanceChart = ({
                       }}
                     />
                     <Text className="dark:text-white">
-                      {style.label} (Total periode):{" "}
+                      {getSeriesLabel(item.name, status, seriesIndex)} (Total periode):{" "}
                       <strong>{formatValue(item.name, summaryValue)}</strong>
                     </Text>
                   </div>
@@ -765,13 +790,13 @@ const DashboardPerformanceChart = ({
                       {hoveredBar.clientId}
                     </text>
                     <text x="10" y="36" fontSize="12" fill="#ffffff">
-                      {`Total Amount Success: ${formatValue("totalAmountSuccess", hoveredBar.totalAmountSuccess)}`}
+                      {`${getSeriesLabel("totalAmountSuccess", status)}: ${formatValue("totalAmountSuccess", hoveredBar.totalAmountSuccess)}`}
                     </text>
                     <text x="10" y="53" fontSize="12" fill="#ffffff">
-                      {`Net Amount Success: ${formatValue("totalRealAmountSuccess", hoveredBar.totalRealAmountSuccess)}`}
+                      {`${getSeriesLabel("totalRealAmountSuccess", status)}: ${formatValue("totalRealAmountSuccess", hoveredBar.totalRealAmountSuccess)}`}
                     </text>
                     <text x="10" y="70" fontSize="12" fill="#ffffff">
-                      {`Total Transaction Success: ${formatValue(
+                      {`${getSeriesLabel("totalTransactionSuccess", status)}: ${formatValue(
                         "totalTransactionSuccess",
                         hoveredBar.totalTransactionSuccess,
                       )}`}
@@ -813,7 +838,6 @@ const DashboardPerformanceChart = ({
                         </text>
                         {timeSeries.map((series, idx) => {
                           const val = series.data[hoveredLinePoint.index] || 0;
-                          const style = getSeriesStyle(series.name, idx);
                           return (
                             <text
                               key={series.name}
@@ -822,7 +846,7 @@ const DashboardPerformanceChart = ({
                               fontSize="12"
                               fill="#ffffff"
                             >
-                              {`${style.label}: ${formatValue(series.name, val)}`}
+                              {`${getSeriesLabel(series.name, status, idx)}: ${formatValue(series.name, val)}`}
                             </text>
                           );
                         })}
@@ -887,7 +911,7 @@ const DashboardPerformanceChart = ({
                   fontSize="11"
                   fill="#8c8c8c"
                 >
-                  {"Y Left: Total Amount Success"}
+                  {`Y Left: ${getSeriesLabel("totalAmountSuccess", status)}`}
                 </text>
               )}
               {!isClientMode && lineChartGeometry.useDualAxis && (
