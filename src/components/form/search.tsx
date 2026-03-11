@@ -22,36 +22,30 @@ const SearchForm = ({ search, setSearch, revalidate, placeholder }: any) => {
     revalidate({}, true);
   };
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2">
-        <div className="grid grid-cols-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="col-span-4">
-            <div className="mb-4 pr-3">
-              <InputField
-                type="search"
-                label="Search:"
-                placeholder={placeholder}
-                className="w-full"
-                {...register("search")}
-                handleClick={handleSubmit(onSubmit)}
-              />
-            </div>
-          </form>
-          {search != "" && (
-            <button
-              className="text-md col-span-2 mt-8 flex max-h-10 w-1/2 items-center justify-center rounded bg-red-800 py-2 font-medium text-white transition duration-150 ease-in-out hover:bg-red-900 hover:shadow-lg focus:bg-red-900 focus:shadow-lg focus:outline-none focus:ring-0 dark:bg-red-800 dark:hover:bg-red-900"
-              onClick={(e) => {
-                e.stopPropagation();
-                Reset();
-              }}
-            >
-              <GrPowerReset className="m-2" />
-              <span className="hidden pr-2 md:inline-block">Reset</span>
-            </button>
-          )}
-        </div>
-      </div>
-    </>
+    <div className="flex w-full flex-wrap items-end gap-3">
+      <form onSubmit={handleSubmit(onSubmit)} className="min-w-[240px] flex-1">
+        <InputField
+          type="search"
+          label="Search:"
+          placeholder={placeholder}
+          className="w-full"
+          {...register("search")}
+          handleClick={handleSubmit(onSubmit)}
+        />
+      </form>
+      {search != "" && (
+        <button
+          className="inline-flex h-10 items-center justify-center rounded bg-red-800 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out hover:bg-red-900 hover:shadow-lg focus:bg-red-900 focus:shadow-lg focus:outline-none focus:ring-0 dark:bg-red-800 dark:hover:bg-red-900"
+          onClick={(e) => {
+            e.stopPropagation();
+            Reset();
+          }}
+        >
+          <GrPowerReset className="mr-2" />
+          <span>Reset</span>
+        </button>
+      )}
+    </div>
   );
 };
 

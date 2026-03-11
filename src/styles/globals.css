@@ -35,3 +35,55 @@
 .dark .custom-select__option--is-focused {
   @apply bg-gray-600;
 }
+
+.dashboard-filter-select.ant-select .ant-select-selector {
+  color: #526277 !important;
+}
+
+.dashboard-filter-select.ant-select .ant-select-selection-placeholder {
+  color: #6b7a90 !important;
+  opacity: 1 !important;
+}
+
+.dashboard-filter-select.ant-select .ant-select-selection-item {
+  color: #526277 !important;
+}
+
+.dashboard-filter-select.ant-select .ant-select-arrow,
+.dashboard-filter-select.ant-select .ant-select-clear,
+.dashboard-filter-select.ant-select .ant-select-arrow .anticon,
+.dashboard-filter-select.ant-select .ant-select-clear .anticon,
+.dashboard-filter-select.ant-select .ant-select-arrow svg,
+.dashboard-filter-select.ant-select .ant-select-clear svg {
+  color: #6b7a90 !important;
+  fill: currentColor !important;
+}
+
+.dashboard-filter-select.ant-select.ant-select-outlined:not(
+    .ant-select-customize-input
+  )
+  .ant-select-selector,
+.dashboard-filter-select.ant-select.ant-select-borderless .ant-select-selector {
+  border-color: #c7d2e0 !important;
+}
+
+.dashboard-filter-select.ant-select.ant-select-focused .ant-select-selector,
+.dashboard-filter-select.ant-select:hover .ant-select-selector {
+  border-color: #aebdd0 !important;
+}
+
+.dark .dashboard-filter-select.ant-select .ant-select-selector,
+.dark .dashboard-filter-select.ant-select .ant-select-selection-item {
+  color: #d2dceb !important;
+}
+
+.dark .dashboard-filter-select.ant-select .ant-select-selection-placeholder,
+.dark .dashboard-filter-select.ant-select .ant-select-arrow,
+.dark .dashboard-filter-select.ant-select .ant-select-clear,
+.dark .dashboard-filter-select.ant-select .ant-select-arrow .anticon,
+.dark .dashboard-filter-select.ant-select .ant-select-clear .anticon,
+.dark .dashboard-filter-select.ant-select .ant-select-arrow svg,
+.dark .dashboard-filter-select.ant-select .ant-select-clear svg {
+  color: #9fb0c7 !important;
+  fill: currentColor !important;
+}

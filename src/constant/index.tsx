@@ -216,7 +216,7 @@ export const variants: {
         />
       </IconWrapper>
     ),
-    title: "Total Real Amount Success",
+    title: "Net Amount Success",
     data: [],
   },
 };
