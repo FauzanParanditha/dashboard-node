@@ -146,6 +146,16 @@ export const user: SidebarItem[] = [
     link: "/dashboard/home",
   },
   {
+    title: "Client",
+    icon: <FcOrganization />,
+    link: "/dashboard/client",
+  },
+  {
+    title: "Client Key",
+    icon: <FcKey />,
+    link: "/dashboard/client-key",
+  },
+  {
     title: "Available Payment",
     icon: <FcSalesPerformance />,
     link: "/dashboard/available-payment",

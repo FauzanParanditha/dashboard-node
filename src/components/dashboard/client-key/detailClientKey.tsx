@@ -5,6 +5,7 @@ import SelectField from "@/components/form/select";
 import TextArea from "@/components/form/text-area";
 import useStore from "@/store";
 import { getValidObjectId } from "@/utils/helper";
+import { jwtConfig } from "@/utils/var";
 import { updateClientKeySchema } from "@/utils/schema/client-key";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
@@ -12,6 +13,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import * as yup from "yup";
 
 type Values = {
   clientId: string;
@@ -24,11 +26,21 @@ const options = [
   { label: "Inactive", value: false },
 ];
 
+const publicKeyOnlySchema = yup.object({
+  clientId: yup.string().optional().default(""),
+  publicKey: yup.string().required("public key is required"),
+  active: yup.boolean().optional().default(false),
+});
+
 const DetailClntKey = () => {
   const { setIsLoading } = useStore();
   const router = useRouter();
   const { id } = router.query;
-  const [userOptions, setUserOptions] = useState([]);
+  const [role, setRole] = useState("");
+
+  const isAdmin = String(role || "")
+    .toLowerCase()
+    .includes("admin");
 
   const {
     control,
@@ -38,8 +50,17 @@ const DetailClntKey = () => {
     formState: { errors },
   } = useForm<Values>({
     mode: "onBlur",
-    resolver: yupResolver(updateClientKeySchema),
+    resolver: yupResolver(isAdmin ? updateClientKeySchema : publicKeyOnlySchema),
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
 
   const getData = () => {
     setIsLoading(true);
@@ -110,16 +131,18 @@ const DetailClntKey = () => {
 
           <form className="mt-2" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 sm:grid-cols-1">
-              <div className="mb-4 pr-3">
-                <InputField
-                  placeholder="example"
-                  label="Client Key"
-                  className="w-full"
-                  {...register("clientId")}
-                  required
-                  error={errors.clientId?.message}
-                />
-              </div>
+              {isAdmin && (
+                <div className="mb-4 pr-3">
+                  <InputField
+                    placeholder="example"
+                    label="Client Key"
+                    className="w-full"
+                    {...register("clientId")}
+                    required
+                    error={errors.clientId?.message}
+                  />
+                </div>
+              )}
               <div className="mb-4 pr-3">
                 <TextArea
                   className="w-full"
@@ -129,23 +152,25 @@ const DetailClntKey = () => {
                   error={errors.publicKey?.message}
                 />
               </div>
-              <div className="mb-4 pr-2">
-                <Controller
-                  control={control}
-                  name="active"
-                  render={({ field: { onChange, value } }) => (
-                    <SelectField
-                      name="active"
-                      label="Status"
-                      required
-                      options={options}
-                      value={value}
-                      onChange={onChange}
-                      error={errors.active?.message}
-                    />
-                  )}
-                />
-              </div>
+              {isAdmin && (
+                <div className="mb-4 pr-2">
+                  <Controller
+                    control={control}
+                    name="active"
+                    render={({ field: { onChange, value } }) => (
+                      <SelectField
+                        name="active"
+                        label="Status"
+                        required
+                        options={options}
+                        value={value}
+                        onChange={onChange}
+                        error={errors.active?.message}
+                      />
+                    )}
+                  />
+                </div>
+              )}
             </div>
             <div className="my-2">
               <Button success label="Update Data" block bold />

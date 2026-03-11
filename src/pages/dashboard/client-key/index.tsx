@@ -4,8 +4,9 @@ import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useUserContext } from "@/context/user";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
+import { jwtConfig } from "@/utils/var";
 import clsx from "clsx";
 import Head from "next/head";
 import Link from "next/link";
@@ -21,13 +22,27 @@ import useSWR from "swr";
 // };
 
 const ClientKeyPage = () => {
-  useAdminAuthGuard();
+  useAuthGuard();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
   const { user } = useUserContext();
   const [isOpen, setIsOpen] = useState(false);
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedRole =
+      localStorage.getItem(jwtConfig.admin.roleName) ||
+      localStorage.getItem(jwtConfig.user.roleName) ||
+      "";
+    setRole(storedRole);
+  }, []);
+
+  const isAdmin = String(role || "")
+    .toLowerCase()
+    .includes("admin");
 
   const { data: clientsKey, mutate: revalidate } = useSWR(
     `api/v1/client-key?limit=${10}&page=${page}&query=${search}`,
@@ -90,14 +105,16 @@ const ClientKeyPage = () => {
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(true)}
-                className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
-              >
-                Add Client
-                <HiOutlinePlus className="h-5 w-5" />
-              </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(true)}
+                  className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
+                >
+                  Add Client
+                  <HiOutlinePlus className="h-5 w-5" />
+                </button>
+              )}
             </div>
             <div className="mt-6 max-w-md">
               <SearchForm
@@ -132,7 +149,7 @@ const ClientKeyPage = () => {
                         <tr>
                           <td
                             className="border-b border-gray-200 py-6 text-center text-sm font-normal uppercase"
-                            colSpan={6}
+                            colSpan={2}
                           >
                             Data Not Found
                           </td>
@@ -161,17 +178,19 @@ const ClientKeyPage = () => {
                             <Link href={`/dashboard/client-key/${client._id}`}>
                               <HiOutlinePencil className="h-5 w-5 text-blue-400" />
                             </Link>
-                            {user._id === client.adminId?._id ? (
-                              <HiOutlineTrash
-                                className="h-5 w-5 text-rose-400"
-                                onClick={(e: any) => {
-                                  e.stopPropagation();
-                                  DeleteClient(client);
-                                }}
-                              />
-                            ) : (
-                              <span className="text-xs text-slate-400">-</span>
-                            )}
+                            {isAdmin ? (
+                              user._id === client.adminId?._id ? (
+                                <HiOutlineTrash
+                                  className="h-5 w-5 text-rose-400"
+                                  onClick={(e: any) => {
+                                    e.stopPropagation();
+                                    DeleteClient(client);
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-xs text-slate-400">-</span>
+                              )
+                            ) : null}
                           </td>
                         </tr>
                       ))}
@@ -190,11 +209,13 @@ const ClientKeyPage = () => {
               </div>
             )}
           </div>
-          <ModalClientKey
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            revalidate={revalidate}
-          />
+          {isAdmin && (
+            <ModalClientKey
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              revalidate={revalidate}
+            />
+          )}
         </div>
       </DashboardLayout>
     </>
