@@ -252,6 +252,7 @@ const HomePage = () => {
                   loading={isClientsLoading}
                   value={clientId}
                   onChange={setClientId}
+                  className="dashboard-filter-select"
                   style={{
                     width: "100%",
                     minWidth: "180px",

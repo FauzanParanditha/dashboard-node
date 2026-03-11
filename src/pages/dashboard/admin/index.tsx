@@ -79,32 +79,32 @@ const AdminPage = () => {
         <Head>
           <title>Dashboard - Admin</title>
         </Head>
-        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-4 shadow dark:bg-black">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="sm:flex sm:items-center">
-              <div className="sm:flex-auto">
+        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-5 shadow dark:bg-black sm:p-6">
+          <div className="px-4 pt-2 sm:px-6 sm:pt-3 lg:px-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
                 <h1 className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white">
                   List Admin
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
-              <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(true)}
-                  className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
-                >
-                  Add Admin
-                  <HiOutlinePlus className="h-5 w-5" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(true)}
+                className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
+              >
+                Add Admin
+                <HiOutlinePlus className="h-5 w-5" />
+              </button>
             </div>
-            <SearchForm
-              search={search}
-              setSearch={setSearch}
-              revalidate={revalidate}
-              placeholder="name"
-            />
+            <div className="mt-6 max-w-md">
+              <SearchForm
+                search={search}
+                setSearch={setSearch}
+                revalidate={revalidate}
+                placeholder="name"
+              />
+            </div>
             <div className="mt-8 flow-root">
               <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">

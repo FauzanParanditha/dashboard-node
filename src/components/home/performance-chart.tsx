@@ -54,7 +54,7 @@ const SERIES_STYLES: Record<string, { color: string; label: string }> = {
   },
   totalRealAmountSuccess: {
     color: "#FA8C16",
-    label: "Total Real Amount Success",
+    label: "Net Amount Success",
   },
   totalTransactionSuccess: {
     color: "#13C2C2",
@@ -768,7 +768,7 @@ const DashboardPerformanceChart = ({
                       {`Total Amount Success: ${formatValue("totalAmountSuccess", hoveredBar.totalAmountSuccess)}`}
                     </text>
                     <text x="10" y="53" fontSize="12" fill="#ffffff">
-                      {`Total Real Amount Success: ${formatValue("totalRealAmountSuccess", hoveredBar.totalRealAmountSuccess)}`}
+                      {`Net Amount Success: ${formatValue("totalRealAmountSuccess", hoveredBar.totalRealAmountSuccess)}`}
                     </text>
                     <text x="10" y="70" fontSize="12" fill="#ffffff">
                       {`Total Transaction Success: ${formatValue(

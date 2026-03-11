@@ -24,6 +24,7 @@ const OrderPage = () => {
   useAuthGuard();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  const [q, setQ] = useState("");
   const [clientId, setClientId] = useState("");
   const [domain, setDomain] = useState("");
   const [statuses, setStatuses] = useState<string[]>([]);
@@ -60,13 +61,14 @@ const OrderPage = () => {
       params.set("page", String(page));
       params.set("limit", String(limit));
     }
+    if (q.trim()) params.set("query", q.trim());
     if (clientId.trim()) params.set("clientId", clientId.trim());
     if (domain.trim()) params.set("domain", domain.trim());
     if (statuses.length > 0) params.set("paymentStatus", statuses.join(","));
     if (dateRange[0]) params.set("dateFrom", dateRange[0].toISOString());
     if (dateRange[1]) params.set("dateTo", dateRange[1].toISOString());
     return params.toString();
-  }, [clientId, domain, statuses, dateRange, page, limit, groupByClient]);
+  }, [q, clientId, domain, statuses, dateRange, page, limit, groupByClient]);
 
   const { data: orders, mutate: revalidate } = useSWR(
     `api/v1/orders?${queryString}`,
@@ -76,7 +78,7 @@ const OrderPage = () => {
     if (!groupByClient) {
       setPage(1);
     }
-  }, [clientId, domain, statuses, dateRange, groupByClient, limit]);
+  }, [q, clientId, domain, statuses, dateRange, groupByClient, limit]);
 
   useEffect(() => {
     if (orders !== undefined) {
@@ -95,6 +97,7 @@ const OrderPage = () => {
         sort_by: "createdAt",
         sort: "-1",
       };
+      if (q.trim()) params.q = q.trim();
       if (clientId.trim()) params.clientId = clientId.trim();
       if (domain.trim()) params.domain = domain.trim();
       if (statuses.length > 0) params.paymentStatus = statuses.join(",");
@@ -128,18 +131,18 @@ const OrderPage = () => {
         <Head>
           <title>Dashboard - Order</title>
         </Head>
-        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-4 shadow dark:bg-black">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="sm:flex sm:items-center">
-              <div className="sm:flex-auto">
+        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-5 shadow sm:p-6 dark:bg-black">
+          <div className="px-4 pt-2 sm:px-6 sm:pt-3 lg:px-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
                 <h1 className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white">
                   List Order
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
             </div>
-            <div className="mt-4 rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-6 rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {(isAdmin || isFinance) && (
                   <div>
                     <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
@@ -156,6 +159,18 @@ const OrderPage = () => {
                 )}
                 <div>
                   <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
+                    Search
+                  </label>
+                  <input
+                    type="text"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="Order ID / VA / Client"
+                    className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
                     Domain
                   </label>
                   <input
@@ -166,7 +181,7 @@ const OrderPage = () => {
                     className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div className="md:col-span-3">
                   <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
                     Date Range
                   </label>
@@ -240,6 +255,7 @@ const OrderPage = () => {
                   <button
                     className="rounded bg-slate-200 px-3 py-1 text-xs text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
                     onClick={() => {
+                      setQ("");
                       setClientId("");
                       setDomain("");
                       setStatuses([]);

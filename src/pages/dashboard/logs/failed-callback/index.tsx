@@ -88,17 +88,24 @@ const LogFailedCallbackPage = () => {
         <title>Failed Callback List</title>
       </Head>
       <DashboardLayout>
-        <h4 className="my-4 text-2xl font-bold dark:text-white">
-          List Failed Callback
-        </h4>
-        <div className="mt-8 rounded-2xl bg-white text-slate-700 dark:bg-black dark:text-white">
-          <div className="flex items-center justify-between px-8 pt-4">
-            <SearchForm
-              search={search}
-              setSearch={setSearch}
-              revalidate={revalidate}
-              placeholder="Name"
-            />
+        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-5 text-slate-700 shadow dark:bg-black dark:text-white sm:p-6">
+          <div className="px-4 pt-2 sm:px-6 sm:pt-3 lg:px-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white">
+                  List Failed Callback
+                </h1>
+                <p className="mt-2 text-sm text-gray-700"></p>
+              </div>
+            </div>
+            <div className="mt-6 max-w-md">
+              <SearchForm
+                search={search}
+                setSearch={setSearch}
+                revalidate={revalidate}
+                placeholder="Name"
+              />
+            </div>
           </div>
           <div className="container mx-auto">
             <div className="py-1">

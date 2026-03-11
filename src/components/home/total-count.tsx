@@ -58,7 +58,7 @@ const DashboardTotalCountCard = ({
       return `Total Amount ${capitalizedStatus}`;
     }
     if (res === "totalRealAmountSuccess") {
-      return `Total Real Amount ${capitalizedStatus}`;
+      return `Net Amount ${capitalizedStatus}`;
     }
     return t;
   };
@@ -135,7 +135,7 @@ const DashboardTotalCountCard = ({
             onChange={setStatus}
             style={{ minWidth: 120, marginLeft: "auto", fontSize: "12px" }}
             dropdownStyle={{ minWidth: 140 }}
-            className="dark:text-white"
+            className="dashboard-filter-select dark:text-white"
             options={[
               { label: "Pending", value: "pending" },
               { label: "Paid", value: "paid" },
