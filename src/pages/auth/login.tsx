@@ -4,8 +4,12 @@ import InputField from "@/components/form/input";
 import HomeLayout from "@/components/layout/home";
 import { useUserContext } from "@/context/user";
 import useStore from "@/store";
+import {
+  clearStoredAuthMetadata,
+  extractAuthMetadata,
+  persistAuthMetadata,
+} from "@/utils/rbac";
 import { nextUrlSchema } from "@/utils/schema/url";
-import { jwtConfig } from "@/utils/var";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
 import Link from "next/link";
@@ -77,34 +81,8 @@ const LoginPage = () => {
       const res = await api().post("/api/v1/auth/login", data);
 
       if (res.data.success) {
-        const { token, role, adminId, userId } = res.data.data || {};
-        const normalizedRole = String(role || "").toLowerCase();
-        const isAdmin = normalizedRole.includes("admin");
-
-        // 🔐 Simpan token (bukan cookie) berdasarkan role
-        localStorage.removeItem(jwtConfig.admin.accessTokenName);
-        localStorage.removeItem(jwtConfig.user.accessTokenName);
-        localStorage.removeItem(jwtConfig.admin.adminIdName);
-        localStorage.removeItem(jwtConfig.admin.userIdName);
-
-        if (token) {
-          if (isAdmin) {
-            localStorage.setItem(jwtConfig.admin.accessTokenName, token);
-          } else {
-            localStorage.setItem(jwtConfig.user.accessTokenName, token);
-          }
-        }
-        if (role) {
-          localStorage.setItem(jwtConfig.admin.roleName, String(role));
-          localStorage.setItem(jwtConfig.user.roleName, String(role));
-        }
-        if (adminId) {
-          localStorage.setItem(jwtConfig.admin.adminIdName, String(adminId));
-        }
-        if (userId) {
-          localStorage.setItem(jwtConfig.admin.userIdName, String(userId));
-          localStorage.setItem(jwtConfig.user.userIdName, String(userId));
-        }
+        clearStoredAuthMetadata();
+        persistAuthMetadata(extractAuthMetadata(res.data.data));
 
         await revalidate({}, true);
 

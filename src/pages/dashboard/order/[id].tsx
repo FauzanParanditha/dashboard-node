@@ -23,7 +23,7 @@ type FormValues = {
 // };
 
 const DetailOrderPage = () => {
-  useAuthGuard();
+  useAuthGuard(["order:read"]);
   const { setIsLoading } = useStore();
   const [order, setOrder] = useState<OrderInterface>();
 

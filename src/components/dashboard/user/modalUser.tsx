@@ -2,7 +2,7 @@ import api, { handleAxiosError } from "@/api";
 import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import useStore from "@/store";
-import { createAdminSchema } from "@/utils/schema/admin";
+import { createUserSchema } from "@/utils/schema/admin";
 import {
   Dialog,
   DialogTitle,
@@ -32,7 +32,7 @@ const ModalUser = ({ isOpen = false, setIsOpen, revalidate }: any) => {
     formState: { errors },
   } = useForm<Values>({
     mode: "onBlur",
-    resolver: yupResolver(createAdminSchema),
+    resolver: yupResolver(createUserSchema),
   });
 
   const { setIsLoading } = useStore();

@@ -1,8 +1,9 @@
-import { jwtConfig } from "@/utils/var";
+import { useRBAC } from "@/hooks/use-rbac";
+import { hasAnyPermission } from "@/utils/rbac";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { admin, finance, user } from "./data";
+import { dashboardSidebarItems } from "./data";
 
 const style = {
   title: "font-normal mx-4 text-sm",
@@ -16,32 +17,47 @@ const style = {
 export function SidebarItems() {
   const { pathname } = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [role, setRole] = useState("");
-  let sidebarData = user;
+  const [isMounted, setIsMounted] = useState(false);
+  const { authMeta } = useRBAC();
+  let sidebarData = dashboardSidebarItems;
   let rem = "";
+  const hasResolvedRbac =
+    Boolean(authMeta?.roleName) || (authMeta?.permissions || []).length > 0;
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedRole =
-      localStorage.getItem(jwtConfig.admin.roleName) ||
-      localStorage.getItem(jwtConfig.user.roleName) ||
-      "";
-    setRole(storedRole);
+    setIsMounted(true);
   }, []);
 
-  const isAdmin = String(role || "")
-    .toLowerCase()
-    .includes("admin");
-  const isFinance = String(role || "")
-    .toLocaleLowerCase()
-    .includes("finance");
-  sidebarData = isAdmin ? admin : isFinance ? finance : user;
-
   if (pathname.startsWith("/__adm")) {
-    sidebarData = admin;
+    sidebarData = dashboardSidebarItems;
     rem = "/__adm";
   }
   const active = pathname.replace(rem, "");
+
+  if (isMounted && hasResolvedRbac) {
+    sidebarData = sidebarData
+      .map((item) => {
+        if (!item.subMenu) {
+          return item;
+        }
+
+        const allowedSubMenu = item.subMenu.filter((subItem) =>
+          hasAnyPermission(authMeta, subItem.requiredPermissions),
+        );
+
+        return {
+          ...item,
+          subMenu: allowedSubMenu,
+        };
+      })
+      .filter((item) => {
+        if (item.subMenu) {
+          return item.subMenu.length > 0;
+        }
+
+        return hasAnyPermission(authMeta, item.requiredPermissions);
+      });
+  }
 
   useEffect(() => {
     // Check if any submenu item is active and set dropdownOpen accordingly

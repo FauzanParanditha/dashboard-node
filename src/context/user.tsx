@@ -1,5 +1,12 @@
 import api from "@/api";
+import type { AuthMetadata } from "@/types/rbac";
 import { jwtConfig } from "@/utils/var";
+import {
+  clearStoredAuthMetadata,
+  extractAuthMetadata,
+  getStoredAuthMetadata,
+  persistAuthMetadata,
+} from "@/utils/rbac";
 import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import useSWR from "swr";
@@ -9,6 +16,9 @@ type AuthStatus = "authenticated" | "unauthorized";
 const useUserContextValue = () => {
   const [auth, setAuth] = useState<AuthStatus>("unauthorized");
   const [isDark, setIsDark] = useState(false);
+  const [authMeta, setAuthMeta] = useState<AuthMetadata>(() =>
+    getStoredAuthMetadata(),
+  );
 
   const hasToken =
     typeof window !== "undefined" &&
@@ -24,13 +34,8 @@ const useUserContextValue = () => {
   );
 
   const logout = () => {
-    localStorage.removeItem(jwtConfig.admin.accessTokenName);
-    localStorage.removeItem(jwtConfig.user.accessTokenName);
-    localStorage.removeItem(jwtConfig.admin.roleName);
-    localStorage.removeItem(jwtConfig.admin.adminIdName);
-    localStorage.removeItem(jwtConfig.admin.userIdName);
-    localStorage.removeItem(jwtConfig.user.roleName);
-    localStorage.removeItem(jwtConfig.user.userIdName);
+    clearStoredAuthMetadata();
+    setAuthMeta({ permissions: [] });
     setAuth("unauthorized");
     mutate(undefined, false);
   };
@@ -51,6 +56,12 @@ const useUserContextValue = () => {
     }
 
     if (data?.success) {
+      const nextMeta = extractAuthMetadata({
+        ...data,
+        ...(data.data || {}),
+      });
+      setAuthMeta(nextMeta);
+      persistAuthMetadata(nextMeta);
       setAuth("authenticated");
     } else if (!isValidating) {
       setAuth("unauthorized");
@@ -81,6 +92,7 @@ const useUserContextValue = () => {
 
   return {
     user: data?.data || {},
+    authMeta,
     auth,
     revalidate: mutate,
     logout,

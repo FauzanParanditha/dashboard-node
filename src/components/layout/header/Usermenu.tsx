@@ -2,7 +2,7 @@ import api, { handleAxiosError } from "@/api";
 import Transition from "@/components/Transition";
 import { useUserContext } from "@/context/user";
 import useStore from "@/store";
-import { jwtConfig } from "@/utils/var";
+import { clearStoredAuthMetadata } from "@/utils/rbac";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { FiLogOut } from "react-icons/fi";
@@ -43,13 +43,7 @@ function UserMenu() {
   });
 
   const Logout = () => {
-    localStorage.removeItem(jwtConfig.admin.accessTokenName);
-    localStorage.removeItem(jwtConfig.user.accessTokenName);
-    localStorage.removeItem(jwtConfig.admin.roleName);
-    localStorage.removeItem(jwtConfig.admin.adminIdName);
-    localStorage.removeItem(jwtConfig.admin.userIdName);
-    localStorage.removeItem(jwtConfig.user.roleName);
-    localStorage.removeItem(jwtConfig.user.userIdName);
+    clearStoredAuthMetadata();
     setIsLoading(true);
     api()
       .post("/adm/auth/logout")

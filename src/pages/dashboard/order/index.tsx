@@ -1,10 +1,10 @@
 import api, { handleAxiosError } from "@/api";
 import { DashboardLayout } from "@/components/layout";
+import { useRBAC } from "@/hooks/use-rbac";
 import Pagination from "@/components/pagination";
 import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
 import formatMoney from "@/utils/helper";
-import { jwtConfig } from "@/utils/var";
 import { DatePicker } from "antd";
 import type { Dayjs } from "dayjs";
 import Head from "next/head";
@@ -21,7 +21,7 @@ import useSWR from "swr";
 const statusOptions = ["paid", "pending", "expired", "cancel"];
 
 const OrderPage = () => {
-  useAuthGuard();
+  useAuthGuard(["order:list"]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [q, setQ] = useState("");
@@ -35,23 +35,9 @@ const OrderPage = () => {
   const [groupByClient, setGroupByClient] = useState(false);
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
-  const [role, setRole] = useState("");
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedRole =
-      localStorage.getItem(jwtConfig.admin.roleName) ||
-      localStorage.getItem(jwtConfig.user.roleName) ||
-      "";
-    setRole(storedRole);
-  }, []);
-
-  const isAdmin = String(role || "")
-    .toLowerCase()
-    .includes("admin");
-  const isFinance = String(role || "")
-    .toLowerCase()
-    .includes("finance");
+  const { hasAnyPermission, hasPermission } = useRBAC();
+  const canFilterClient = hasAnyPermission(["client:list", "client:read"]);
+  const canExportOrder = hasPermission("order:export");
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -155,7 +141,7 @@ const OrderPage = () => {
                     className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-black dark:text-white"
                   />
                 </div>
-                {(isAdmin || isFinance) && (
+                {canFilterClient && (
                   <div>
                     <label className="text-xs font-semibold text-slate-600 dark:text-slate-200">
                       Client ID
@@ -246,12 +232,14 @@ const OrderPage = () => {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    className="rounded bg-emerald-600 px-3 py-1 text-xs text-white hover:bg-emerald-500"
-                    onClick={handleExport}
-                  >
-                    Export XLSX
-                  </button>
+                  {canExportOrder && (
+                    <button
+                      className="rounded bg-emerald-600 px-3 py-1 text-xs text-white hover:bg-emerald-500"
+                      onClick={handleExport}
+                    >
+                      Export XLSX
+                    </button>
+                  )}
                   <button
                     className="rounded bg-slate-200 px-3 py-1 text-xs text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
                     onClick={() => {

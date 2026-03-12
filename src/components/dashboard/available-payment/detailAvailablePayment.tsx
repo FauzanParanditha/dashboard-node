@@ -3,10 +3,10 @@ import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
 import { useUserContext } from "@/context/user";
+import { useRBAC } from "@/hooks/use-rbac";
 import useStore from "@/store";
 import { getValidObjectId } from "@/utils/helper";
 import { updateAvailablePaymentSchema } from "@/utils/schema/available-payment";
-import { jwtConfig } from "@/utils/var";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -32,8 +32,13 @@ const DetailAvaPay = () => {
   const router = useRouter();
   const { id } = router.query;
   const [userOptions, setUserOptions] = useState([]);
-  const [role, setRole] = useState("");
+  const { hasAnyPermission } = useRBAC();
   const { user } = useUserContext();
+  const isAdmin = hasAnyPermission([
+    "available-payment:create",
+    "available-payment:update",
+    "available-payment:delete",
+  ]);
 
   const {
     control,
@@ -91,17 +96,6 @@ const DetailAvaPay = () => {
       .catch(handleAxiosError)
       .finally(() => setIsLoading(false));
   };
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedRole =
-      localStorage.getItem(jwtConfig.admin.roleName) ||
-      localStorage.getItem(jwtConfig.user.roleName) ||
-      "";
-    setRole(storedRole);
-  }, []);
-
-  const isAdmin = String(role || "").toLowerCase().includes("admin");
 
   useEffect(() => {
     if (id != undefined) {

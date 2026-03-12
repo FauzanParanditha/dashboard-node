@@ -15,7 +15,7 @@ import useSWR from "swr";
 // };
 
 const LogCallbackPage = () => {
-  useAdminAuthGuard();
+  useAdminAuthGuard(["logs:callback"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);

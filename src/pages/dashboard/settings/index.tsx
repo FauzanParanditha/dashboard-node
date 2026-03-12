@@ -10,7 +10,7 @@ import Head from "next/head";
 // };
 
 const SettingsPage = () => {
-  useAuthGuard();
+  useAuthGuard(["settings:read"]);
   return (
     <>
       <Head>

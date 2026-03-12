@@ -3,9 +3,9 @@ import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
 import TextArea from "@/components/form/text-area";
+import { useRBAC } from "@/hooks/use-rbac";
 import useStore from "@/store";
 import { getValidObjectId } from "@/utils/helper";
-import { jwtConfig } from "@/utils/var";
 import { updateClientKeySchema } from "@/utils/schema/client-key";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
@@ -36,11 +36,8 @@ const DetailClntKey = () => {
   const { setIsLoading } = useStore();
   const router = useRouter();
   const { id } = router.query;
-  const [role, setRole] = useState("");
-
-  const isAdmin = String(role || "")
-    .toLowerCase()
-    .includes("admin");
+  const { hasAnyPermission } = useRBAC();
+  const isAdmin = hasAnyPermission(["client-key:create", "client-key:update"]);
 
   const {
     control,
@@ -52,15 +49,6 @@ const DetailClntKey = () => {
     mode: "onBlur",
     resolver: yupResolver(isAdmin ? updateClientKeySchema : publicKeyOnlySchema),
   });
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedRole =
-      localStorage.getItem(jwtConfig.admin.roleName) ||
-      localStorage.getItem(jwtConfig.user.roleName) ||
-      "";
-    setRole(storedRole);
-  }, []);
 
   const getData = () => {
     setIsLoading(true);

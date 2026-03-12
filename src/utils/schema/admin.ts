@@ -18,7 +18,7 @@ export const verifyAdminSchema = yup.object().shape({
 export const createAdminSchema = yup.object().shape({
   email: yup.string().required().email("email is not valid"),
   fullName: yup.string().required("fullName is required"),
-  role: yup.string().required("role is required"),
+  roleId: yup.string().required("role is required"),
   password: yup
     .string()
     .min(8, "min 8 character")
@@ -38,10 +38,40 @@ export const updateAdminSchema = yup.object({
     .string()
     .email("Format is not valid")
     .required("Email is required"),
+  roleId: yup.string().required("Role is required"),
   verified: yup
     .boolean()
     .required("Status is required")
     .oneOf([true, false], "Field must be checked"),
+});
+
+export const updateUserSchema = yup.object({
+  fullName: yup.string().required("Full name is required"),
+  email: yup
+    .string()
+    .email("Format is not valid")
+    .required("Email is required"),
+  verified: yup
+    .boolean()
+    .required("Status is required")
+    .oneOf([true, false], "Field must be checked"),
+});
+
+export const createUserSchema = yup.object().shape({
+  email: yup.string().required().email("email is not valid"),
+  fullName: yup.string().required("fullName is required"),
+  role: yup.string().required("role is required"),
+  password: yup
+    .string()
+    .min(8, "min 8 character")
+    .minLowercase(1, "password must contain at least 1 lower case letter")
+    .minUppercase(1, "password must contain at least 1 upper case letter")
+    .minNumbers(1, "password must contain at least 1 number")
+    .minSymbols(1, "password must contain at least 1 special character")
+    .required("Password is required"),
+  password_confirmation: yup
+    .string()
+    .oneOf([yup.ref("password")], "password not same"),
 });
 
 export const updatePasswordSchema = yup.object({

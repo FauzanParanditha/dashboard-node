@@ -2,11 +2,11 @@ import api, { handleAxiosError } from "@/api";
 import ModalClientKey from "@/components/dashboard/client-key/modaClientKey";
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
-import Pagination from "@/components/pagination";
 import { useUserContext } from "@/context/user";
 import { useAuthGuard } from "@/hooks/use-auth";
+import { useRBAC } from "@/hooks/use-rbac";
+import Pagination from "@/components/pagination";
 import useStore from "@/store";
-import { jwtConfig } from "@/utils/var";
 import clsx from "clsx";
 import Head from "next/head";
 import Link from "next/link";
@@ -22,27 +22,17 @@ import useSWR from "swr";
 // };
 
 const ClientKeyPage = () => {
-  useAuthGuard();
+  useAuthGuard(["client-key:list"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
   const { user } = useUserContext();
+  const { hasPermission } = useRBAC();
   const [isOpen, setIsOpen] = useState(false);
-  const [role, setRole] = useState("");
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedRole =
-      localStorage.getItem(jwtConfig.admin.roleName) ||
-      localStorage.getItem(jwtConfig.user.roleName) ||
-      "";
-    setRole(storedRole);
-  }, []);
-
-  const isAdmin = String(role || "")
-    .toLowerCase()
-    .includes("admin");
+  const canCreateClientKey = hasPermission("client-key:create");
+  const canUpdateClientKey = hasPermission("client-key:update");
+  const canDeleteClientKey = hasPermission("client-key:delete");
 
   const { data: clientsKey, mutate: revalidate } = useSWR(
     `api/v1/client-key?limit=${10}&page=${page}&query=${search}`,
@@ -105,7 +95,7 @@ const ClientKeyPage = () => {
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
-              {isAdmin && (
+              {canCreateClientKey && (
                 <button
                   type="button"
                   onClick={() => setIsOpen(true)}
@@ -175,10 +165,12 @@ const ClientKeyPage = () => {
                             </div>
                           </td>
                           <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                            <Link href={`/dashboard/client-key/${client._id}`}>
-                              <HiOutlinePencil className="h-5 w-5 text-blue-400" />
-                            </Link>
-                            {isAdmin ? (
+                            {canUpdateClientKey && (
+                              <Link href={`/dashboard/client-key/${client._id}`}>
+                                <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                              </Link>
+                            )}
+                            {canDeleteClientKey ? (
                               user._id === client.adminId?._id ? (
                                 <HiOutlineTrash
                                   className="h-5 w-5 text-rose-400"
@@ -209,7 +201,7 @@ const ClientKeyPage = () => {
               </div>
             )}
           </div>
-          {isAdmin && (
+          {canCreateClientKey && (
             <ModalClientKey
               isOpen={isOpen}
               setIsOpen={setIsOpen}

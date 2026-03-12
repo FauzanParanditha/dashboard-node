@@ -4,7 +4,7 @@ import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
 import useStore from "@/store";
 import { getValidObjectId } from "@/utils/helper";
-import { updateAdminSchema } from "@/utils/schema/admin";
+import { updateUserSchema } from "@/utils/schema/admin";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -36,7 +36,7 @@ const DetailUsr = () => {
     formState: { errors },
   } = useForm<Values>({
     mode: "onBlur",
-    resolver: yupResolver(updateAdminSchema),
+    resolver: yupResolver(updateUserSchema),
   });
 
   const getData = () => {

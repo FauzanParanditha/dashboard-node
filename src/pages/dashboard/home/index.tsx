@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/layout";
 import { Text } from "@/components/text";
+import { useRBAC } from "@/hooks/use-rbac";
 import { useAuthGuard } from "@/hooks/use-auth";
-import { jwtConfig } from "@/utils/var";
 import { Card, Col, DatePicker, Row, Segmented, Select, Space } from "antd";
 import { Dayjs } from "dayjs";
 import dynamic from "next/dynamic";
@@ -12,26 +12,22 @@ import useSWR from "swr";
 const { RangePicker } = DatePicker;
 
 const HomePage = () => {
-  useAuthGuard();
-  const [role, setRole] = useState("");
+  useAuthGuard(["dashboard:read"]);
+  const { hasAnyPermission } = useRBAC();
+  const [isMounted, setIsMounted] = useState(false);
+  const canFilterClient =
+    isMounted && hasAnyPermission(["client:list", "order:list"]);
+  const canViewClientMetrics =
+    isMounted && hasAnyPermission(["client:list", "client:read"]);
+  const canViewUserMetrics =
+    isMounted && hasAnyPermission(["user:list", "user:read"]);
+  const canViewLatestActivities =
+    isMounted && hasAnyPermission(["logs:activity"]);
+  const showRightSidebar = canFilterClient || canViewLatestActivities;
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedRole =
-      localStorage.getItem(jwtConfig.admin.roleName) ||
-      localStorage.getItem(jwtConfig.user.roleName) ||
-      "";
-    setRole(storedRole);
+    setIsMounted(true);
   }, []);
-
-  const isAdmin = String(role || "")
-    .toLowerCase()
-    .includes("admin");
-  const isFinance = String(role || "")
-    .toLowerCase()
-    .includes("finance");
-  const canFilterClient = isAdmin || isFinance;
-  const showRightSidebar = canFilterClient || isAdmin;
 
   // Global Dashboard Filters
   const [period, setPeriod] = useState<string>("last_month");
@@ -93,7 +89,7 @@ const HomePage = () => {
     async () => await import("@/components/home/breakdown-client"),
   );
 
-  const metrics = isAdmin
+  const metrics = canViewClientMetrics || canViewUserMetrics
     ? [
         {
           id: "client",
@@ -332,7 +328,7 @@ const HomePage = () => {
                     />
                   </Col>
                 )}
-                {isAdmin && (
+                {canViewLatestActivities && (
                   <Col xs={24}>
                     <div style={{ height: canFilterClient ? "auto" : "100%" }}>
                       <DashboardLatestActivities />
