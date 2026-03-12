@@ -15,7 +15,7 @@ import useSWR from "swr";
 // };
 
 const ApiLogPage = () => {
-  useAdminAuthGuard();
+  useAdminAuthGuard(["logs:api"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);

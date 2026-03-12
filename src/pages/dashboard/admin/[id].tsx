@@ -11,7 +11,7 @@ import { Fragment } from "react";
 // };
 
 const DetailAdmin = () => {
-  useAdminAuthGuard();
+  useAdminAuthGuard(["admin:read"]);
   return (
     <>
       <DashboardLayout>

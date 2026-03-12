@@ -7,6 +7,8 @@ export const jwtConfig = {
     accessTokenName: "_dsbTkn",
     refreshTokenName: "_rDsbTkn",
     roleName: "_dsbRole",
+    roleIdName: "_dsbRoleId",
+    permissionsName: "_dsbPerms",
     userIdName: "_dsbUserId",
   },
   admin: {
@@ -15,6 +17,8 @@ export const jwtConfig = {
     accessTokenName: "_aDsbTkn",
     refreshTokenName: "_arDsbTkn",
     roleName: "_aDsbRole",
+    roleIdName: "_aDsbRoleId",
+    permissionsName: "_aDsbPerms",
     adminIdName: "_aDsbAdminId",
     userIdName: "_aDsbUserId",
   },

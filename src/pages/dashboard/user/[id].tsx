@@ -12,7 +12,7 @@ import { Fragment } from "react";
 // };
 
 const DetailUser = () => {
-  useAdminAuthGuard();
+  useAdminAuthGuard(["user:read"]);
   return (
     <>
       <DashboardLayout>

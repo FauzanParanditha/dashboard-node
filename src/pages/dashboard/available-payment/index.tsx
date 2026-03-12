@@ -6,9 +6,9 @@ import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useUserContext } from "@/context/user";
 import { useAuthGuard } from "@/hooks/use-auth";
+import { useRBAC } from "@/hooks/use-rbac";
 import useStore from "@/store";
 import { formatRupiah, getTransactionLimit } from "@/utils/transaction-limit";
-import { jwtConfig } from "@/utils/var";
 import clsx from "clsx";
 import Head from "next/head";
 import Link from "next/link";
@@ -29,7 +29,7 @@ import useSWR from "swr";
 // };
 
 const AvailablePaymentPage = () => {
-  useAuthGuard();
+  useAuthGuard(["available-payment:list"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
@@ -38,30 +38,24 @@ const AvailablePaymentPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUserContext();
-  const [role, setRole] = useState("");
+  const { hasPermission } = useRBAC();
   const [clientId, setClientId] = useState("");
+  const canCreateAvailablePayment = hasPermission("available-payment:create");
+  const canUpdateAvailablePayment = hasPermission("available-payment:update");
+  const canDeleteAvailablePayment = hasPermission("available-payment:delete");
+  const canManageGlobalAvailablePayment =
+    canCreateAvailablePayment ||
+    canUpdateAvailablePayment ||
+    canDeleteAvailablePayment;
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storedRole =
-      localStorage.getItem(jwtConfig.admin.roleName) ||
-      localStorage.getItem(jwtConfig.user.roleName) ||
-      "";
-    setRole(storedRole);
-  }, []);
-
-  const isAdmin = String(role || "")
-    .toLowerCase()
-    .includes("admin");
-
-  useEffect(() => {
-    if (isAdmin) return;
+    if (canManageGlobalAvailablePayment) return;
     const firstClientId = user?.clients?.[0]?.clientId || "";
     setClientId(firstClientId);
-  }, [isAdmin, user]);
+  }, [canManageGlobalAvailablePayment, user]);
 
   const { data: availablePayment, mutate: revalidate } = useSWR(
-    isAdmin
+    canManageGlobalAvailablePayment
       ? `api/v1/available-payment?limit=${10}&page=${page}&query=${search}`
       : clientId
         ? `api/v1/client-available-payments?limit=${10}&page=${page}&query=${search}&clientId=${clientId}`
@@ -179,7 +173,7 @@ const AvailablePaymentPage = () => {
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
-              {isAdmin && (
+              {canCreateAvailablePayment && (
                 <button
                   type="button"
                   onClick={() => setIsOpen(true)}
@@ -210,7 +204,7 @@ const AvailablePaymentPage = () => {
                         >
                           Name
                         </th>
-                        {isAdmin && (
+                        {canManageGlobalAvailablePayment && (
                           <th
                             scope="col"
                             className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
@@ -270,7 +264,7 @@ const AvailablePaymentPage = () => {
                                   {displayCategory}
                                 </div>
                               </td>
-                              {isAdmin && (
+                              {canManageGlobalAvailablePayment && (
                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                                   <div className="font-medium text-slate-700 dark:text-white">
                                     {available.adminId?.fullName ||
@@ -305,7 +299,7 @@ const AvailablePaymentPage = () => {
                                 </div>
                               </td>
                               <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                                {isAdmin ? (
+                                {canManageGlobalAvailablePayment ? (
                                   <>
                                     <HiOutlineEye
                                       className="h-5 w-5 text-emerald-500"
@@ -314,18 +308,22 @@ const AvailablePaymentPage = () => {
                                         ShowImage(displayImage);
                                       }}
                                     />
-                                    <Link
-                                      href={`/dashboard/available-payment/${available._id}`}
-                                    >
-                                      <HiOutlinePencil className="h-5 w-5 text-blue-400" />
-                                    </Link>
-                                    <HiOutlineTrash
-                                      className="h-5 w-5 text-rose-400"
-                                      onClick={(e: any) => {
-                                        e.stopPropagation();
-                                        DeleteAvailablePayment(available);
-                                      }}
-                                    />
+                                    {canUpdateAvailablePayment && (
+                                      <Link
+                                        href={`/dashboard/available-payment/${available._id}`}
+                                      >
+                                        <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                                      </Link>
+                                    )}
+                                    {canDeleteAvailablePayment && (
+                                      <HiOutlineTrash
+                                        className="h-5 w-5 text-rose-400"
+                                        onClick={(e: any) => {
+                                          e.stopPropagation();
+                                          DeleteAvailablePayment(available);
+                                        }}
+                                      />
+                                    )}
                                   </>
                                 ) : (
                                   <button
@@ -384,11 +382,13 @@ const AvailablePaymentPage = () => {
               </div>
             )}
           </div>
-          <ModalAvailablePayment
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            revalidate={revalidate}
-          />
+          {canCreateAvailablePayment && (
+            <ModalAvailablePayment
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              revalidate={revalidate}
+            />
+          )}
           <ModalImage
             isOpen={modalOpen}
             setIsOpen={setModalOpen}

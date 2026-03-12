@@ -20,7 +20,7 @@ import dayjs from "dayjs";
 // };
 
 const WhitelistPage = () => {
-  useAdminAuthGuard();
+  useAdminAuthGuard(["ip:list"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);

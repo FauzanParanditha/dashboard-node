@@ -4,7 +4,9 @@ import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useRBAC } from "@/hooks/use-rbac";
 import useStore from "@/store";
+import { getRoleLabel } from "@/utils/rbac";
 import clsx from "clsx";
 import Head from "next/head";
 import Link from "next/link";
@@ -20,12 +22,16 @@ import useSWR from "swr";
 // };
 
 const AdminPage = () => {
-  useAdminAuthGuard();
+  useAdminAuthGuard(["admin:list"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
   const [isOpen, setIsOpen] = useState(false);
+  const { hasPermission } = useRBAC();
+  const canCreateAdmin = hasPermission("admin:create");
+  const canUpdateAdmin = hasPermission("admin:update");
+  const canDeleteAdmin = hasPermission("admin:delete");
 
   const { data: admins, mutate: revalidate } = useSWR(
     `api/v1/adm/admins?limit=${10}&page=${page}&query=${search}`,
@@ -79,7 +85,7 @@ const AdminPage = () => {
         <Head>
           <title>Dashboard - Admin</title>
         </Head>
-        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-5 shadow dark:bg-black sm:p-6">
+        <div className="animate-fade-down conatiner mx-auto my-6 rounded bg-white p-5 shadow sm:p-6 dark:bg-black">
           <div className="px-4 pt-2 sm:px-6 sm:pt-3 lg:px-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -88,14 +94,16 @@ const AdminPage = () => {
                 </h1>
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(true)}
-                className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
-              >
-                Add Admin
-                <HiOutlinePlus className="h-5 w-5" />
-              </button>
+              {canCreateAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(true)}
+                  className="flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600"
+                >
+                  Add Admin
+                  <HiOutlinePlus className="h-5 w-5" />
+                </button>
+              )}
             </div>
             <div className="mt-6 max-w-md">
               <SearchForm
@@ -116,6 +124,12 @@ const AdminPage = () => {
                           className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 dark:text-white"
                         >
                           Full Name
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                        >
+                          Role
                         </th>
                         <th
                           scope="col"
@@ -151,6 +165,11 @@ const AdminPage = () => {
                             </div>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                            <span className="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                              {getRoleLabel(adm.role || adm.roleId)}
+                            </span>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             <span
                               className={clsx(
                                 adm.verified === true
@@ -163,16 +182,20 @@ const AdminPage = () => {
                             </span>
                           </td>
                           <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
-                            <Link href={`/dashboard/admin/${adm._id}`}>
-                              <HiOutlinePencil className="h-5 w-5 text-blue-400" />
-                            </Link>
-                            <HiOutlineTrash
-                              className="h-5 w-5 text-rose-400"
-                              onClick={(e: any) => {
-                                e.stopPropagation();
-                                DeleteAdmin(adm);
-                              }}
-                            />
+                            {canUpdateAdmin && (
+                              <Link href={`/dashboard/admin/${adm._id}`}>
+                                <HiOutlinePencil className="h-5 w-5 text-blue-400" />
+                              </Link>
+                            )}
+                            {canDeleteAdmin && (
+                              <HiOutlineTrash
+                                className="h-5 w-5 text-rose-400"
+                                onClick={(e: any) => {
+                                  e.stopPropagation();
+                                  DeleteAdmin(adm);
+                                }}
+                              />
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -191,11 +214,13 @@ const AdminPage = () => {
               </div>
             )}
           </div>
-          <ModalAdmin
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            revalidate={revalidate}
-          />
+          {canCreateAdmin && (
+            <ModalAdmin
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              revalidate={revalidate}
+            />
+          )}
         </div>
       </DashboardLayout>
     </>

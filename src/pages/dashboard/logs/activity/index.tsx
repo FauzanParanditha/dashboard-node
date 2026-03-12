@@ -1,10 +1,10 @@
 import LogDetailModal from "@/components/dashboard/logs/LogDetailModal";
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout/";
+import { useRBAC } from "@/hooks/use-rbac";
 import Pagination from "@/components/pagination";
 import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
-import { jwtConfig } from "@/utils/var";
 import dayjs from "dayjs";
 import Head from "next/head";
 import { useEffect, useMemo, useState } from "react";
@@ -16,22 +16,21 @@ import useSWR from "swr";
 // };
 
 const LogActivityPage = () => {
-  useAuthGuard();
+  useAuthGuard(["logs:activity"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
   const { setIsLoading } = useStore();
+  const { hasAnyPermission, roleName } = useRBAC();
   const [detail, setDetail] = useState<{
     title: string;
     content: string;
   } | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    setRoleFilter(localStorage.getItem(jwtConfig.admin.roleName) || "");
-  }, []);
+    setRoleFilter(roleName || "");
+  }, [roleName]);
 
   const activityEndpoint = useMemo(() => {
     if (roleFilter === null) return null;
@@ -42,13 +41,17 @@ const LogActivityPage = () => {
       query: search,
     });
 
-    const normalizedRole = String(roleFilter || "").toLowerCase();
-    if (normalizedRole && !normalizedRole.includes("admin")) {
+    const canReadAllLogs = hasAnyPermission([
+      "admin:list",
+      "admin:read",
+      "role:list",
+    ]);
+    if (roleFilter && !canReadAllLogs) {
       params.set("role", roleFilter);
     }
 
     return `api/v1/adm/activitylogs/?${params.toString()}`;
-  }, [page, roleFilter, search]);
+  }, [hasAnyPermission, page, roleFilter, search]);
 
   const { data: activity, mutate: revalidate } = useSWR(
     activityEndpoint,

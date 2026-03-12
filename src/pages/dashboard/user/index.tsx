@@ -20,7 +20,7 @@ import useSWR from "swr";
 // };
 
 const UserPage = () => {
-  useAdminAuthGuard();
+  useAdminAuthGuard(["user:list"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);

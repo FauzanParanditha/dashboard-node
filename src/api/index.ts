@@ -1,4 +1,5 @@
 import { jwtConfig } from "@/utils/var";
+import { clearStoredAuthMetadata } from "@/utils/rbac";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -31,13 +32,7 @@ const api = () => {
     (res) => res,
     (error) => {
       if (error.response?.status === 401) {
-        localStorage.removeItem(jwtConfig.admin.accessTokenName);
-        localStorage.removeItem(jwtConfig.user.accessTokenName);
-        localStorage.removeItem(jwtConfig.admin.roleName);
-        localStorage.removeItem(jwtConfig.admin.adminIdName);
-        localStorage.removeItem(jwtConfig.admin.userIdName);
-        localStorage.removeItem(jwtConfig.user.roleName);
-        localStorage.removeItem(jwtConfig.user.userIdName);
+        clearStoredAuthMetadata();
 
         toast.error("Session expired. Please login again.", {
           theme: "colored",

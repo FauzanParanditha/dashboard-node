@@ -11,7 +11,7 @@ import { Fragment } from "react";
 // };
 
 const DetailAvailablePayment = () => {
-  useAuthGuard();
+  useAuthGuard(["available-payment:read"]);
   return (
     <>
       <DashboardLayout>

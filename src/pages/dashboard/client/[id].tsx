@@ -11,7 +11,7 @@ import { Fragment } from "react";
 // };
 
 const DetailClient = () => {
-  useAuthGuard();
+  useAuthGuard(["client:read"]);
   return (
     <>
       <DashboardLayout>

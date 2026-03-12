@@ -15,7 +15,7 @@ import useSWR from "swr";
 // };
 
 const LogEmailPage = () => {
-  useAdminAuthGuard();
+  useAdminAuthGuard(["logs:email"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
