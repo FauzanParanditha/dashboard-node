@@ -6,6 +6,7 @@ import {
   FcGenealogy,
   FcHome,
   FcKey,
+  FcLibrary,
   FcNook,
   FcOrganization,
   FcPaid,
@@ -131,5 +132,11 @@ export const dashboardSidebarItems: SidebarItem[] = [
     title: "Settings",
     icon: <FcSettings />,
     link: "/dashboard/settings",
+  },
+  {
+    title: "Developers",
+    icon: <FcLibrary />,
+    link: "/dashboard/developers",
+    requiredPermissions: ["developer_docs:read"],
   },
 ];

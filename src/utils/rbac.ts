@@ -14,6 +14,13 @@ export const RBAC_PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
+    key: "developer_docs",
+    label: "Developer Docs",
+    permissions: [
+      { key: "developer_docs:read", label: "Read developer docs" },
+    ],
+  },
+  {
     key: "admin",
     label: "Admin",
     permissions: [
@@ -122,6 +129,7 @@ export const RBAC_PERMISSION_GROUPS: PermissionGroup[] = [
 
 const PERMISSION_GROUP_LABELS: Record<string, string> = {
   dashboard: "Dashboard",
+  developer_docs: "Developer Docs",
   admin: "Admin",
   user: "User",
   client: "Client",
@@ -138,40 +146,11 @@ export const ALL_PERMISSION_KEYS = RBAC_PERMISSION_GROUPS.flatMap((group) =>
   group.permissions.map((permission) => permission.key),
 );
 
-const LEGACY_ROLE_PERMISSION_MAP: Record<string, string[]> = {
-  admin: ALL_PERMISSION_KEYS.filter(
-    (permission) =>
-      !["role:create", "role:update", "role:delete"].includes(permission),
-  ),
-  finance: [
-    "dashboard:view",
-    "order:list",
-    "order:read",
-    "order:export",
-    "log:api",
-    "log:email",
-    "log:callback",
-    "log:activity",
-    "client:list",
-    "client:read",
-  ],
-  user: [
-    "dashboard:view",
-    "order:list",
-    "order:read",
-    "order:export",
-    "client:list",
-    "client:read",
-    "client:update",
-    "client_key:list",
-    "client_key:read",
-    "client_key:update",
-  ],
-};
-
 const PERMISSION_ALIAS_MAP: Record<string, string> = {
   "dashboard:read": "dashboard:view",
   "dashboard:view_real_amount": "dashboard:view_real_amount",
+  "developers:read": "developer_docs:read",
+  "developer-docs:read": "developer_docs:read",
   "ip:list": "whitelist:list",
   "ip:read": "whitelist:read",
   "ip:create": "whitelist:create",
@@ -384,27 +363,13 @@ export const getStoredAuthMetadata = (): AuthMetadata => {
   };
 };
 
-export const isSuperAdmin = (meta?: Pick<AuthMetadata, "roleName" | "permissions"> | null) => {
-  const roleName = String(meta?.roleName || "")
-    .toLowerCase()
-    .trim()
-    .replace(/[\s-]+/g, "_");
-  return roleName === "super_admin";
-};
-
 export const hasPermission = (
   meta: Pick<AuthMetadata, "roleName" | "permissions"> | null | undefined,
   permission?: string,
 ) => {
   const normalizedPermission = normalizePermission(permission);
   if (!normalizedPermission) return true;
-  if (isSuperAdmin(meta)) return true;
-
-  const normalizedRole = String(meta?.roleName || "").toLowerCase();
   const permissions = meta?.permissions || [];
-  const hasRecognizedPermissions = permissions.some(
-    (item) => item === "*" || ALL_PERMISSION_KEYS.includes(item as PermissionKey),
-  );
 
   if (
     permissions.includes(normalizedPermission) ||
@@ -412,32 +377,6 @@ export const hasPermission = (
     permissions.includes("*")
   ) {
     return true;
-  }
-
-  if (permissions.length === 0) {
-    const legacyPermissions = Object.entries(LEGACY_ROLE_PERMISSION_MAP).find(
-      ([role]) => normalizedRole.includes(role),
-    )?.[1];
-
-    if (
-      legacyPermissions?.includes(normalizedPermission) ||
-      legacyPermissions?.includes(permission || "")
-    ) {
-      return true;
-    }
-  }
-
-  if (!hasRecognizedPermissions) {
-    const legacyPermissions = Object.entries(LEGACY_ROLE_PERMISSION_MAP).find(
-      ([role]) => normalizedRole.includes(role),
-    )?.[1];
-
-    if (
-      legacyPermissions?.includes(normalizedPermission) ||
-      legacyPermissions?.includes(permission || "")
-    ) {
-      return true;
-    }
   }
 
   return false;
@@ -454,9 +393,6 @@ export const hasAnyPermission = (
 export const canAccessAdminDashboard = (
   meta: Pick<AuthMetadata, "roleName" | "permissions"> | null | undefined,
 ) => {
-  if (isSuperAdmin(meta)) return true;
-  const roleName = String(meta?.roleName || "").toLowerCase();
-  if (roleName.includes("admin")) return true;
   const permissions = meta?.permissions || [];
   return permissions.some((permission) =>
     [

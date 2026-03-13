@@ -20,12 +20,17 @@ const RolePage = () => {
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const { setIsLoading } = useStore();
   const { hasPermission } = useRBAC();
-  const canCreateRole = hasPermission("role:create");
-  const canUpdateRole = hasPermission("role:update");
-  const canDeleteRole = hasPermission("role:delete");
+  const canCreateRole = isMounted && hasPermission("role:create");
+  const canUpdateRole = isMounted && hasPermission("role:update");
+  const canDeleteRole = isMounted && hasPermission("role:delete");
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { data: rolesResponse, mutate: revalidate } = useSWR(
     `api/v1/adm/roles?limit=${10}&page=${page}&query=${search}`,

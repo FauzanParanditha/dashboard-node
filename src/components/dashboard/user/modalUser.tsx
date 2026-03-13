@@ -1,7 +1,9 @@
 import api, { handleAxiosError } from "@/api";
 import Button from "@/components/button";
 import InputField from "@/components/form/input";
+import SelectField from "@/components/form/select";
 import useStore from "@/store";
+import { Role } from "@/types/rbac";
 import { createUserSchema } from "@/utils/schema/admin";
 import {
   Dialog,
@@ -11,14 +13,15 @@ import {
 } from "@headlessui/react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Fragment } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { HiOutlineX } from "react-icons/hi";
 import { toast } from "react-toastify";
+import useSWR from "swr";
 
 type Values = {
   fullName: string;
   email: string;
-  role: string;
+  roleId: string;
   password: string;
   password_confirmation?: string;
 };
@@ -34,6 +37,11 @@ const ModalUser = ({ isOpen = false, setIsOpen, revalidate }: any) => {
     mode: "onBlur",
     resolver: yupResolver(createUserSchema),
   });
+  const { data: rolesResponse } = useSWR("api/v1/adm/roles?limit=100&page=1");
+  const roleOptions = (rolesResponse?.data || []).map((role: Role) => ({
+    label: role.name,
+    value: role._id,
+  }));
 
   const { setIsLoading } = useStore();
 
@@ -110,12 +118,20 @@ const ModalUser = ({ isOpen = false, setIsOpen, revalidate }: any) => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2">
                 <div className="mb-4 pr-2">
-                  <InputField
-                    className="w-full"
-                    placeholder="ex: user"
-                    label="Role"
-                    {...register("role")}
-                    error={errors.role?.message}
+                  <Controller
+                    control={control}
+                    name="roleId"
+                    render={({ field: { onChange, value } }) => (
+                      <SelectField
+                        name="roleId"
+                        label="Role"
+                        options={roleOptions}
+                        value={value}
+                        onChange={onChange}
+                        placeholder="Select role"
+                        error={errors.roleId?.message}
+                      />
+                    )}
                   />
                 </div>
                 <div className="mb-4 pr-3">

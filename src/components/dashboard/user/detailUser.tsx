@@ -3,6 +3,7 @@ import Button from "@/components/button";
 import InputField from "@/components/form/input";
 import SelectField from "@/components/form/select";
 import useStore from "@/store";
+import { Role } from "@/types/rbac";
 import { getValidObjectId } from "@/utils/helper";
 import { updateUserSchema } from "@/utils/schema/admin";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,10 +12,12 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import useSWR from "swr";
 
 type Values = {
   fullName: string;
   email: string;
+  roleId: string;
   verified: boolean;
 };
 
@@ -38,6 +41,11 @@ const DetailUsr = () => {
     mode: "onBlur",
     resolver: yupResolver(updateUserSchema),
   });
+  const { data: rolesResponse } = useSWR("api/v1/adm/roles?limit=100&page=1");
+  const roleOptions = (rolesResponse?.data || []).map((role: Role) => ({
+    label: role.name,
+    value: role._id,
+  }));
 
   const getData = () => {
     setIsLoading(true);
@@ -56,6 +64,8 @@ const DetailUsr = () => {
           reset({
             fullName: dt.fullName,
             email: dt.email,
+            roleId:
+              dt.roleId?._id || dt.role?._id || dt.roleId || dt.role || "",
             verified: dt.verified,
           });
         }
@@ -128,6 +138,24 @@ const DetailUsr = () => {
                   required
                   disabled
                   error={errors.email?.message}
+                />
+              </div>
+              <div className="mb-4 pr-2">
+                <Controller
+                  control={control}
+                  name="roleId"
+                  render={({ field: { onChange, value } }) => (
+                    <SelectField
+                      name="roleId"
+                      label="Role"
+                      required
+                      options={roleOptions}
+                      value={value}
+                      onChange={onChange}
+                      placeholder="Select role"
+                      error={errors.roleId?.message}
+                    />
+                  )}
                 />
               </div>
               <div className="mb-4 pr-2">

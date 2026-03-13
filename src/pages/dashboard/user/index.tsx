@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/components/layout";
 import Pagination from "@/components/pagination";
 import { useAdminAuthGuard } from "@/hooks/use-admin";
 import useStore from "@/store";
+import { getRoleLabel } from "@/utils/rbac";
 import clsx from "clsx";
 import Head from "next/head";
 import Link from "next/link";
@@ -121,6 +122,12 @@ const UserPage = () => {
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
                         >
+                          Role
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                        >
                           Verified
                         </th>
                         <th
@@ -149,6 +156,11 @@ const UserPage = () => {
                             <div className="text-xs text-slate-400">
                               {usr.email}
                             </div>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
+                            <span className="inline-flex rounded bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                              {getRoleLabel(usr.role || usr.roleId)}
+                            </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
                             <span
