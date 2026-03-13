@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { Alert } from "antd";
-import { CodeBlock } from "./CodeBlock";
-import { DeveloperDocsLayout } from "./DeveloperDocsLayout";
-import { DocsSectionNav } from "./DocsSectionNav";
-import { RequestPreviewTester } from "./RequestPreviewTester";
 import type {
   DeveloperGuide,
   DeveloperGuideSection,
   DocsCallout,
 } from "@/types/developer-docs";
+import { Alert } from "antd";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { CodeBlock } from "./CodeBlock";
+import { DeveloperDocsLayout } from "./DeveloperDocsLayout";
+import { DocsSectionNav } from "./DocsSectionNav";
+import { RequestPreviewTester } from "./RequestPreviewTester";
 
 const calloutStyles: Record<DocsCallout["tone"], string> = {
   info: "border-cyan-200 bg-cyan-50 text-cyan-950",
@@ -67,7 +67,9 @@ export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
   const [activeSectionId, setActiveSectionId] = useState(sectionIds[0] || "");
 
   useEffect(() => {
-    const scrollContainer = document.getElementById("dashboard-scroll-container");
+    const scrollContainer = document.getElementById(
+      "dashboard-scroll-container",
+    );
     let hasAppliedInitialHashScroll = false;
 
     const scrollToSection = (
@@ -136,7 +138,9 @@ export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
   }, [sectionIds]);
 
   const scrollToSection = (sectionId: string) => {
-    const scrollContainer = document.getElementById("dashboard-scroll-container");
+    const scrollContainer = document.getElementById(
+      "dashboard-scroll-container",
+    );
     const element = document.getElementById(sectionId);
 
     if (!scrollContainer || !element) return;
@@ -210,7 +214,7 @@ export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
                   {section.title}
                 </h2>
                 {section.summary ? (
-                  <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
+                  <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
                     {section.summary}
                   </p>
                 ) : null}
