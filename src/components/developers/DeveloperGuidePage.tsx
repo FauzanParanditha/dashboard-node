@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Alert } from "antd";
 import { CodeBlock } from "./CodeBlock";
@@ -56,28 +57,140 @@ const renderTable = (section: DeveloperGuideSection) => {
 };
 
 export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
+  const sectionIds = useMemo(
+    () => [
+      ...guide.sections.map((section) => section.id),
+      "request-preview-tester",
+    ],
+    [guide.sections],
+  );
+  const [activeSectionId, setActiveSectionId] = useState(sectionIds[0] || "");
+
+  useEffect(() => {
+    const scrollContainer = document.getElementById("dashboard-scroll-container");
+    let hasAppliedInitialHashScroll = false;
+
+    const scrollToSection = (
+      sectionId: string,
+      behavior: ScrollBehavior = "smooth",
+    ) => {
+      const element = document.getElementById(sectionId);
+
+      if (!scrollContainer || !element) return;
+
+      const nextTop =
+        element.getBoundingClientRect().top -
+        scrollContainer.getBoundingClientRect().top +
+        scrollContainer.scrollTop;
+
+      scrollContainer.scrollTo({
+        top: Math.max(nextTop, 0),
+        behavior,
+      });
+    };
+
+    const resolveActiveSection = () => {
+      const hash = window.location.hash.replace("#", "");
+      const containerTop = scrollContainer?.getBoundingClientRect().top || 0;
+      let nextActiveSection = sectionIds[0] || "";
+
+      sectionIds.forEach((sectionId) => {
+        const element = document.getElementById(sectionId);
+        if (!element) return;
+
+        if (element.getBoundingClientRect().top - containerTop <= 180) {
+          nextActiveSection = sectionId;
+        }
+      });
+
+      if (hash && sectionIds.includes(hash)) {
+        if (!hasAppliedInitialHashScroll) {
+          hasAppliedInitialHashScroll = true;
+          scrollToSection(hash, "auto");
+        }
+        setActiveSectionId(hash);
+        return;
+      }
+
+      setActiveSectionId(nextActiveSection);
+    };
+
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (!hash || !sectionIds.includes(hash)) return;
+
+      scrollToSection(hash);
+      setActiveSectionId(hash);
+    };
+
+    resolveActiveSection();
+    scrollContainer?.addEventListener("scroll", resolveActiveSection, {
+      passive: true,
+    });
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      scrollContainer?.removeEventListener("scroll", resolveActiveSection);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, [sectionIds]);
+
+  const scrollToSection = (sectionId: string) => {
+    const scrollContainer = document.getElementById("dashboard-scroll-container");
+    const element = document.getElementById(sectionId);
+
+    if (!scrollContainer || !element) return;
+
+    const nextTop =
+      element.getBoundingClientRect().top -
+      scrollContainer.getBoundingClientRect().top +
+      scrollContainer.scrollTop;
+
+    scrollContainer.scrollTo({
+      top: Math.max(nextTop, 0),
+      behavior: "smooth",
+    });
+
+    window.history.replaceState(null, "", `#${sectionId}`);
+    setActiveSectionId(sectionId);
+  };
+
   return (
     <DeveloperDocsLayout guide={guide}>
       <div className="grid gap-6 xl:grid-cols-[280px,minmax(0,1fr)]">
-        <div className="space-y-4">
-          <DocsSectionNav sections={guide.sections} />
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-slate-500">
-              Quick jump
-            </p>
-            <div className="grid gap-2">
-              <a
-                href="#request-preview-tester"
-                className="rounded-full border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-900"
-              >
-                API tester ringan
-              </a>
-              <Link
-                href="/dashboard/developers"
-                className="rounded-full border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-900"
-              >
-                Guide list
-              </Link>
+        <div className="xl:sticky xl:top-4 xl:self-start">
+          <div className="space-y-4">
+            <DocsSectionNav
+              activeSectionId={activeSectionId}
+              onSectionSelect={scrollToSection}
+              sections={guide.sections}
+            />
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-slate-500">
+                Quick jump
+              </p>
+              <div className="grid gap-2">
+                <a
+                  href="#request-preview-tester"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    scrollToSection("request-preview-tester");
+                  }}
+                  className={`rounded-full border px-3 py-2 text-sm transition ${
+                    activeSectionId === "request-preview-tester"
+                      ? "border-cyan-400 bg-cyan-50 font-semibold text-cyan-900"
+                      : "border-slate-200 text-slate-600 hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-900"
+                  }`}
+                >
+                  API tester ringan
+                </a>
+                <Link
+                  href="/dashboard/developers"
+                  className="rounded-full border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-900"
+                >
+                  Guide list
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -87,7 +200,7 @@ export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
             <section
               key={section.id}
               id={section.id}
-              className="scroll-mt-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6"
+              className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6"
             >
               <div className="mb-5">
                 <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-700">

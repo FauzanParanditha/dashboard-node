@@ -47,6 +47,42 @@ const sha256Hex = async (value: string) => {
     .join("");
 };
 
+const pemToArrayBuffer = (pem: string) => {
+  const cleanedPem = pem
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .replace(/\s+/g, "");
+
+  const binary = window.atob(cleanedPem);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return bytes.buffer;
+};
+
+const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+
+  return window.btoa(binary);
+};
+
+const arrayBufferToPem = (
+  buffer: ArrayBuffer,
+  header: "PRIVATE KEY" | "PUBLIC KEY",
+) => {
+  const base64 = arrayBufferToBase64(buffer);
+  const lines = base64.match(/.{1,64}/g)?.join("\n") || base64;
+  return `-----BEGIN ${header}-----\n${lines}\n-----END ${header}-----`;
+};
+
 export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
   const defaults = guide.testerDefaults;
   const [endpointUrl, setEndpointUrl] = useState(defaults.endpointUrl);
@@ -59,6 +95,12 @@ export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
   const [quantity, setQuantity] = useState(defaults.quantity);
   const [totalAmount, setTotalAmount] = useState(defaults.totalAmount);
   const [hashedBody, setHashedBody] = useState("");
+  const [privateKeyPem, setPrivateKeyPem] = useState("");
+  const [publicKeyPem, setPublicKeyPem] = useState("");
+  const [signaturePreview, setSignaturePreview] = useState("");
+  const [signatureError, setSignatureError] = useState("");
+  const [isSigning, setIsSigning] = useState(false);
+  const [isGeneratingKey, setIsGeneratingKey] = useState(false);
 
   const hasMissingRequiredFields = [
     endpointUrl,
@@ -136,6 +178,91 @@ export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
     };
   }, [minifiedBody]);
 
+  const handleGenerateDemoKey = async () => {
+    if (!window.crypto?.subtle) {
+      setSignatureError("Browser ini tidak mendukung Web Crypto untuk generate key.");
+      return;
+    }
+
+    try {
+      setIsGeneratingKey(true);
+      setSignatureError("");
+
+      const keyPair = await window.crypto.subtle.generateKey(
+        {
+          name: "RSASSA-PKCS1-v1_5",
+          modulusLength: 2048,
+          publicExponent: new Uint8Array([1, 0, 1]),
+          hash: "SHA-256",
+        },
+        true,
+        ["sign", "verify"],
+      );
+
+      const exportedPrivateKey = await window.crypto.subtle.exportKey(
+        "pkcs8",
+        keyPair.privateKey,
+      );
+      const exportedPublicKey = await window.crypto.subtle.exportKey(
+        "spki",
+        keyPair.publicKey,
+      );
+
+      setPrivateKeyPem(arrayBufferToPem(exportedPrivateKey, "PRIVATE KEY"));
+      setPublicKeyPem(arrayBufferToPem(exportedPublicKey, "PUBLIC KEY"));
+      setSignaturePreview("");
+    } catch {
+      setSignatureError("Gagal membuat demo key pair di browser.");
+    } finally {
+      setIsGeneratingKey(false);
+    }
+  };
+
+  const handleGenerateSignature = async () => {
+    if (!privateKeyPem.trim()) {
+      setSignatureError("Isi private key terlebih dahulu atau gunakan Generate demo key.");
+      setSignaturePreview("");
+      return;
+    }
+
+    if (!window.crypto?.subtle) {
+      setSignatureError("Browser ini tidak mendukung Web Crypto untuk signing.");
+      setSignaturePreview("");
+      return;
+    }
+
+    try {
+      setIsSigning(true);
+      setSignatureError("");
+
+      const cryptoKey = await window.crypto.subtle.importKey(
+        "pkcs8",
+        pemToArrayBuffer(privateKeyPem),
+        {
+          name: "RSASSA-PKCS1-v1_5",
+          hash: "SHA-256",
+        },
+        false,
+        ["sign"],
+      );
+
+      const signature = await window.crypto.subtle.sign(
+        "RSASSA-PKCS1-v1_5",
+        cryptoKey,
+        new TextEncoder().encode(stringToSign),
+      );
+
+      setSignaturePreview(arrayBufferToBase64(signature));
+    } catch {
+      setSignatureError(
+        "Gagal membuat signature. Pastikan private key berformat PKCS#8 PEM.",
+      );
+      setSignaturePreview("");
+    } finally {
+      setIsSigning(false);
+    }
+  };
+
   return (
     <section
       id="request-preview-tester"
@@ -150,8 +277,9 @@ export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
         </h2>
         <p className="max-w-3xl text-sm leading-7 text-slate-600">
           Gunakan form ini untuk memeriksa bentuk payload, hashed body, dan
-          string-to-sign. Signature final tetap sebaiknya dibuat di backend
-          dengan private key RSA-SHA256.
+          string-to-sign. Playground di bawah tersedia untuk demo key dan
+          signature lokal di browser, tetapi signature produksi tetap sebaiknya
+          dibuat di backend dengan private key RSA-SHA256.
         </p>
       </div>
 
@@ -270,14 +398,13 @@ export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
         </div>
       </div>
 
-      {/* Signature playground intentionally disabled to avoid private key entry in the browser UI. */}
-      {/* <div className="mt-8 rounded-[2rem] border border-amber-200 bg-amber-50 p-5">
+      <div className="mt-8 rounded-[2rem] border border-amber-200 bg-amber-50 p-5">
         <div className="mb-4">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-700">
             Signature Playground
           </p>
           <h3 className="mt-2 text-xl font-semibold text-amber-950">
-            Generate X-SIGNATURE secara lokal di browser
+            Demo key pair dan X-SIGNATURE di browser
           </h3>
           <p className="mt-2 max-w-3xl text-sm leading-7 text-amber-900">
             Playground ini tidak menyimpan key ke server atau storage aplikasi.
@@ -289,22 +416,18 @@ export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
           type="warning"
           showIcon
           className="mb-5"
-          message="Hanya mendukung private key PKCS#8 PEM, misalnya file private-key.pem hasil konversi OpenSSL."
+          message="Demo ini mendukung generate key pair lokal dan import private key PKCS#8 PEM. Jangan gunakan key produksi di browser."
         />
 
-        <label className="grid gap-2 text-sm text-slate-700">
-          Paste private-key.pem
-          <textarea
-            value={privateKeyPem}
-            onChange={(event) => setPrivateKeyPem(event.target.value)}
-            rows={8}
-            spellCheck={false}
-            placeholder="-----BEGIN PRIVATE KEY-----"
-            className="rounded-2xl border border-slate-300 bg-white px-4 py-3 font-mono text-sm outline-none transition focus:border-cyan-500"
-          />
-        </label>
-
         <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={handleGenerateDemoKey}
+            disabled={isGeneratingKey}
+            className="rounded-full bg-cyan-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isGeneratingKey ? "Generating key..." : "Generate demo key"}
+          </button>
           <button
             type="button"
             onClick={handleGenerateSignature}
@@ -317,6 +440,7 @@ export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
             type="button"
             onClick={() => {
               setPrivateKeyPem("");
+              setPublicKeyPem("");
               setSignaturePreview("");
               setSignatureError("");
             }}
@@ -324,6 +448,31 @@ export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
           >
             Clear key
           </button>
+        </div>
+
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          <label className="grid gap-2 text-sm text-slate-700">
+            Private key PEM
+            <textarea
+              value={privateKeyPem}
+              onChange={(event) => setPrivateKeyPem(event.target.value)}
+              rows={10}
+              spellCheck={false}
+              placeholder="-----BEGIN PRIVATE KEY-----"
+              className="rounded-2xl border border-slate-300 bg-white px-4 py-3 font-mono text-sm outline-none transition focus:border-cyan-500"
+            />
+          </label>
+          <label className="grid gap-2 text-sm text-slate-700">
+            Public key PEM
+            <textarea
+              value={publicKeyPem}
+              onChange={(event) => setPublicKeyPem(event.target.value)}
+              rows={10}
+              spellCheck={false}
+              placeholder="-----BEGIN PUBLIC KEY-----"
+              className="rounded-2xl border border-slate-300 bg-white px-4 py-3 font-mono text-sm outline-none transition focus:border-cyan-500"
+            />
+          </label>
         </div>
 
         {signatureError ? (
@@ -345,7 +494,7 @@ export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
             />
           </div>
         ) : null}
-      </div> */}
+      </div>
     </section>
   );
 };

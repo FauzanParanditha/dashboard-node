@@ -18,7 +18,7 @@ const DevelopersPage = () => {
           <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">
             Developer Portal
           </p>
-          <h1 className="mt-3 font-serif text-3xl font-semibold md:text-5xl">
+          <h1 className="mt-3 text-3xl font-semibold md:text-5xl">
             Panduan integrasi yang siap dipakai client
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-200 md:text-base">

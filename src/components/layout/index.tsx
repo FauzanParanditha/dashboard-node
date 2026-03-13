@@ -32,7 +32,9 @@ const Content = (props: ChildrenProps) => {
           }`}
         >
           <TopBar />
-          <div className={style.main}>{props.children}</div>;
+          <div id="dashboard-scroll-container" className={style.main}>
+            {props.children}
+          </div>
         </div>
       </div>
     </div>

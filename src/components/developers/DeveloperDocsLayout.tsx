@@ -12,7 +12,7 @@ export const DeveloperDocsLayout = ({
   children,
 }: DeveloperDocsLayoutProps) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       <section className="overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.22),_transparent_30%),linear-gradient(135deg,_#082f49_0%,_#0f172a_55%,_#1e293b_100%)] p-6 text-white shadow-xl md:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-4">
@@ -30,7 +30,7 @@ export const DeveloperDocsLayout = ({
               <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">
                 Developers
               </p>
-              <h1 className="mt-2 font-serif text-3xl font-semibold md:text-5xl">
+              <h1 className="mt-2 text-3xl font-semibold md:text-5xl">
                 {guide.title}
               </h1>
             </div>
