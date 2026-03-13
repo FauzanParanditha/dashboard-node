@@ -8,7 +8,7 @@ export const developerGuides: DeveloperGuide[] = [
     updatedAt: "2025-09-02",
     audience: "Client integrator",
     summary:
-      "Dokumentasi ini mengubah panduan PDF menjadi langkah integrasi yang lebih cepat discan: dari create payment link, iframe checkout, event hasil transaksi, sampai webhook final dan mapping status lokal.",
+      "Dokumentasi ini mengubah panduan PDF menjadi langkah integrasi yang lebih cepat discan: dari create payment link, iframe checkout, event hasil transaksi, sampai webhook final.",
     badges: [
       "Dashboard only",
       "JWT required",
@@ -345,20 +345,6 @@ export function createPandiSignature(
             ],
           },
         ],
-      },
-      {
-        id: "status-mapping",
-        title: "Mapping Status",
-        table: {
-          columns: ["Status PANDI", "Status lokal", "Keterangan"],
-          rows: [
-            ["paid", "1", "Lunas"],
-            ["pending", "0", "Belum dibayar"],
-            ["cancel", "3", "Dibatalkan"],
-            ["expired", "4", "Kadaluarsa"],
-            ["failed", "5", "Gagal pembayaran"],
-          ],
-        },
       },
       {
         id: "endpoint-summary",
