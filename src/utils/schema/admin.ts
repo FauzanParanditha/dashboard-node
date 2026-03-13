@@ -51,6 +51,7 @@ export const updateUserSchema = yup.object({
     .string()
     .email("Format is not valid")
     .required("Email is required"),
+  roleId: yup.string().required("Role is required"),
   verified: yup
     .boolean()
     .required("Status is required")
@@ -60,7 +61,7 @@ export const updateUserSchema = yup.object({
 export const createUserSchema = yup.object().shape({
   email: yup.string().required().email("email is not valid"),
   fullName: yup.string().required("fullName is required"),
-  role: yup.string().required("role is required"),
+  roleId: yup.string().required("role is required"),
   password: yup
     .string()
     .min(8, "min 8 character")

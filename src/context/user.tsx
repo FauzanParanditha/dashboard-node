@@ -42,30 +42,60 @@ const useUserContextValue = () => {
 
   // Handle authentication state
   useEffect(() => {
-    if (error) {
-      if (error?.response?.status === 401) {
-        logout();
+    let isCancelled = false;
 
-        if (window.location.pathname.includes("dashboard")) {
-          toast.error("Session expired. Please login again.", {
-            theme: "colored",
-          });
+    const syncAuth = async () => {
+      if (error) {
+        if (error?.response?.status === 401) {
+          logout();
+
+          if (window.location.pathname.includes("dashboard")) {
+            toast.error("Session expired. Please login again.", {
+              theme: "colored",
+            });
+          }
         }
+        return;
       }
-      return;
-    }
 
-    if (data?.success) {
-      const nextMeta = extractAuthMetadata({
-        ...data,
-        ...(data.data || {}),
-      });
-      setAuthMeta(nextMeta);
-      persistAuthMetadata(nextMeta);
-      setAuth("authenticated");
-    } else if (!isValidating) {
-      setAuth("unauthorized");
-    }
+      if (data?.success) {
+        const nextMeta = extractAuthMetadata({
+          ...data,
+          ...(data.data || {}),
+        });
+
+        if (!nextMeta.permissions.length && nextMeta.roleId) {
+          try {
+            const roleResponse = await api().get(
+              `/api/v1/adm/role/${nextMeta.roleId}`,
+            );
+            const rolePermissions = Array.isArray(roleResponse?.data?.data?.permissions)
+              ? roleResponse.data.data.permissions.map((permission: unknown) =>
+                  String(permission),
+                )
+              : [];
+
+            nextMeta.permissions = rolePermissions;
+          } catch {
+            // Keep auth usable even when role detail lookup fails.
+          }
+        }
+
+        if (!isCancelled) {
+          setAuthMeta(nextMeta);
+          persistAuthMetadata(nextMeta);
+          setAuth("authenticated");
+        }
+      } else if (!isValidating) {
+        setAuth("unauthorized");
+      }
+    };
+
+    syncAuth();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [data, error, isValidating]);
 
   // Handle dark mode

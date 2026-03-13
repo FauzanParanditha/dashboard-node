@@ -1,6 +1,7 @@
 export type PermissionKey =
   | "dashboard:view"
   | "dashboard:view_real_amount"
+  | "developer_docs:read"
   | "whitelist:list"
   | "whitelist:read"
   | "whitelist:create"
