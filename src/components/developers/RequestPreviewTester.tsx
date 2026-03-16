@@ -270,7 +270,7 @@ export const RequestPreviewTester = ({ guide }: RequestPreviewTesterProps) => {
     >
       <div className="mb-5 flex flex-col gap-2">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-700">
-          API Tester Ringan
+          Advanced Sandbox
         </p>
         <h2 className="text-2xl font-semibold text-slate-900">
           Preview request tanpa memanggil API live

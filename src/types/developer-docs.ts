@@ -25,10 +25,23 @@ export type EndpointSummary = {
   audience: string;
 };
 
+export type QuickStartStep = {
+  id: string;
+  title: string;
+  description: string;
+  targetSectionId: string;
+};
+
+export type TerminologyItem = {
+  term: string;
+  meaning: string;
+};
+
 export type DeveloperGuideSection = {
   id: string;
   title: string;
   summary?: string;
+  actionHint?: string;
   paragraphs?: string[];
   bullets?: string[];
   callouts?: DocsCallout[];
@@ -44,7 +57,11 @@ export type DeveloperGuide = {
   audience: string;
   summary: string;
   badges: string[];
+  level: string;
+  outcome: string;
   baseUrlDev: string;
+  quickStart: QuickStartStep[];
+  terminology: TerminologyItem[];
   sections: DeveloperGuideSection[];
   endpointSummaries: EndpointSummary[];
   testerDefaults: {
