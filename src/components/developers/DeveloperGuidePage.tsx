@@ -59,6 +59,8 @@ const renderTable = (section: DeveloperGuideSection) => {
 export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
   const sectionIds = useMemo(
     () => [
+      "quick-start",
+      "terminology",
       ...guide.sections.map((section) => section.id),
       "request-preview-tester",
     ],
@@ -168,6 +170,20 @@ export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
               activeSectionId={activeSectionId}
               onSectionSelect={scrollToSection}
               sections={guide.sections}
+              staticLinks={[
+                {
+                  id: "quick-start-nav",
+                  title: "Quick Start",
+                  description: "",
+                  targetSectionId: "quick-start",
+                },
+                {
+                  id: "terminology-nav",
+                  title: "Terminology",
+                  description: "",
+                  targetSectionId: "terminology",
+                },
+              ]}
             />
             <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm">
               <p className="mb-2 text-xs font-bold uppercase tracking-[0.3em] text-slate-500">
@@ -200,6 +216,91 @@ export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
         </div>
 
         <div className="space-y-6">
+          <section
+            id="quick-start"
+            className="rounded-[2rem] border border-cyan-200 bg-[linear-gradient(180deg,_#f0fdff_0%,_#ffffff_100%)] p-5 shadow-sm md:p-6"
+          >
+            <div className="mb-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-800">
+                  Quick Start
+                </span>
+                <span className="rounded-full border border-cyan-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-cyan-700">
+                  Core Integration
+                </span>
+              </div>
+              <h2 className="mt-3 text-2xl font-semibold text-slate-900">
+                Langkah minimum untuk mulai integrasi
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
+                Kalau developer baru hanya ingin tahu urutan wajibnya, ikuti
+                blok ini dulu. Detail teknis lengkap tetap tersedia di section
+                setelahnya.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {guide.quickStart.map((step, index) => (
+                <button
+                  key={step.id}
+                  type="button"
+                  onClick={() => scrollToSection(step.targetSectionId)}
+                  className="rounded-[1.5rem] border border-cyan-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-cyan-300 hover:shadow-md"
+                >
+                  <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-700">
+                    Step {index + 1}
+                  </p>
+                  <h3 className="mt-2 text-lg font-semibold text-slate-900">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    {step.description}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section
+            id="terminology"
+            className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6"
+          >
+            <div className="mb-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-slate-700">
+                  Terminology
+                </span>
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-slate-600">
+                  Mapping
+                </span>
+              </div>
+              <h2 className="mt-3 text-2xl font-semibold text-slate-900">
+                Istilah yang perlu dipahami sebelum mulai
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
+                Blok ini merangkum istilah yang paling sering membingungkan saat
+                onboarding integrasi, supaya developer tidak perlu menebak
+                makna field atau event.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {guide.terminology.map((item) => (
+                <div
+                  key={item.term}
+                  className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4"
+                >
+                  <p className="text-sm font-semibold text-slate-900">
+                    {item.term}
+                  </p>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    {item.meaning}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {guide.sections.map((section) => (
             <section
               key={section.id}
@@ -216,6 +317,14 @@ export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
                 {section.summary ? (
                   <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
                     {section.summary}
+                  </p>
+                ) : null}
+                {section.actionHint ? (
+                  <p className="mt-3 rounded-[1.25rem] bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700">
+                    <span className="font-semibold text-slate-900">
+                      Apa yang harus Anda lakukan di section ini:
+                    </span>{" "}
+                    {section.actionHint}
                   </p>
                 ) : null}
               </div>
@@ -313,7 +422,17 @@ export const DeveloperGuidePage = ({ guide }: { guide: DeveloperGuide }) => {
             </section>
           ))}
 
-          <RequestPreviewTester guide={guide} />
+          <div className="rounded-[2rem] border border-amber-200 bg-amber-50/60 p-3">
+            <div className="mb-3 flex flex-wrap items-center gap-2 px-2">
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-amber-800">
+                Advanced
+              </span>
+              <span className="rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-amber-700">
+                Sandbox only
+              </span>
+            </div>
+            <RequestPreviewTester guide={guide} />
+          </div>
 
           <Alert
             showIcon

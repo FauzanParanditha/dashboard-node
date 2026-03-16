@@ -37,10 +37,18 @@ const DevelopersPage = () => {
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-700">
-                    {guide.audience}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-700">
+                      {guide.audience}
+                    </p>
+                    <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-cyan-700">
+                      {guide.level}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm font-medium text-slate-500">
+                    {guide.outcome}
                   </p>
-                  <h2 className="mt-3 text-2xl font-semibold text-slate-900">
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-900">
                     {guide.title}
                   </h2>
                 </div>

@@ -9,6 +9,8 @@ export const developerGuides: DeveloperGuide[] = [
     audience: "Client integrator",
     summary:
       "Dokumentasi ini mengubah panduan PDF menjadi langkah integrasi yang lebih cepat discan: dari create payment link, iframe checkout, event hasil transaksi, sampai webhook final.",
+    level: "Getting Started",
+    outcome: "Mulai integrasi pembayaran invoice via iframe checkout dan webhook callback.",
     badges: [
       "Dashboard only",
       "JWT required",
@@ -16,6 +18,75 @@ export const developerGuides: DeveloperGuide[] = [
       "Iframe checkout",
     ],
     baseUrlDev: "https://dev.api.pg.pandi.id/api/v1",
+    quickStart: [
+      {
+        id: "qs-1",
+        title: "Siapkan identifier dan key",
+        description:
+          "Catat Client ID dari menu Client, siapkan PARTNER_ID, dan generate private/public key untuk signing.",
+        targetSectionId: "prerequisites",
+      },
+      {
+        id: "qs-2",
+        title: "Bentuk signature request",
+        description:
+          "Minify body, hash SHA-256, lalu bentuk string-to-sign dan X-SIGNATURE untuk request gateway.",
+        targetSectionId: "authentication",
+      },
+      {
+        id: "qs-3",
+        title: "Create payment link",
+        description:
+          "Kirim payload order ke endpoint gateway untuk mendapatkan payment link checkout.",
+        targetSectionId: "create-link",
+      },
+      {
+        id: "qs-4",
+        title: "Tampilkan iframe checkout",
+        description:
+          "Render payment link di iframe dan tangani event sukses, cancel, atau pending di frontend.",
+        targetSectionId: "iframe",
+      },
+      {
+        id: "qs-5",
+        title: "Aktifkan dan validasi webhook",
+        description:
+          "Terima callback final dari PANDI, verifikasi signature, lalu sinkronkan status transaksi di sistem Anda.",
+        targetSectionId: "webhook",
+      },
+    ],
+    terminology: [
+      {
+        term: "Partner ID",
+        meaning:
+          "Nama field yang dikirim ke gateway. Nilainya sama dengan Client ID yang ada di menu Client.",
+      },
+      {
+        term: "Client ID",
+        meaning:
+          "Identifier client di dashboard yang dipakai sebagai nilai X-PARTNER-ID.",
+      },
+      {
+        term: "Payment link",
+        meaning:
+          "URL checkout yang dikembalikan gateway dan ditampilkan ke user melalui iframe.",
+      },
+      {
+        term: "Iframe event",
+        meaning:
+          "Hasil awal transaksi dari checkout frontend melalui window.postMessage, bukan status final.",
+      },
+      {
+        term: "Webhook callback",
+        meaning:
+          "Notifikasi server-to-server dari PANDI yang menjadi sumber kebenaran final status transaksi.",
+      },
+      {
+        term: "String to sign",
+        meaning:
+          "Gabungan method, endpoint URL, hashed body, dan timestamp yang harus ditandatangani dengan RSA-SHA256.",
+      },
+    ],
     testerDefaults: {
       endpointUrl: "/order/create/link",
       phoneNumber: "6281234567890",
@@ -53,6 +124,8 @@ export const developerGuides: DeveloperGuide[] = [
         title: "Overview",
         summary:
           "Alur utama pembayaran invoice berjalan dari service integrasi Anda ke iframe pembayaran lalu diselesaikan oleh webhook.",
+        actionHint:
+          "Gunakan section ini untuk memahami gambaran besar sebelum mulai implementasi endpoint dan frontend.",
         paragraphs: [
           "Integrasi ini memungkinkan user membayar invoice menggunakan PANDI Payment Gateway melalui payment link yang ditampilkan di dalam iframe.",
           "Frontend menerima hasil awal dari iframe lewat postMessage, tetapi status final tetap harus dianggap berasal dari webhook agar sinkron dengan sistem Anda.",
@@ -67,6 +140,8 @@ export const developerGuides: DeveloperGuide[] = [
       {
         id: "prerequisites",
         title: "Prasyarat",
+        actionHint:
+          "Pastikan semua identifier, environment variable, whitelist, dan key material sudah tersedia sebelum memanggil gateway.",
         bullets: [
           "Environment variable: NEXT_PUBLIC_CLIENT_PAYLABS_ID, STORE_ID, PARTNER_ID.",
           "IP server harus di-whitelist oleh PANDI Payment Gateway.",
@@ -96,6 +171,8 @@ export const developerGuides: DeveloperGuide[] = [
       {
         id: "flow",
         title: "Alur Integrasi",
+        actionHint:
+          "Ikuti urutan ini sebagai happy path minimum dari klik checkout sampai webhook final.",
         table: {
           columns: ["Langkah", "Aksi"],
           rows: [
@@ -114,6 +191,8 @@ export const developerGuides: DeveloperGuide[] = [
       {
         id: "authentication",
         title: "Autentikasi dan Signature",
+        actionHint:
+          "Di section ini Anda perlu memastikan pembentukan header dan string-to-sign benar sebelum request pertama dikirim.",
         paragraphs: [
           "Setiap request ke PANDI Payment Gateway wajib menyertakan partner id, timestamp ISO 8601 zona Asia/Jakarta, dan x-signature dengan algoritma RSA-SHA256.",
           "String yang ditandatangani selalu dibentuk dari method, endpoint URL, hashed body, dan timestamp yang sama persis dengan header request.",
@@ -229,6 +308,8 @@ export function createPandiSignature(
       {
         id: "create-link",
         title: "Create Payment Link",
+        actionHint:
+          "Bangun payload order yang konsisten dengan sistem Anda lalu kirim ke endpoint create link gateway.",
         paragraphs: [
           "Service integrasi Anda menyiapkan payload order lalu meneruskannya ke PANDI Payment Gateway untuk mendapatkan payment link.",
           "Payload item sebaiknya konsisten dengan referensi order di sistem Anda agar mudah dilakukan rekonsiliasi saat webhook diterima.",
@@ -257,6 +338,8 @@ export function createPandiSignature(
       {
         id: "iframe",
         title: "Iframe dan postMessage",
+        actionHint:
+          "Render checkout di frontend dan map event iframe ke update UI sementara sambil menunggu webhook.",
         paragraphs: [
           "Frontend menampilkan checkout di modal iframe. Setelah user berinteraksi, iframe akan mengirimkan message code yang perlu dipetakan ke aksi aplikasi Anda.",
         ],
@@ -295,6 +378,8 @@ export function createPandiSignature(
       {
         id: "webhook",
         title: "Webhook",
+        actionHint:
+          "Siapkan endpoint callback yang bisa memverifikasi request gateway dan menetapkan status final transaksi.",
         paragraphs: [
           "Status final transaksi harus berasal dari webhook karena hasil iframe hanya memberi sinyal awal pada frontend.",
           "Verifikasi webhook memakai public key public.pem yang diberikan oleh PANDI Payment Gateway.",
@@ -351,16 +436,23 @@ export function createPandiSignature(
         title: "Ringkasan Endpoint",
         summary:
           "Daftar berikut hanya menampilkan kontrak integrasi yang relevan untuk client: endpoint gateway, callback webhook, dan event iframe.",
+        actionHint:
+          "Pakai ringkasan ini sebagai referensi cepat saat mulai wiring endpoint dan callback.",
       },
       {
         id: "testing",
         title: "Testing Checklist",
+        actionHint:
+          "Jalankan checklist ini sebelum integrasi dianggap siap dipakai di environment yang lebih serius.",
         bullets: [
           "Gunakan sandbox paymentLink dari PANDI Payment Gateway untuk pengujian UI checkout.",
           "Simulasikan webhook menggunakan Postman atau curl ke endpoint callback Anda.",
           "Pantau event postMessage dengan window.addEventListener('message', ...).",
           "Pastikan signature webhook diverifikasi menggunakan public.pem.",
           "Uji skenario success, cancel, pending, expired, dan invalid signature.",
+          "Pastikan payment link berhasil dibuat dan iframe tampil tanpa error.",
+          "Pastikan signature request terbentuk benar dan diterima gateway.",
+          "Pastikan status akhir di sistem Anda sinkron setelah webhook diterima.",
         ],
         callouts: [
           {
