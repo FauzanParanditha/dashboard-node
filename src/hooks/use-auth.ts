@@ -5,14 +5,19 @@ import {
   hasAnyPermission,
 } from "@/utils/rbac";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 
 export const useAuthGuard = (requiredPermissions: string[] = []) => {
   const router = useRouter();
   const permissionsKey = requiredPermissions.join("|");
+  const hasMounted = useRef(false);
 
   useEffect(() => {
+    // Hanya jalankan sekali saat mount, bukan setiap router re-render
+    if (hasMounted.current) return;
+    hasMounted.current = true;
+
     const authMeta = getStoredAuthMetadata();
     const token = authMeta.token;
 
@@ -49,5 +54,6 @@ export const useAuthGuard = (requiredPermissions: string[] = []) => {
         clearStoredAuthMetadata();
         router.replace("/auth/login");
       });
-  }, [permissionsKey, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [permissionsKey]);
 };
