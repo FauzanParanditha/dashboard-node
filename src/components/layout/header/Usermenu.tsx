@@ -5,13 +5,13 @@ import useStore from "@/store";
 import { clearStoredAuthMetadata } from "@/utils/rbac";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { FiLogOut } from "react-icons/fi";
+import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 
 function UserMenu() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const dropdown = useRef<HTMLDivElement>(null);
-  const { user } = useUserContext();
+  const { user, isDark, setIsDark } = useUserContext();
   const { setIsLoading } = useStore();
   const router = useRouter();
 
@@ -108,13 +108,29 @@ function UserMenu() {
           <ul>
             <li>
               <button
-                className="flex w-full items-center px-3 py-1 text-sm font-medium text-red-800 hover:bg-gray-200 hover:text-red-900 dark:text-slate-200 dark:hover:bg-slate-200"
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDark(!isDark);
+                }}
+              >
+                {isDark ? (
+                  <FiSun className="h-5 w-5 font-bold" />
+                ) : (
+                  <FiMoon className="h-5 w-5 font-bold" />
+                )}
+                {isDark ? "Light Mode" : "Dark Mode"}
+              </button>
+            </li>
+            <li>
+              <button
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-red-800 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-red-400"
                 onClick={(e) => {
                   e.stopPropagation();
                   Logout();
                 }}
               >
-                <FiLogOut className="text-md h-6 w-6 font-bold" />
+                <FiLogOut className="h-5 w-5 font-bold" />
                 Sign Out
               </button>
             </li>
