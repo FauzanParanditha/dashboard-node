@@ -59,14 +59,18 @@ export default function CountdownRing({
             </linearGradient>
           </defs>
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
           <div className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
             {isExpired ? "Expired" : "Time left"}
           </div>
-          <div className="font-mono text-3xl font-bold text-slate-900">
+          <div
+            className={`font-mono font-bold text-slate-900 ${secondsLeft >= 3600 ? "text-lg" : "text-3xl"}`}
+          >
             {formatTime(secondsLeft)}
           </div>
-          <div className="text-xs text-slate-500">minutes</div>
+          {secondsLeft < 3600 && (
+            <div className="text-xs text-slate-500">minutes</div>
+          )}
         </div>
       </div>
     </div>
