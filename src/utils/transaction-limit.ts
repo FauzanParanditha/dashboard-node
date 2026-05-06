@@ -46,3 +46,12 @@ export const formatRupiah = (amount: number) => {
   return `Rp ${amount.toLocaleString("id-ID")}`;
 };
 
+export const formatRupiahCompact = (amount: number) => {
+  const abs = Math.abs(amount);
+  const trim = (v: number) => (v % 1 === 0 ? v.toString() : v.toFixed(1));
+  if (abs >= 1_000_000_000) return `Rp ${trim(amount / 1_000_000_000)}B`;
+  if (abs >= 1_000_000) return `Rp ${trim(amount / 1_000_000)}M`;
+  if (abs >= 1_000) return `Rp ${trim(amount / 1_000)}k`;
+  return `Rp ${amount.toLocaleString("id-ID")}`;
+};
+
