@@ -1,5 +1,10 @@
 import Loader from "@/components/loading";
 import {
+  MethodGrid,
+  OrderSummaryCard,
+  PaymentShell,
+} from "@/components/payment";
+import {
   OrderDetails,
   PaymentData,
   PaymentMethodsResponse,
@@ -7,11 +12,12 @@ import {
 import { fetchPaymentMethods, processPayment } from "@/utils/payment";
 import { formatRupiah, getTransactionLimit } from "@/utils/transaction-limit";
 import axios from "axios";
-import clsx from "clsx";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_CLIENT_API_URL || "";
 
 const PaymentPage = () => {
   const router = useRouter();
@@ -20,28 +26,16 @@ const PaymentPage = () => {
   const [paymentMethods, setPaymentMethods] = useState<
     PaymentMethodsResponse[]
   >([]);
-  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
+  const [, setPaymentData] = useState<PaymentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     string | null
   >(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
 
   useEffect(() => {
     if (q) {
       const dataString = Array.isArray(q) ? q[0] : q;
-      // try {
-      //   const decryptedData = decryptData(dataString);
-      //   setSelectedPaymentMethod(decryptedData.selectedPaymentMethod);
-      //   setPaymentData(decryptedData.paymentData);
-      //   // setIsModalOpen(decryptedData.isModalOpen);
-      //   setIsPaymentProcessing(decryptedData.isPaymentProcessing);
-      //   setIsNewLink(decryptedData.isnewLink);
-      // } catch (error) {
-      //   console.error("Error decrypting data:", error);
-      // }
-
       axios
         .get(`/api/payment?q=${encodeURIComponent(dataString)}`)
         .then((response) => {
@@ -63,7 +57,7 @@ const PaymentPage = () => {
     fetchPaymentMethods(setPaymentMethods, setLoading, orderDetails.clientId);
   }, [orderDetails?.clientId]);
 
-  const handlePaymentMethodSelect = (method: any) => {
+  const handlePaymentMethodSelect = (method: { name: string }) => {
     if (isPaymentProcessing || !orderDetails) return;
 
     const totalAmount = parseFloat(orderDetails.totalAmount || "0");
@@ -72,7 +66,7 @@ const PaymentPage = () => {
 
     if (isOutOfLimit) {
       toast.warn(
-        `${method.name} hanya untuk nominal ${formatRupiah(limit.min)} - ${formatRupiah(limit.max)}`,
+        `${method.name} only supports ${formatRupiah(limit.min)} – ${formatRupiah(limit.max)}`,
         { theme: "colored" },
       );
       return;
@@ -81,29 +75,6 @@ const PaymentPage = () => {
     setSelectedPaymentMethod(method.name);
   };
 
-  // const handleCancel = () => {
-  //   if (!selectedPaymentMethod) {
-  //     toast.warn("Please select a payment method.", { theme: "colored" });
-  //     return;
-  //   }
-
-  //   if (!orderDetails) {
-  //     toast.warn("Order details is not found", { theme: "colored" });
-  //     return;
-  //   }
-
-  //   cancelPayment(
-  //     selectedPaymentMethod,
-  //     orderDetails,
-  //     paymentMethods,
-  //     setIsPaymentProcessing,
-  //     // setIsModalOpen,
-  //     setIsNewLink,
-  //     setLoading,
-  //     router,
-  //   );
-  // };
-
   const handleSubmit = async () => {
     if (!selectedPaymentMethod) {
       toast.warn("Please select a payment method.", { theme: "colored" });
@@ -111,7 +82,7 @@ const PaymentPage = () => {
     }
 
     if (!orderDetails) {
-      toast.warn("Order details is not found", { theme: "colored" });
+      toast.warn("Order details not found.", { theme: "colored" });
       return;
     }
 
@@ -132,7 +103,7 @@ const PaymentPage = () => {
 
     if (isOutOfLimit) {
       toast.warn(
-        `${selectedMethod.name} hanya untuk nominal ${formatRupiah(selectedMethodLimit.min)} - ${formatRupiah(selectedMethodLimit.max)}`,
+        `${selectedMethod.name} only supports ${formatRupiah(selectedMethodLimit.min)} – ${formatRupiah(selectedMethodLimit.max)}`,
         { theme: "colored" },
       );
       return;
@@ -140,7 +111,6 @@ const PaymentPage = () => {
 
     try {
       const onSuccess = (data: any, link: any) => {
-        // Kirim data ke parent atau aplikasi yang memuat iframe
         window.parent.postMessage(
           { success: true, data, message: "01", link },
           "*",
@@ -148,7 +118,6 @@ const PaymentPage = () => {
       };
 
       const onFailure = (error: any) => {
-        // Kirim error ke parent atau aplikasi yang memuat iframe
         window.parent.postMessage({ success: false, error }, "*");
       };
 
@@ -157,13 +126,12 @@ const PaymentPage = () => {
         paymentMethods,
         orderDetails,
         setPaymentData,
-        // setIsModalOpen,
         setIsPaymentProcessing,
         router,
         onSuccess,
         onFailure,
       );
-    } catch (error) {
+    } catch {
       toast.error("Failed to process payment, please try again.");
     }
   };
@@ -172,9 +140,9 @@ const PaymentPage = () => {
     return (
       <>
         <Head>
-          <title>Confirm - Payment</title>
+          <title>Confirm Payment</title>
         </Head>
-        <div className="flex h-screen items-center justify-center">
+        <div className="flex min-h-[200px] items-center justify-center py-12">
           <Loader />
         </div>
       </>
@@ -185,126 +153,108 @@ const PaymentPage = () => {
     return (
       <>
         <Head>
-          <title>Confirm - Payment</title>
+          <title>Confirm Payment</title>
         </Head>
-        <div className="flex h-screen items-center justify-center">
-          <p>No order detail found!</p>
+        <div className="flex min-h-[200px] items-center justify-center py-12">
+          <p className="text-slate-600">No order detail found.</p>
         </div>
       </>
     );
   }
 
-  const totalAmount = parseFloat(orderDetails.totalAmount);
-  const fee = 10141;
-  const subTotal = totalAmount;
+  const totalAmount = parseFloat(orderDetails.totalAmount || "0");
 
   return (
     <>
       <Head>
-        <title>Confirm - Payment</title>
+        <title>Confirm Payment</title>
       </Head>
-      <div className="flex min-h-screen items-center justify-center bg-gray-100">
-        <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-md">
-          <h1 className="mb-4 text-center text-3xl font-bold">
+      <PaymentShell currentStep={1}>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
             Confirm Payment
           </h1>
-          <p className="mb-6 text-center text-gray-600">
-            You will pay with the following details:
+          <p className="mt-1 text-sm text-slate-500">
+            Review your order and select a payment method.
           </p>
-          <div className="mb-6 rounded-lg bg-gray-100 p-4">
-            <ul className="list-disc pl-5">
-              {orderDetails?.items.map((item: any) => (
-                <li key={item.id} className="flex justify-between">
-                  <span>
-                    {item.name} (x{item.quantity})
-                  </span>
-                  <span>Rp {parseFloat(item.price).toLocaleString()}</span>
-                </li>
-              ))}
-              {/* <li className="flex justify-between">
-                <span>Discount</span>
-                <span>Rp 0</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Fee</span>
-                <span>Rp {fee.toLocaleString()}</span>
-              </li> */}
-              <li className="flex justify-between font-bold">
-                <span>Sub Total</span>
-                <span>Rp {subTotal.toLocaleString()}</span>
-              </li>
-            </ul>
-          </div>
-
-          <h2 className="mb-4 text-xl font-semibold">Select Payment Method</h2>
-          {paymentMethods && paymentMethods.length > 0 ? (
-            paymentMethods.map(({ category, methods }: any) => (
-              <div key={category} className="mb-6">
-                <h3 className="mb-2 text-lg font-semibold">{category}</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {methods.map((method: any) => {
-                    const limit = getTransactionLimit(method.name);
-                    const isOutOfLimit =
-                      totalAmount < limit.min || totalAmount > limit.max;
-
-                    return (
-                      <div
-                        key={method._id}
-                        className={clsx(
-                          "flex flex-col items-center rounded-lg border p-4 transition-shadow",
-                          selectedPaymentMethod === method.name
-                            ? "border-blue-500"
-                            : "border-gray-300",
-                          isOutOfLimit
-                            ? "cursor-not-allowed opacity-50"
-                            : "cursor-pointer hover:shadow-lg",
-                        )}
-                        onClick={() => handlePaymentMethodSelect(method)}
-                      >
-                        <img
-                          src={`${process.env.NEXT_PUBLIC_CLIENT_API_URL}/${method.image}`}
-                          alt={method.name}
-                          className="mb-2 h-5 w-16"
-                        />
-                        <span>{method.name}</span>
-                        {/* <span className="mt-1 text-xs text-slate-500">
-                          {formatRupiah(limit.min)} - {formatRupiah(limit.max)}
-                        </span> */}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="mb-6">
-              <h3 className="mb-2 text-lg font-semibold">
-                NO AVAILABLE PAYMENT METHOD
-              </h3>
-            </div>
-          )}
-
-          <button
-            className="w-full rounded-lg bg-blue-500 py-2 font-bold text-white transition-colors hover:bg-blue-600"
-            onClick={handleSubmit}
-          >
-            Process Payment
-          </button>
         </div>
-      </div>
 
-      {/* <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onCancel={handleCancel}
-        virtualAccountNo={paymentData?.virtualAccountNo || ""}
-        qrUrl={paymentData?.qrUrl || ""}
-        paymentExpired={paymentData?.paymentExpired || ""}
-        customerNo={paymentData?.customerNo || ""}
-        paymentId={paymentData?.paymentId || ""}
-        totalAmount={paymentData?.totalAmount || ""}
-        orderId={paymentData?.orderId || ""}
-      /> */}
+        <div className="mt-5">
+          <OrderSummaryCard
+            items={orderDetails.items}
+            subTotal={totalAmount}
+            selectedMethodName={selectedPaymentMethod}
+          />
+        </div>
+
+        <div className="mt-6">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+            Select payment method
+            {paymentMethods.length > 0 && (
+              <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700">
+                {paymentMethods.flatMap((g: any) => g.methods || []).length}{" "}
+                options
+              </span>
+            )}
+          </h2>
+          <MethodGrid
+            groups={paymentMethods as any}
+            selectedMethodName={selectedPaymentMethod}
+            totalAmount={totalAmount}
+            apiBaseUrl={API_BASE_URL}
+            onSelect={handlePaymentMethodSelect}
+          />
+        </div>
+
+        <div className="mt-6 flex items-center justify-between rounded-xl bg-slate-50 p-4">
+          <div>
+            <div className="text-xs text-slate-500">Total to pay</div>
+            <div className="text-2xl font-bold text-slate-900">
+              Rp {totalAmount.toLocaleString("id-ID")}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs text-slate-500">via</div>
+            <div className="text-sm font-semibold text-sky-700">
+              {selectedPaymentMethod || "—"}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={isPaymentProcessing}
+          className="mt-3 group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-sky-600 hover:to-sky-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isPaymentProcessing ? "Processing..." : "Process Payment"}
+          {!isPaymentProcessing && (
+            <svg
+              className="h-4 w-4 transition group-hover:translate-x-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
+          )}
+        </button>
+
+        <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-500">
+          <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Encrypted via TLS · Powered by PANDI Payment
+        </p>
+      </PaymentShell>
     </>
   );
 };

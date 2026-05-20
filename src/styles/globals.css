@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Payment redesign animations */
+@keyframes payment-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes payment-draw-check {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.payment-pop {
+  animation: payment-pop 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+.payment-draw-check {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: payment-draw-check 0.6s 0.3s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+.payment-ring-rotate {
+  transform: rotate(-90deg);
+}
+
 /* React-Select Default */
 .custom-select__control {
   @apply border-gray-300 bg-white text-black;

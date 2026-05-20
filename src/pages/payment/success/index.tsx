@@ -1,4 +1,9 @@
 import Loader from "@/components/loading";
+import {
+  PaymentShell,
+  ReceiptCard,
+  SuccessHero,
+} from "@/components/payment";
 import { PaymentDetails, QRISData, VirtualAccountData } from "@/utils/order";
 import { successPayment } from "@/utils/payment";
 import axios from "axios";
@@ -19,12 +24,10 @@ const PageSuccess: React.FC = () => {
     useState<VirtualAccountData | null>(null);
 
   const onSuccess = (data: any) => {
-    // Kirim data ke parent atau aplikasi yang memuat iframe
     window.parent.postMessage({ success: true, data, message: "00" }, "*");
   };
 
   const onFailure = (error: any) => {
-    // Kirim error ke parent atau aplikasi yang memuat iframe
     window.parent.postMessage({ success: false, error }, "*");
   };
 
@@ -53,27 +56,25 @@ const PageSuccess: React.FC = () => {
 
             if (result && result.data) {
               if (paymentData.selectedPaymentMethod === "QRIS") {
-                // Narrow down to QRISData type
                 const qrisResult = result.data as QRISData;
                 if (qrisResult.merchantId && qrisResult.qrCode) {
                   setQrisData(qrisResult);
                 } else {
-                  toast.error("Invalid QRIS data structure", result);
+                  toast.error("Invalid QRIS data structure");
                 }
               } else {
-                // Narrow down to VirtualAccountData type
                 const vaResult = result.data as VirtualAccountData;
                 if (vaResult.merchantId && vaResult.vaCode) {
                   setVirtualAccountData(vaResult);
                 } else {
-                  toast.error("Invalid Virtual Account data structure", result);
+                  toast.error("Invalid Virtual Account data structure");
                 }
               }
             } else {
-              toast.error("Result or result.data is undefined");
+              toast.error("Payment data not available");
             }
           } else {
-            toast.warn("orderPayments is not yet available.");
+            toast.warn("Order data not yet available.");
           }
         }
       } catch (error) {
@@ -87,121 +88,123 @@ const PageSuccess: React.FC = () => {
     fetchData();
   }, [q]);
 
+  const handleBackToMerchant = () => {
+    window.parent.postMessage(
+      { type: "pandi-payment:done", success: true },
+      "*",
+    );
+  };
+
   if (loading) {
     return (
       <>
         <Head>
-          <title>Success - Payment</title>
+          <title>Payment Successful</title>
         </Head>
-        <div className="flex h-screen items-center justify-center">
+        <div className="flex min-h-[200px] items-center justify-center py-12">
           <Loader />
         </div>
       </>
     );
   }
 
+  // Resolve unified display values from either QRIS or VA data
+  const status = qrisData?.status ?? virtualAccountData?.status;
+  const isSuccess = status === "02" || status === "00";
+  const paymentType =
+    qrisData?.paymentType ??
+    virtualAccountData?.paymentType ??
+    paymentSuccess?.selectedPaymentMethod ??
+    "—";
+  const amount = qrisData?.amount ?? virtualAccountData?.amount ?? "0";
+  const successTime =
+    qrisData?.successTime ?? virtualAccountData?.successTime;
+  const vaCode = virtualAccountData?.vaCode;
+  const orderId = paymentSuccess?.paymentData.orderId;
+  const paymentId = paymentSuccess?.paymentData.paymentId;
+
   return (
     <>
       <Head>
-        <title>Success - Payment</title>
+        <title>Payment Successful</title>
       </Head>
-      <div className="flex min-h-screen items-center justify-center bg-gray-100">
-        <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-md">
-          {qrisData?.status === "02" ? (
-            <h1
-              aria-live="polite"
-              className="mb-4 text-center text-3xl font-bold text-green-500"
-            >
-              Successfully
-            </h1>
-          ) : (
-            <h1
-              aria-live="polite"
-              className="mb-4 text-center text-3xl font-bold"
-            >
-              {qrisData?.status}
-            </h1>
-          )}
+      <PaymentShell currentStep={3} orderId={orderId}>
+        {isSuccess ? (
+          <>
+            <SuccessHero amount={amount} paidAt={successTime} />
 
-          {virtualAccountData?.status === "02" ? (
-            <h1
-              aria-live="polite"
-              className="mb-4 text-center text-3xl font-bold text-green-500"
-            >
-              {/* {virtualAccountData?.responseMessage} */}
-              Successfully
-            </h1>
-          ) : (
-            <h1
-              aria-live="polite"
-              className="mb-4 text-center text-3xl font-bold"
-            >
-              {/* {virtualAccountData?.responseMessage} */}
-              {virtualAccountData?.status}
-            </h1>
-          )}
+            <div className="mt-6">
+              <ReceiptCard
+                paymentMethod={paymentType}
+                orderId={orderId}
+                paymentId={paymentId}
+                paidAt={successTime}
+                amount={amount}
+                vaCode={vaCode}
+              />
+            </div>
 
-          {/* Render Items */}
-          <div className="mb-6 rounded-lg bg-gray-100 p-4">
-            <ul className="list-disc gap-8 pl-5">
-              <li className="flex justify-between">
-                <span>Payment Method</span>
-                <span>
-                  {qrisData
-                    ? qrisData.paymentType
-                    : // : virtualAccountData?.additionalInfo.paymentType}
-                      virtualAccountData?.paymentType}
-                </span>
-              </li>
-              <li className="flex justify-between">
-                <span>Total Pembayaran</span>
-                <span>
-                  Rp{" "}
-                  {qrisData
-                    ? parseFloat(qrisData.amount || "0").toLocaleString()
-                    : parseFloat(
-                        // virtualAccountData?.virtualAccountData.totalAmount.value
-                        virtualAccountData?.amount || "0",
-                      ).toLocaleString()}
-                </span>
-              </li>
-              <li className="flex justify-between">
-                <span>Order Id</span>
-                <span>{paymentSuccess?.paymentData.orderId}</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Payment Id</span>
-                <span>{paymentSuccess?.paymentData.paymentId}</span>
-              </li>
-              {/* {paymentSuccess?.paymentData.storeId && (
-                <li className="flex justify-between">
-                  <span>Store Id</span>
-                  <span>{paymentSuccess?.paymentData.storeId}</span>
-                </li>
-              )} */}
-              {/* {virtualAccountData?.virtualAccountData.customerNo && ( */}
-              {virtualAccountData?.vaCode && (
-                <li className="flex justify-between">
-                  {/* <span>Customer Number</span> */}
-                  <span>VA Code</span>
-                  <span>
-                    {/* {virtualAccountData?.virtualAccountData.customerNo} */}
-                    {virtualAccountData?.vaCode}
-                  </span>
-                </li>
-              )}
-              {/* <li className="flex justify-between">
-                <span>Payer</span>
-                <span>{paymentSuccess?.orderDetails.payer}</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Phone Number</span>
-                <span>{paymentSuccess?.orderDetails.phoneNumber}</span>
-              </li> */}
-            </ul>
+            <div className="mx-auto mt-6 max-w-md">
+              <button
+                type="button"
+                onClick={handleBackToMerchant}
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-sky-600 hover:to-sky-700 active:scale-[0.99]"
+              >
+                Back to merchant
+                <svg
+                  className="h-4 w-4 transition group-hover:translate-x-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  />
+                </svg>
+              </button>
+
+              <p className="mt-4 text-center text-[11px] text-slate-400">
+                Need help? Contact{" "}
+                <a
+                  className="text-sky-600 hover:underline"
+                  href="mailto:support@pandi.id"
+                >
+                  support@pandi.id
+                </a>
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="py-6 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
+              <svg
+                className="h-8 w-8 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h1 className="mt-4 text-xl font-bold text-slate-900">
+              Payment status unclear
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {status
+                ? `We received status code "${status}". Please check your bank or e-wallet for confirmation.`
+                : "We could not retrieve the payment status. Please try again or contact support."}
+            </p>
           </div>
-        </div>
-      </div>
+        )}
+      </PaymentShell>
     </>
   );
 };
