@@ -99,13 +99,23 @@ const LoginPage = () => {
       }
     } catch (err: any) {
       const status = err?.response?.status;
-      if (status === 403) {
+      const code = err?.response?.data?.code;
+
+      if (status === 403 && code === "ACCOUNT_NOT_VERIFIED") {
         toast.info("Please verify your account before signing in.", {
           theme: "colored",
         });
         router.push(
           `/auth/verify-account?email=${encodeURIComponent(data.email)}`,
         );
+      } else if (status === 403 && code === "IP_NOT_WHITELISTED") {
+        toast.error("Access denied: your IP address is not whitelisted.", {
+          theme: "colored",
+        });
+      } else if (status === 429) {
+        toast.error("Too many login attempts. Please try again later.", {
+          theme: "colored",
+        });
       } else {
         handleAxiosError(err);
       }
