@@ -1,7 +1,7 @@
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
 import LogDetailModal from "@/components/dashboard/logs/LogDetailModal";
 import dayjs from "dayjs";
@@ -15,7 +15,7 @@ import useSWR from "swr";
 // };
 
 const LogEmailPage = () => {
-  useAdminAuthGuard(["logs:email"]);
+  useAuthGuard(["log:email"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);

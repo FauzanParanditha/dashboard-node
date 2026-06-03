@@ -2,7 +2,7 @@ import LogDetailModal from "@/components/dashboard/logs/LogDetailModal";
 import SearchForm from "@/components/form/search";
 import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
-import { useAdminAuthGuard } from "@/hooks/use-admin";
+import { useAuthGuard } from "@/hooks/use-auth";
 import useStore from "@/store";
 import dayjs from "dayjs";
 import Head from "next/head";
@@ -15,7 +15,7 @@ import useSWR from "swr";
 // };
 
 const ApiLogPage = () => {
-  useAdminAuthGuard(["logs:api"]);
+  useAuthGuard(["log:api"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empty, setEmpty] = useState(true);
