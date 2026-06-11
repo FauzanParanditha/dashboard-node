@@ -14,10 +14,28 @@ const nextConfig: NextConfig = {
   // Encryption now happens server-side (src/pages/api/encrypt.ts); the keys
   // are read from process.env at runtime on the server only (encryption.ts).
 
-  // Baseline security headers applied to every response. A full
-  // Content-Security-Policy is intentionally omitted here — it needs per-page
-  // testing (inline scripts, Quill, payment pages) and is tracked separately.
+  // Baseline security headers applied to every response.
   async headers() {
+    // Full Content-Security-Policy in REPORT-ONLY mode: the browser does NOT
+    // block anything, it only logs violations to the console. This lets the
+    // team observe what each page actually loads (inline scripts, Quill,
+    // payment, fonts) and tighten the policy before switching the header to the
+    // enforcing `Content-Security-Policy`. 'unsafe-inline'/'unsafe-eval' are
+    // present because the Pages Router emits inline bootstrap scripts; replace
+    // them with nonces when moving to enforced mode.
+    const cspReportOnly = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: blob: https:",
+      "connect-src 'self' https: wss:",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+    ].join("; ");
+
     return [
       {
         source: "/:path*",
@@ -33,8 +51,14 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
-          // Restrict framing without enabling a full CSP (low breakage risk).
+          // Enforced: only restrict framing (zero breakage risk).
           { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          // Observability only — does not block. Tune, then promote to the
+          // enforcing header above.
+          {
+            key: "Content-Security-Policy-Report-Only",
+            value: cspReportOnly,
+          },
         ],
       },
     ];
