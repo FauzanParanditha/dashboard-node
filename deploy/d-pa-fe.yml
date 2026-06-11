@@ -21,6 +21,13 @@ spec:
       containers:
         - name: d-payhub-fe
           image: 'images.247.or.id/pandi/payment-aggregator-frontend:latest'
+          # Runtime secrets (server-side process.env): ENCRYPTION_KEY, HMAC_KEY,
+          # PRIVATE_KEY, PARTNER_ID, SERVER_API_URL. Required since encryption
+          # moved server-side — without these, /api/encrypt and /api/payment
+          # fail at startup. See deploy/d-payhub-fe-secret.example.yml.
+          envFrom:
+            - secretRef:
+                name: d-payhub-fe-env
           ports:
             - name: http
               containerPort: 80
