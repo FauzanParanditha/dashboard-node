@@ -1,10 +1,10 @@
 import api from "@/api";
 import type { AuthMetadata } from "@/types/rbac";
-import { jwtConfig } from "@/utils/var";
 import {
   clearStoredAuthMetadata,
   extractAuthMetadata,
   getStoredAuthMetadata,
+  hasAuthSession,
   persistAuthMetadata,
 } from "@/utils/rbac";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -20,10 +20,7 @@ const useUserContextValue = () => {
     getStoredAuthMetadata(),
   );
 
-  const hasToken =
-    typeof window !== "undefined" &&
-    (!!localStorage.getItem(jwtConfig.admin.accessTokenName) ||
-      !!localStorage.getItem(jwtConfig.user.accessTokenName));
+  const hasToken = hasAuthSession();
 
   const { isValidating, data, error, mutate } = useSWR(
     hasToken ? "/me" : null,
