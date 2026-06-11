@@ -1,5 +1,5 @@
 // utils/paymentUtils.ts
-import { encryptData } from "@/utils/encryption";
+import { encryptDataRemote } from "@/utils/encryptClient";
 import { createSignatureForward } from "@/utils/paylabs";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -138,7 +138,7 @@ export const processPayment = async (
 
     setPaymentData(response.data);
 
-    const encryptedData = encryptData({
+    const encryptedData = await encryptDataRemote({
       isPaymentProcessing: true,
       selectedPaymentMethod,
       paymentMethods: paymentMethod,
@@ -253,7 +253,7 @@ export const cancelPayment = async (
       (selectedMethod.category === "VIRTUAL ACCOUNT" &&
         response?.data.responseCode === "2003100")
     ) {
-      const encryptedData = encryptData({
+      const encryptedData = await encryptDataRemote({
         clientId: paymentDetails.orderDetails.clientId,
         items: paymentDetails.orderDetails.items,
         payer: paymentDetails.orderDetails.payer,

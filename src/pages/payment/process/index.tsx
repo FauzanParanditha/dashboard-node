@@ -11,7 +11,7 @@ import {
   VaCard,
   WaitingBanner,
 } from "@/components/payment";
-import { encryptData } from "@/utils/encryption";
+import { encryptDataRemote } from "@/utils/encryptClient";
 import { PaymentDetails } from "@/utils/order";
 import { convertDateString, createSignatureForward } from "@/utils/paylabs";
 import { cancelPayment } from "@/utils/payment";
@@ -101,7 +101,7 @@ const PageProcess: React.FC = () => {
                 initialResponse.status === 200 &&
                 initialResponse.data.data.paymentStatus === "paid"
               ) {
-                const encryptedData = encryptData(paymentData);
+                const encryptedData = await encryptDataRemote(paymentData);
                 const newLink = `${window.location.origin}/payment/success?q=${encodeURIComponent(
                   encryptedData,
                 )}`;
@@ -163,7 +163,7 @@ const PageProcess: React.FC = () => {
         );
         setWs(websocket);
 
-        websocket.onmessage = (event: MessageEvent) => {
+        websocket.onmessage = async (event: MessageEvent) => {
           const msgData = JSON.parse(event.data);
 
           if (
@@ -171,7 +171,7 @@ const PageProcess: React.FC = () => {
             msgData.status === "paid"
           ) {
             toast.success("Payment received", { theme: "colored" });
-            const encryptedData = encryptData(orderPayments);
+            const encryptedData = await encryptDataRemote(orderPayments);
             const newLink = `${window.location.origin}/payment/success?q=${encodeURIComponent(
               encryptedData,
             )}`;

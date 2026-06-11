@@ -9,11 +9,10 @@ const nextConfig: NextConfig = {
     "rc-picker",
     "rc-input",
   ],
-  env: {
-    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
-    HMAC_KEY: process.env.HMAC_KEY,
-    // PRIVATE_KEY: process.env.PRIVATE_KEY,
-  },
+  // NOTE: ENCRYPTION_KEY / HMAC_KEY are intentionally NOT exposed here.
+  // Exposing them via `env` inlines the secrets into the client bundle.
+  // Encryption now happens server-side (src/pages/api/encrypt.ts); the keys
+  // are read from process.env at runtime on the server only (encryption.ts).
 };
 
 export default nextConfig;
