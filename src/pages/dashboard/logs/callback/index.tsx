@@ -1,4 +1,6 @@
+import api, { handleAxiosError } from "@/api";
 import SearchForm from "@/components/form/search";
+import SelectField from "@/components/form/select";
 import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
 import { useAuthGuard } from "@/hooks/use-auth";
@@ -8,6 +10,10 @@ import dayjs from "dayjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+
+// Format any value as pretty JSON for the detail view.
+const fmt = (v: unknown) =>
+  typeof v === "string" ? v : JSON.stringify(v ?? null, null, 2);
 
 // export const getServerSideProps: GetServerSideProps = async (context) => {
 //   // Use the checkAuth function to handle authentication
@@ -23,10 +29,36 @@ const LogCallbackPage = () => {
   const [detail, setDetail] = useState<{ title: string; content: string } | null>(
     null,
   );
+  const [clientId, setClientId] = useState("");
+  const [clientOptions, setClientOptions] = useState<
+    { label: string; value: string }[]
+  >([{ label: "All clients", value: "" }]);
 
   const { data: callback, mutate: revalidate } = useSWR(
-    "api/v1/adm/callbacklogs?perPage=10&page=" + page + "&query=" + search,
+    "api/v1/adm/callbacklogs?perPage=10&page=" +
+      page +
+      "&query=" +
+      search +
+      (clientId ? "&clientId=" + clientId : ""),
   );
+
+  // Load clients for the filter dropdown.
+  useEffect(() => {
+    api()
+      .get("api/v1/client?limit=1000&page=1")
+      .then((res) => {
+        if (res.data.success && Array.isArray(res.data.data)) {
+          setClientOptions([
+            { label: "All clients", value: "" },
+            ...res.data.data.map((c: any) => ({
+              label: c.name,
+              value: c._id,
+            })),
+          ]);
+        }
+      })
+      .catch(handleAxiosError);
+  }, []);
   useEffect(() => {
     setIsLoading(true);
     if (callback !== undefined) {
@@ -56,13 +88,27 @@ const LogCallbackPage = () => {
                 <p className="mt-2 text-sm text-gray-700"></p>
               </div>
             </div>
-            <div className="mt-6 max-w-md">
-              <SearchForm
-                search={search}
-                setSearch={setSearch}
-                revalidate={revalidate}
-                placeholder="Name"
-              />
+            <div className="mt-6 flex flex-wrap items-end gap-4">
+              <div className="max-w-md flex-1">
+                <SearchForm
+                  search={search}
+                  setSearch={setSearch}
+                  revalidate={revalidate}
+                  placeholder="Name"
+                />
+              </div>
+              <div className="w-full sm:w-64">
+                <SelectField
+                  name="clientId"
+                  label="Filter by Client"
+                  options={clientOptions}
+                  value={clientId}
+                  onChange={(value: string) => {
+                    setClientId(value);
+                    setPage(1);
+                  }}
+                />
+              </div>
             </div>
           </div>
           <div className="container mx-auto">
@@ -145,7 +191,7 @@ const LogCallbackPage = () => {
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
                               <div className="flex items-center">
-                                {dt.status}
+                                {dt.statusCode ?? "-"}
                               </div>
                             </td>
                             <td className="border-gray-200 p-5 text-sm dark:text-white">
@@ -169,17 +215,23 @@ const LogCallbackPage = () => {
                               <button
                                 className="rounded bg-slate-200 px-3 py-1 text-xs text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
                                 onClick={() => {
-                                  const payload =
-                                    typeof dt.payload === "string"
-                                      ? dt.payload
-                                      : JSON.stringify(dt.payload, null, 2);
-                                  const response =
-                                    typeof dt.response === "string"
-                                      ? dt.response
-                                      : JSON.stringify(dt.response, null, 2);
                                   setDetail({
                                     title: "Callback Detail",
-                                    content: `Payload:\\n${payload}\\n\\nResponse:\\n${response}`,
+                                    content: [
+                                      `Status Code: ${dt.statusCode ?? "-"}`,
+                                      "",
+                                      "Request Headers:",
+                                      fmt(dt.requestHeaders),
+                                      "",
+                                      "Response Headers:",
+                                      fmt(dt.responseHeaders),
+                                      "",
+                                      "Payload:",
+                                      fmt(dt.payload),
+                                      "",
+                                      "Response:",
+                                      fmt(dt.response),
+                                    ].join("\n"),
                                   });
                                 }}
                               >
