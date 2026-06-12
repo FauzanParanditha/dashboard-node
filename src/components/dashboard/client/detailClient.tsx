@@ -46,6 +46,8 @@ const DetailClnt = () => {
   const { id } = router.query;
   const [userOptions, setUserOptions] = useState([]);
   const [paymentOptions, setPaymentOptions] = useState([]);
+  // Allowed iframe origins, one per line (managed outside RHF/yup).
+  const [frameOriginsText, setFrameOriginsText] = useState("");
   const { hasAnyPermission } = useRBAC();
   const isAdmin = hasAnyPermission(["client:create", "client:update"]);
 
@@ -74,6 +76,9 @@ const DetailClnt = () => {
       .then((res) => {
         if (res.data.success) {
           const dt = res.data.data;
+          setFrameOriginsText(
+            Array.isArray(dt.frameOrigins) ? dt.frameOrigins.join("\n") : "",
+          );
           const selectedFromAvailablePayments = Array.isArray(
             dt.availablePayments,
           )
@@ -157,8 +162,16 @@ const DetailClnt = () => {
       return;
     }
 
+    const payload = {
+      ...data,
+      frameOrigins: frameOriginsText
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    };
+
     api()
-      .put(`api/v1/client/${validId}`, data)
+      .put(`api/v1/client/${validId}`, payload)
       .then((res) => {
         if (res.data.success) {
           getData();
@@ -241,6 +254,25 @@ const DetailClnt = () => {
                   error={errors.notifyUrl?.message}
                 />
               </div>
+              {isAdmin && (
+                <div className="mb-4 pr-3">
+                  <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-white">
+                    Allowed iframe origins
+                  </label>
+                  <textarea
+                    className="w-full rounded-md border border-slate-300 p-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                    rows={3}
+                    placeholder={"https://merchant-a.com\nhttps://merchant-b.com"}
+                    value={frameOriginsText}
+                    onChange={(e) => setFrameOriginsText(e.target.value)}
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Satu origin (skema + host) per baris. Hanya domain ini yang
+                    boleh meng-embed halaman payment merchant dalam iframe.
+                    Kosongkan untuk melarang embed dari luar.
+                  </p>
+                </div>
+              )}
               {isAdmin && (
                 <div className="mb-4 pr-2">
                   <Controller

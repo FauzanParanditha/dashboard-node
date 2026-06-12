@@ -40,6 +40,8 @@ const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
   const { setIsLoading } = useStore();
   const [userOptions, setUserOptions] = useState([]);
   const [paymentOptions, setPaymentOptions] = useState([]);
+  // Allowed iframe origins, one per line (managed outside RHF/yup).
+  const [frameOriginsText, setFrameOriginsText] = useState("");
   const router = useRouter();
 
 
@@ -85,13 +87,21 @@ const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
   //create new data
   const onSubmit = (data: any) => {
     setIsLoading(true);
+    const payload = {
+      ...data,
+      frameOrigins: frameOriginsText
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    };
     api()
-      .post("api/v1/client", data)
+      .post("api/v1/client", payload)
       .then((res) => {
         if (res.data.success) {
           revalidate({}, true);
           setIsOpen(false);
           reset();
+          setFrameOriginsText("");
           toast.success("Create Client success", { theme: "colored" });
         }
       })
@@ -189,6 +199,23 @@ const ModalClient = ({ isOpen = false, setIsOpen, revalidate }: any) => {
                       />
                     )}
                   />
+                </div>
+                <div className="mb-4 pr-3">
+                  <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-white">
+                    Allowed iframe origins
+                  </label>
+                  <textarea
+                    className="w-full rounded-md border border-slate-300 p-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                    rows={3}
+                    placeholder={"https://merchant-a.com\nhttps://merchant-b.com"}
+                    value={frameOriginsText}
+                    onChange={(e) => setFrameOriginsText(e.target.value)}
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Satu origin (skema + host) per baris. Hanya domain ini yang
+                    boleh meng-embed halaman payment merchant. Kosongkan untuk
+                    melarang embed dari luar.
+                  </p>
                 </div>
               </div>
               <div className="my-2 w-1/2 md:w-1/4">
