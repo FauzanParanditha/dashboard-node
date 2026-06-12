@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
     // enforcing `Content-Security-Policy`. 'unsafe-inline'/'unsafe-eval' are
     // present because the Pages Router emits inline bootstrap scripts; replace
     // them with nonces when moving to enforced mode.
+    // frame-ancestors is handled per-route below (payment pages are embeddable),
+    // so it is intentionally NOT part of this report-only policy.
     const cspReportOnly = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
@@ -30,37 +32,40 @@ const nextConfig: NextConfig = {
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https: wss:",
-      "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
     ].join("; ");
 
-    return [
+    const baseHeaders = [
       {
-        source: "/:path*",
-        headers: [
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=31536000; includeSubDomains",
-          },
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          // Enforced: only restrict framing (zero breakage risk).
-          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
-          // Observability only — does not block. Tune, then promote to the
-          // enforcing header above.
-          {
-            key: "Content-Security-Policy-Report-Only",
-            value: cspReportOnly,
-          },
-        ],
+        key: "Strict-Transport-Security",
+        value: "max-age=31536000; includeSubDomains",
       },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      {
+        key: "Permissions-Policy",
+        value: "camera=(), microphone=(), geolocation=()",
+      },
+      { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
+    ];
+
+    // Anti-clickjacking for everything that is NOT the hosted payment UI.
+    const noFraming = [
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+    ];
+
+    return [
+      // Hosted payment pages: embedded by arbitrary merchant sites, so framing
+      // is intentionally NOT restricted (no X-Frame-Options, no frame-ancestors).
+      // Clickjacking risk is limited — orders are signed and funds always go to
+      // the order's merchant.
+      { source: "/payment", headers: baseHeaders },
+      { source: "/payment/:path*", headers: baseHeaders },
+      // Everything else (dashboard, auth, root, ...): full lockdown, no framing.
+      { source: "/((?!payment).*)", headers: [...baseHeaders, ...noFraming] },
     ];
   },
 };
