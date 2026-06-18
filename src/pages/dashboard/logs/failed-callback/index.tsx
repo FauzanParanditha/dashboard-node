@@ -41,14 +41,24 @@ const LogFailedCallbackPage = () => {
   useAuthGuard(["log:retry"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
   const [retrying, setRetrying] = useState<Record<string, boolean>>({});
   const [detail, setDetail] = useState<{ title: string; content: string } | null>(null);
 
   const { data: callback, mutate: revalidate } = useSWR(
-    "api/v1/adm/failed-callbacklogs?perPage=10&page=" + page + "&query=" + search,
+    "api/v1/adm/failed-callbacklogs?perPage=10&page=" +
+      page +
+      "&query=" +
+      search +
+      (status ? "&status=" + status : ""),
   );
+
+  const handleStatusChange = (value: string) => {
+    setStatus(value);
+    setPage(1); // reset to first page so the filtered result starts at the top
+  };
 
   useEffect(() => {
     setIsLoading(true);
@@ -162,13 +172,33 @@ const LogFailedCallbackPage = () => {
                 </h1>
               </div>
             </div>
-            <div className="mt-6 max-w-md">
-              <SearchForm
-                search={search}
-                setSearch={setSearch}
-                revalidate={revalidate}
-                placeholder="Name"
-              />
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              <div className="max-w-md flex-1">
+                <SearchForm
+                  search={search}
+                  setSearch={setSearch}
+                  revalidate={revalidate}
+                  placeholder="Name"
+                />
+              </div>
+              <div>
+                <label htmlFor="status-filter" className="sr-only">
+                  Filter by status
+                </label>
+                <select
+                  id="status-filter"
+                  value={status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800 dark:border-gray-600 dark:bg-black dark:text-white"
+                >
+                  <option value="">All status</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="failed">Failed</option>
+                  <option value="dead">Dead</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
             </div>
           </div>
 

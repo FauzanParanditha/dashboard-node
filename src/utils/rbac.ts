@@ -125,6 +125,14 @@ export const RBAC_PERMISSION_GROUPS: PermissionGroup[] = [
       { key: "log:retry", label: "View failed callback logs" },
     ],
   },
+  {
+    key: "blocked-ip",
+    label: "Blocked IP",
+    permissions: [
+      { key: "blocked_ip:list", label: "List blocked IPs" },
+      { key: "blocked_ip:manage", label: "Block / unblock IPs" },
+    ],
+  },
 ];
 
 const PERMISSION_GROUP_LABELS: Record<string, string> = {

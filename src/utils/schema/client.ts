@@ -23,4 +23,5 @@ export const updateClientSchema = yup.object({
     .required("userId is required"),
   active: yup.boolean().required("status is required"),
   availablePaymentIds: yup.array().of(yup.string().required()).optional(),
+  requireSignedAck: yup.boolean().optional(),
 });

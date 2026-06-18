@@ -21,6 +21,7 @@ type Values = {
   userIds: string[];
   active: boolean;
   availablePaymentIds?: string[];
+  requireSignedAck?: boolean;
 };
 
 const options = [
@@ -38,6 +39,7 @@ const notifyUrlOnlySchema = yup.object({
     .of(yup.string().required())
     .optional()
     .default([]),
+  requireSignedAck: yup.boolean().optional(),
 });
 
 const DetailClnt = () => {
@@ -100,6 +102,7 @@ const DetailClnt = () => {
               : (dt.availablePaymentIds || []).map((p: any) =>
                   typeof p === "string" ? p : p._id,
                 ),
+            requireSignedAck: !!dt.requireSignedAck,
           });
         }
       })
@@ -271,6 +274,36 @@ const DetailClnt = () => {
                     boleh meng-embed halaman payment merchant dalam iframe.
                     Kosongkan untuk melarang embed dari luar.
                   </p>
+                </div>
+              )}
+              {isAdmin && (
+                <div className="mb-4 pr-3">
+                  <Controller
+                    control={control}
+                    name="requireSignedAck"
+                    render={({ field: { onChange, value } }) => (
+                      <label className="flex cursor-pointer items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={!!value}
+                          onChange={(e) => onChange(e.target.checked)}
+                          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-800 focus:ring-red-800"
+                        />
+                        <span>
+                          <span className="block text-sm font-medium text-slate-600 dark:text-white">
+                            Wajibkan tanda tangan pada balasan callback (ack)
+                          </span>
+                          <span className="mt-0.5 block text-xs text-slate-400">
+                            Jika aktif, balasan merchant atas callback
+                            diverifikasi secara kriptografis memakai public key
+                            merchant yang terdaftar. Aktifkan hanya bila merchant
+                            sudah menandatangani respons ack-nya, jika tidak
+                            callback akan dianggap gagal.
+                          </span>
+                        </span>
+                      </label>
+                    )}
+                  />
                 </div>
               )}
               {isAdmin && (
