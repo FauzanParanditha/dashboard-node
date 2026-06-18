@@ -1,5 +1,6 @@
 import api, { handleAxiosError } from "@/api";
 import SearchForm from "@/components/form/search";
+import SelectField from "@/components/form/select";
 import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
 import { useAuthGuard } from "@/hooks/use-auth";
@@ -172,7 +173,7 @@ const LogFailedCallbackPage = () => {
                 </h1>
               </div>
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-4">
+            <div className="mt-6 flex flex-wrap items-end gap-4">
               <div className="max-w-md flex-1">
                 <SearchForm
                   search={search}
@@ -181,23 +182,21 @@ const LogFailedCallbackPage = () => {
                   placeholder="Name"
                 />
               </div>
-              <div>
-                <label htmlFor="status-filter" className="sr-only">
-                  Filter by status
-                </label>
-                <select
-                  id="status-filter"
+              <div className="w-full sm:w-64">
+                <SelectField
+                  name="status"
+                  label="Filter by Status"
+                  options={[
+                    { label: "All status", value: "" },
+                    { label: "Pending", value: "pending" },
+                    { label: "Processing", value: "processing" },
+                    { label: "Failed", value: "failed" },
+                    { label: "Dead", value: "dead" },
+                    { label: "Completed", value: "completed" },
+                  ]}
                   value={status}
-                  onChange={(e) => handleStatusChange(e.target.value)}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-red-800 focus:outline-none focus:ring-1 focus:ring-red-800 dark:border-gray-600 dark:bg-black dark:text-white"
-                >
-                  <option value="">All status</option>
-                  <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="failed">Failed</option>
-                  <option value="dead">Dead</option>
-                  <option value="completed">Completed</option>
-                </select>
+                  onChange={(value: string) => handleStatusChange(value)}
+                />
               </div>
             </div>
           </div>
