@@ -133,6 +133,22 @@ const PageProcess: React.FC = () => {
             setTimeLeft(diffSec);
             setTotalSeconds(diffSec || 1);
 
+            // Sync the host (merchant) timeframe with PayHub's authoritative expiry.
+            // Emits an absolute instant so the parent never has to re-parse the
+            // provider's WIB `yyyyMMddHHmmss` value — eliminating unit/timezone drift.
+            if (typeof window !== "undefined" && window.self !== window.top) {
+              window.parent.postMessage(
+                {
+                  type: "pandi-payment:expiry",
+                  paymentId: paymentData?.paymentData?.paymentId,
+                  orderId: paymentData?.paymentData?.orderId,
+                  paymentExpired: expirationDate.toISOString(),
+                  secondsLeft: diffSec,
+                },
+                "*",
+              );
+            }
+
             const timer = setInterval(() => {
               setTimeLeft((prev) => Math.max(0, prev - 1));
             }, 1000);
