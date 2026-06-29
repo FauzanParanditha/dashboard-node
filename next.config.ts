@@ -43,6 +43,9 @@ const nextConfig: NextConfig = {
         value: "max-age=31536000; includeSubDomains",
       },
       { key: "X-Content-Type-Options", value: "nosniff" },
+      // Keep the dashboard, auth, hosted checkout and docs out of search indexes.
+      // Header form covers every response type (HTML, JSON, assets) globally.
+      { key: "X-Robots-Tag", value: "noindex, nofollow" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       {
         key: "Permissions-Policy",
