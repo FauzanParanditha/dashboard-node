@@ -159,6 +159,34 @@ export const processPayment = async (
 
     toast.success("Order created successfully!", { theme: "colored" });
 
+    // CC & e-wallet finish payment on the gateway's own page (card 3DS /
+    // e-wallet auth), which blocks iframe framing. Break out and redirect the
+    // top-level window to the returned pay URL instead of rendering the
+    // QRIS/VA process page.
+    const REDIRECT_CREATE_ENDPOINTS = [
+      "/api/v1/order/create/cc",
+      "/api/v1/order/create/ewallet",
+    ];
+    if (REDIRECT_CREATE_ENDPOINTS.includes(endpointUrl)) {
+      const redirectUrl =
+        response.data.paymentLink ||
+        response.data.paymentActions?.payUrl ||
+        response.data.paymentActions?.mobilePayUrl;
+      if (!redirectUrl) {
+        toast.error("URL pembayaran tidak tersedia. Silakan coba lagi.", {
+          theme: "colored",
+        });
+        if (onFailure) onFailure("Missing payment redirect URL");
+        return;
+      }
+      // Navigate the top window (merchant iframe must allow top navigation) so
+      // the bank/e-wallet auth page loads outside the frame. Final status still
+      // arrives via webhook + the gateway's return redirect.
+      const target = window.top ?? window;
+      target.location.href = redirectUrl;
+      return;
+    }
+
     setPaymentData(response.data);
 
     const encryptedData = await encryptDataRemote({
