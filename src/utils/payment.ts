@@ -18,6 +18,20 @@ import {
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+// Maps a payment method's category to its BE create endpoint. Keys are the
+// uppercased category strings as stored/displayed. There is intentionally NO
+// fallback: an unknown category fails loudly instead of silently POSTing to VA
+// (which previously made CC/e-wallet orders hit the VA rail and 403).
+const CREATE_ENDPOINT_BY_CATEGORY: Record<string, string> = {
+  QRIS: "/api/v1/order/create/qris",
+  CC: "/api/v1/order/create/cc",
+  "VIRTUAL ACCOUNT": "/api/v1/order/create/va",
+  VA: "/api/v1/order/create/va",
+  "E-WALLET": "/api/v1/order/create/ewallet",
+  EWALLET: "/api/v1/order/create/ewallet",
+  "E-MONEY": "/api/v1/order/create/ewallet",
+};
+
 export const fetchPaymentMethods = async (
   setPaymentMethods: (methods: any) => void,
   setLoading: (loading: boolean) => void,
@@ -103,9 +117,18 @@ export const processPayment = async (
     .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
 
   const endpointUrl =
-    selectedMethod.category === "QRIS"
-      ? `/api/v1/order/create/qris`
-      : `/api/v1/order/create/va`;
+    CREATE_ENDPOINT_BY_CATEGORY[(selectedMethod.category || "").toUpperCase().trim()];
+
+  if (!endpointUrl) {
+    // Unknown category: do not guess a rail. Surface it instead of routing to VA.
+    toast.error(
+      `Metode pembayaran "${selectedMethod.name}" belum didukung (kategori: ${selectedMethod.category}).`,
+      { theme: "colored" },
+    );
+    if (onFailure) onFailure(`Unsupported payment category: ${selectedMethod.category}`);
+    return;
+  }
+
   const signature = createSignatureForward(
     "POST",
     endpointUrl,
