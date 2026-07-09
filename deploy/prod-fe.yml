@@ -18,6 +18,13 @@ spec:
         app: payhub-fe
         env: prod
     spec:
+      volumes:
+        - name: payhub-fe-config
+          configMap:
+            name: payhub-fe-config
+            items:
+              - key: .env
+                path: .env
       containers:
         - name: payhub-fe
           image: 'images.247.or.id/pandi/payment-aggregator-frontend:latest'
@@ -25,6 +32,10 @@ spec:
             - name: http
               containerPort: 3000
               protocol: TCP
+          volumeMounts:
+            - name: payhub-fe-config
+              mountPath: /app/.env
+              subPath: .env
           imagePullPolicy: Always
       restartPolicy: Always
       imagePullSecrets:
