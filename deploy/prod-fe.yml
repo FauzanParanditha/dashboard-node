@@ -25,17 +25,17 @@ spec:
             items:
               - key: .env
                 path: .env
-        # - name: payhub-fe-key
-        #   configMap:
-        #     name: payhub-fe-key
-        #     items:
-        #       - key: .key
-        #         path: .key
+        - name: payhub-fe-key
+          configMap:
+            name: payhub-fe-key
+            items:
+              - key: .key
+                path: .key
         - name: payhub-fe-local
           configMap:
             name: payhub-fe-local
             items:
-              - key: .env
+              - key: .env.local
                 path: .env.local
       containers:
         - name: payhub-fe
@@ -48,9 +48,9 @@ spec:
             - name: payhub-fe-config
               mountPath: /app/.env
               subPath: .env
-            # - name: payhub-fe-key
-            #   mountPath: /app/.key
-            #   subPath: .key
+            - name: payhub-fe-key
+              mountPath: /app/.key
+              subPath: .key
             - name: payhub-fe-local
               mountPath: /app/.env.local
               subPath: .env.local
