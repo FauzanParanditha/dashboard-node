@@ -100,6 +100,6 @@ deploy-pg-fe:
     - sed -i "s/payment-aggregator-frontend:latest/payment-aggregator-frontend:$CI_COMMIT_SHORT_SHA/g" "deploy/prod-fe.yml"
     - kubectl apply -f deploy/prod-fe.yml
   only:
-    - main
+    - tags
   tags:
     - bogor
