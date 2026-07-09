@@ -1,0 +1,31 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: payhub-fe
+  namespace: prod
+  labels:
+    app: proxy-payhub-fe
+    env: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payhub-fe
+      env: prod
+  template:
+    metadata:
+      labels:
+        app: payhub-fe
+        env: prod
+    spec:
+      containers:
+        - name: payhub-fe
+          image: 'images.247.or.id/pandi/payment-aggregator-frontend:latest'
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          imagePullPolicy: Always
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: secret-prod

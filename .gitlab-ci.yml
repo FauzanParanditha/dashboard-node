@@ -1,17 +1,17 @@
 stages:
   - build
   # - test
-  # - tag
+  - tag
   - deploy
 
 ############################ FOR BRANCH dev ###############################
 #build
 build-pa-fe:
-  image: docker:stable
+  image: images.247.or.id/pandi/kubernetes/docker:24-cli
   variables:
     DOCKER_TLS_CERTDIR: ""
   services:
-    - docker:dind
+    - images.247.or.id/pandi/kubernetes/docker:24-dind
   stage: build
   script:
     - ls
@@ -28,19 +28,6 @@ build-pa-fe:
   tags:
     - bogor
     
-####unit test
-#unit_test:
-#  image: $CI_REGISTRY_IMAGE:latest
-#  stage: test
-#  script:
-#    - cp .env.example .env
-#    - composer install
-#    - php artisan key:generate
-#    - php /var/www/html/vendor/bin/phpunit
-#  only:
-#    - master
-#  tags:
-#    - batam
  
 #deploy
 deploy-pa-fe:
@@ -51,5 +38,68 @@ deploy-pa-fe:
     - kubectl apply -f deploy/d-pa-fe.yml
   only:
     - dev
+  tags:
+    - bogor
+
+
+
+
+# branch: main
+build-pg-fe:
+  image: images.247.or.id/pandi/kubernetes/docker:24-cli
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - images.247.or.id/pandi/kubernetes/docker:24-dind
+  stage: build
+  script:
+    - ls
+    - sed -i "s/APP_NAME=/APP_NAME=${prodAPP_NAME}/g" .env.example
+    - sed -i "s/NEXT_PUBLIC_SECRET_KEY=/NEXT_PUBLIC_SECRET_KEY=${prodNEXT_PUBLIC_SECRET_KEY}/g" .env.example
+    - sed -i "s/NEXT_PUBLIC_WS_URL=/NEXT_PUBLIC_WS_URL=${prodNEXT_PUBLIC_WS_URL}/g" .env.example
+    - sed -i "s/NEXT_PUBLIC_CLIENT_API_URL=/NEXT_PUBLIC_CLIENT_API_URL=${prodNEXT_PUBLIC_CLIENT_API_URL}/g" .env.example
+    - sed -i "s/SERVER_API_URL=/SERVER_API_URL=${prodSERVER_API_URL}/g" .env.example
+    - cat .env.example
+    - docker login -u $DOCKER_USER_K8S -p $DOCKER_PASSWORD_K8S $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - main
+  tags:
+    - bogor
+
+tag-pg-fe-prod:
+  image: images.247.or.id/pandi/kubernetes/docker:24-cli
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - images.247.or.id/pandi/kubernetes/docker:24-dind
+  stage: tag
+  script:
+    - echo "$CI_COMMIT_TAG" > version.txt
+    - 'echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin'
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - echo $CI_COMMIT_TAG
+    - echo $CI_COMMIT_SHORT_SHA
+  artifacts:
+    paths:
+    - version.txt
+  only:
+    - tags
+  tags:
+    - bogor
+
+deploy-pg-fe:
+  image: images.247.or.id/pandi/kubectl:bogor
+  stage: deploy
+  script:
+    - sed -i "s/payment-aggregator-frontend:latest/payment-aggregator-frontend:$CI_COMMIT_SHORT_SHA/g" "deploy/prod-fe.yml"
+    - kubectl apply -f deploy/prod-fe.yml
+  only:
+    - main
   tags:
     - bogor
