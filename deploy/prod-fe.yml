@@ -31,6 +31,12 @@ spec:
             items:
               - key: .key
                 path: .key
+        - name: payhub-fe-local
+          configMap:
+            name: payhub-fe-local
+            items:
+              - key: .env.local
+                path: .env.local
       containers:
         - name: payhub-fe
           image: 'images.247.or.id/pandi/payment-aggregator-frontend:latest'
@@ -42,10 +48,12 @@ spec:
             - name: payhub-fe-config
               mountPath: /app/.env
               subPath: .env
-          volumeMounts:
             - name: payhub-fe-key
               mountPath: /app/.key
               subPath: .key
+            - name: payhub-fe-local
+              mountPath: /app/.env.local
+              subPath: .env.local
           imagePullPolicy: Always
       restartPolicy: Always
       imagePullSecrets:
