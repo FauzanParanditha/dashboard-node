@@ -84,6 +84,19 @@ const LoginPage = () => {
         clearStoredAuthMetadata();
         persistAuthMetadata(extractAuthMetadata(res.data.data));
 
+        // Fetch the full profile (incl. permissions) and persist it BEFORE
+        // navigating. The login response carries no permissions, so without
+        // this the dashboard route guard reads an empty-permission localStorage
+        // and bounces back to /auth/login while /me is still loading.
+        try {
+          const meRes = await api().get("/me");
+          persistAuthMetadata(
+            extractAuthMetadata({ ...meRes.data, ...(meRes.data?.data || {}) }),
+          );
+        } catch {
+          // fall back to context revalidation below
+        }
+
         await revalidate({}, true);
 
         toast.success("Login success", { theme: "colored" });

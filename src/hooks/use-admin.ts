@@ -4,6 +4,7 @@ import {
   clearStoredAuthMetadata,
   getStoredAuthMetadata,
   hasAnyPermission,
+  hasAuthSession,
 } from "@/utils/rbac";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
@@ -20,9 +21,8 @@ export const useAdminAuthGuard = (requiredPermissions: string[] = []) => {
     hasMounted.current = true;
 
     const authMeta = getStoredAuthMetadata();
-    const token = authMeta.token;
 
-    if (!token || !canAccessAdminDashboard(authMeta)) {
+    if (!hasAuthSession() || !canAccessAdminDashboard(authMeta)) {
       router.replace("/auth/login");
       return;
     }

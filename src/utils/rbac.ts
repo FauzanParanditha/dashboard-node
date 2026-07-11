@@ -125,6 +125,14 @@ export const RBAC_PERMISSION_GROUPS: PermissionGroup[] = [
       { key: "log:retry", label: "View failed callback logs" },
     ],
   },
+  {
+    key: "blocked-ip",
+    label: "Blocked IP",
+    permissions: [
+      { key: "blocked_ip:list", label: "List blocked IPs" },
+      { key: "blocked_ip:manage", label: "Block / unblock IPs" },
+    ],
+  },
 ];
 
 const PERMISSION_GROUP_LABELS: Record<string, string> = {
@@ -265,10 +273,20 @@ export const extractAuthMetadata = (source: any): AuthMetadata => {
   };
 };
 
+// Non-sensitive flag indicating an authenticated session exists. The actual
+// access token lives in an HttpOnly cookie (not readable by JS), so the client
+// uses this flag only for auth-aware UI / guard redirects. Real enforcement is
+// the cookie sent to the API (401 -> logout) and the Next.js middleware.
+const AUTH_SESSION_KEY = "_auth_present";
+
+export const hasAuthSession = (): boolean =>
+  typeof window !== "undefined" && localStorage.getItem(AUTH_SESSION_KEY) === "1";
+
 export const clearStoredAuthMetadata = () => {
   if (typeof window === "undefined") return;
 
   [
+    AUTH_SESSION_KEY,
     jwtConfig.admin.accessTokenName,
     jwtConfig.user.accessTokenName,
     jwtConfig.admin.roleName,
@@ -286,10 +304,9 @@ export const clearStoredAuthMetadata = () => {
 export const persistAuthMetadata = (meta: AuthMetadata) => {
   if (typeof window === "undefined") return;
 
-  if (meta.token) {
-    localStorage.setItem(jwtConfig.admin.accessTokenName, meta.token);
-    localStorage.setItem(jwtConfig.user.accessTokenName, meta.token);
-  }
+  // Mark that a session exists. The token itself is NOT persisted — it is set
+  // by the API as an HttpOnly cookie and never exposed to JavaScript.
+  localStorage.setItem(AUTH_SESSION_KEY, "1");
 
   if (meta.roleName) {
     localStorage.setItem(jwtConfig.admin.roleName, meta.roleName);

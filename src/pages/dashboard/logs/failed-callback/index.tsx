@@ -1,5 +1,6 @@
 import api, { handleAxiosError } from "@/api";
 import SearchForm from "@/components/form/search";
+import SelectField from "@/components/form/select";
 import { DashboardLayout } from "@/components/layout/";
 import Pagination from "@/components/pagination";
 import { useAuthGuard } from "@/hooks/use-auth";
@@ -41,14 +42,24 @@ const LogFailedCallbackPage = () => {
   useAuthGuard(["log:retry"]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
   const [empty, setEmpty] = useState(true);
   const { setIsLoading } = useStore();
   const [retrying, setRetrying] = useState<Record<string, boolean>>({});
   const [detail, setDetail] = useState<{ title: string; content: string } | null>(null);
 
   const { data: callback, mutate: revalidate } = useSWR(
-    "api/v1/adm/failed-callbacklogs?perPage=10&page=" + page + "&query=" + search,
+    "api/v1/adm/failed-callbacklogs?perPage=10&page=" +
+      page +
+      "&query=" +
+      search +
+      (status ? "&status=" + status : ""),
   );
+
+  const handleStatusChange = (value: string) => {
+    setStatus(value);
+    setPage(1); // reset to first page so the filtered result starts at the top
+  };
 
   useEffect(() => {
     setIsLoading(true);
@@ -162,13 +173,31 @@ const LogFailedCallbackPage = () => {
                 </h1>
               </div>
             </div>
-            <div className="mt-6 max-w-md">
-              <SearchForm
-                search={search}
-                setSearch={setSearch}
-                revalidate={revalidate}
-                placeholder="Name"
-              />
+            <div className="mt-6 flex flex-wrap items-end gap-4">
+              <div className="max-w-md flex-1">
+                <SearchForm
+                  search={search}
+                  setSearch={setSearch}
+                  revalidate={revalidate}
+                  placeholder="Name"
+                />
+              </div>
+              <div className="w-full sm:w-64">
+                <SelectField
+                  name="status"
+                  label="Filter by Status"
+                  options={[
+                    { label: "All status", value: "" },
+                    { label: "Pending", value: "pending" },
+                    { label: "Processing", value: "processing" },
+                    { label: "Failed", value: "failed" },
+                    { label: "Dead", value: "dead" },
+                    { label: "Completed", value: "completed" },
+                  ]}
+                  value={status}
+                  onChange={(value: string) => handleStatusChange(value)}
+                />
+              </div>
             </div>
           </div>
 

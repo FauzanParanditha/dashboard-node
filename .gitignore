@@ -34,6 +34,12 @@ yarn-error.log*
 .env
 .env.*
 
+# real k8s secret manifests — only *.example.yml templates may be committed
+deploy/*secret*.yml
+!deploy/*secret*.example.yml
+deploy/*secret*.yaml
+!deploy/*secret*.example.yaml
+
 # vercel
 .vercel
 

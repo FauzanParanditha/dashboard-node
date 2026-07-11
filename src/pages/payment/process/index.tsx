@@ -11,7 +11,7 @@ import {
   VaCard,
   WaitingBanner,
 } from "@/components/payment";
-import { encryptData } from "@/utils/encryption";
+import { encryptDataRemote } from "@/utils/encryptClient";
 import { PaymentDetails } from "@/utils/order";
 import { convertDateString, createSignatureForward } from "@/utils/paylabs";
 import { cancelPayment } from "@/utils/payment";
@@ -101,7 +101,7 @@ const PageProcess: React.FC = () => {
                 initialResponse.status === 200 &&
                 initialResponse.data.data.paymentStatus === "paid"
               ) {
-                const encryptedData = encryptData(paymentData);
+                const encryptedData = await encryptDataRemote(paymentData);
                 const newLink = `${window.location.origin}/payment/success?q=${encodeURIComponent(
                   encryptedData,
                 )}`;
@@ -133,6 +133,22 @@ const PageProcess: React.FC = () => {
             setTimeLeft(diffSec);
             setTotalSeconds(diffSec || 1);
 
+            // Sync the host (merchant) timeframe with PayHub's authoritative expiry.
+            // Emits an absolute instant so the parent never has to re-parse the
+            // provider's WIB `yyyyMMddHHmmss` value — eliminating unit/timezone drift.
+            if (typeof window !== "undefined" && window.self !== window.top) {
+              window.parent.postMessage(
+                {
+                  type: "pandi-payment:expiry",
+                  paymentId: paymentData?.paymentData?.paymentId,
+                  orderId: paymentData?.paymentData?.orderId,
+                  paymentExpired: expirationDate.toISOString(),
+                  secondsLeft: diffSec,
+                },
+                "*",
+              );
+            }
+
             const timer = setInterval(() => {
               setTimeLeft((prev) => Math.max(0, prev - 1));
             }, 1000);
@@ -163,7 +179,7 @@ const PageProcess: React.FC = () => {
         );
         setWs(websocket);
 
-        websocket.onmessage = (event: MessageEvent) => {
+        websocket.onmessage = async (event: MessageEvent) => {
           const msgData = JSON.parse(event.data);
 
           if (
@@ -171,7 +187,7 @@ const PageProcess: React.FC = () => {
             msgData.status === "paid"
           ) {
             toast.success("Payment received", { theme: "colored" });
-            const encryptedData = encryptData(orderPayments);
+            const encryptedData = await encryptDataRemote(orderPayments);
             const newLink = `${window.location.origin}/payment/success?q=${encodeURIComponent(
               encryptedData,
             )}`;
@@ -372,5 +388,8 @@ const PageProcess: React.FC = () => {
     </>
   );
 };
+
+// Per-order CSP frame-ancestors (only the order's merchant may iframe this).
+export { getServerSideProps } from "@/utils/frameAncestors";
 
 export default PageProcess;

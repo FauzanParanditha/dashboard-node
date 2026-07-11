@@ -7,6 +7,7 @@ import {
   FcHome,
   FcKey,
   FcLibrary,
+  FcLock,
   FcNook,
   FcOrganization,
   FcPaid,
@@ -45,6 +46,12 @@ export const dashboardSidebarItems: SidebarItem[] = [
     icon: <FcGenealogy />,
     link: "/dashboard/ip",
     requiredPermissions: ["whitelist:list"],
+  },
+  {
+    title: "Blocked IP",
+    icon: <FcLock />,
+    link: "/dashboard/blocked-ip",
+    requiredPermissions: ["blocked_ip:list"],
   },
   {
     title: "Available Payment",

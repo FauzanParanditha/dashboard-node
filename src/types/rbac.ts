@@ -46,7 +46,9 @@ export type PermissionKey =
   | "log:api"
   | "log:email"
   | "log:callback"
-  | "log:retry";
+  | "log:retry"
+  | "blocked_ip:list"
+  | "blocked_ip:manage";
 
 export type Role = {
   _id: string;

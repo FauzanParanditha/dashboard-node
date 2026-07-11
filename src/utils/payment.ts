@@ -1,5 +1,5 @@
 // utils/paymentUtils.ts
-import { encryptData } from "@/utils/encryption";
+import { encryptDataRemote } from "@/utils/encryptClient";
 import { createSignatureForward } from "@/utils/paylabs";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -17,6 +17,20 @@ import {
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+// Maps a payment method's category to its BE create endpoint. Keys are the
+// uppercased category strings as stored/displayed. There is intentionally NO
+// fallback: an unknown category fails loudly instead of silently POSTing to VA
+// (which previously made CC/e-wallet orders hit the VA rail and 403).
+const CREATE_ENDPOINT_BY_CATEGORY: Record<string, string> = {
+  QRIS: "/api/v1/order/create/qris",
+  CC: "/api/v1/order/create/cc",
+  "VIRTUAL ACCOUNT": "/api/v1/order/create/va",
+  VA: "/api/v1/order/create/va",
+  "E-WALLET": "/api/v1/order/create/ewallet",
+  EWALLET: "/api/v1/order/create/ewallet",
+  "E-MONEY": "/api/v1/order/create/ewallet",
+};
 
 export const fetchPaymentMethods = async (
   setPaymentMethods: (methods: any) => void,
@@ -103,9 +117,18 @@ export const processPayment = async (
     .format("YYYY-MM-DDTHH:mm:ss.SSSZ");
 
   const endpointUrl =
-    selectedMethod.category === "QRIS"
-      ? `/api/v1/order/create/qris`
-      : `/api/v1/order/create/va`;
+    CREATE_ENDPOINT_BY_CATEGORY[(selectedMethod.category || "").toUpperCase().trim()];
+
+  if (!endpointUrl) {
+    // Unknown category: do not guess a rail. Surface it instead of routing to VA.
+    toast.error(
+      `Metode pembayaran "${selectedMethod.name}" belum didukung (kategori: ${selectedMethod.category}).`,
+      { theme: "colored" },
+    );
+    if (onFailure) onFailure(`Unsupported payment category: ${selectedMethod.category}`);
+    return;
+  }
+
   const signature = createSignatureForward(
     "POST",
     endpointUrl,
@@ -136,9 +159,37 @@ export const processPayment = async (
 
     toast.success("Order created successfully!", { theme: "colored" });
 
+    // CC & e-wallet finish payment on the gateway's own page (card 3DS /
+    // e-wallet auth), which blocks iframe framing. Break out and redirect the
+    // top-level window to the returned pay URL instead of rendering the
+    // QRIS/VA process page.
+    const REDIRECT_CREATE_ENDPOINTS = [
+      "/api/v1/order/create/cc",
+      "/api/v1/order/create/ewallet",
+    ];
+    if (REDIRECT_CREATE_ENDPOINTS.includes(endpointUrl)) {
+      const redirectUrl =
+        response.data.paymentLink ||
+        response.data.paymentActions?.payUrl ||
+        response.data.paymentActions?.mobilePayUrl;
+      if (!redirectUrl) {
+        toast.error("URL pembayaran tidak tersedia. Silakan coba lagi.", {
+          theme: "colored",
+        });
+        if (onFailure) onFailure("Missing payment redirect URL");
+        return;
+      }
+      // Navigate the top window (merchant iframe must allow top navigation) so
+      // the bank/e-wallet auth page loads outside the frame. Final status still
+      // arrives via webhook + the gateway's return redirect.
+      const target = window.top ?? window;
+      target.location.href = redirectUrl;
+      return;
+    }
+
     setPaymentData(response.data);
 
-    const encryptedData = encryptData({
+    const encryptedData = await encryptDataRemote({
       isPaymentProcessing: true,
       selectedPaymentMethod,
       paymentMethods: paymentMethod,
@@ -253,7 +304,7 @@ export const cancelPayment = async (
       (selectedMethod.category === "VIRTUAL ACCOUNT" &&
         response?.data.responseCode === "2003100")
     ) {
-      const encryptedData = encryptData({
+      const encryptedData = await encryptDataRemote({
         clientId: paymentDetails.orderDetails.clientId,
         items: paymentDetails.orderDetails.items,
         payer: paymentDetails.orderDetails.payer,

@@ -3,6 +3,7 @@ import {
   clearStoredAuthMetadata,
   getStoredAuthMetadata,
   hasAnyPermission,
+  hasAuthSession,
 } from "@/utils/rbac";
 import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
@@ -19,9 +20,8 @@ export const useAuthGuard = (requiredPermissions: string[] = []) => {
     hasMounted.current = true;
 
     const authMeta = getStoredAuthMetadata();
-    const token = authMeta.token;
 
-    if (!token) {
+    if (!hasAuthSession()) {
       router.replace("/auth/login");
       return;
     }

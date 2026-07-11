@@ -259,4 +259,7 @@ const PaymentPage = () => {
   );
 };
 
+// Per-order CSP frame-ancestors (only the order's merchant may iframe this).
+export { getServerSideProps } from "@/utils/frameAncestors";
+
 export default PaymentPage;

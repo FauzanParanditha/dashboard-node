@@ -11,7 +11,12 @@ import clsx from "clsx";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { HiOutlinePencil, HiOutlinePlus, HiOutlineTrash } from "react-icons/hi";
+import {
+  HiOutlineLockOpen,
+  HiOutlinePencil,
+  HiOutlinePlus,
+  HiOutlineTrash,
+} from "react-icons/hi";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import useSWR from "swr";
@@ -46,6 +51,34 @@ const AdminPage = () => {
       }
     }
   }, [admins]);
+
+  // Unlock an admin account that hit the failed-login lockout
+  const unlockAdmin = (data: any) => {
+    const id = data._id;
+    Swal.fire({
+      title: "Buka kunci akun ini?",
+      text: `Reset counter percobaan login gagal untuk ${data.email} sehingga bisa login lagi.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#991B1B",
+      cancelButtonColor: "#1E293B",
+      confirmButtonText: "Unlock",
+      cancelButtonText: "Batal",
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+      setIsLoading(true);
+      api()
+        .post("api/v1/adm/admin/" + id + "/unlock-login")
+        .then((res) => {
+          if (res.data.success) {
+            revalidate({}, true);
+            toast.success("Akun berhasil di-unlock", { theme: "colored" });
+          }
+        })
+        .catch(handleAxiosError)
+        .finally(() => setIsLoading(false));
+    });
+  };
 
   //delete admin
   const DeleteAdmin = (data: any) => {
@@ -170,18 +203,42 @@ const AdminPage = () => {
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-white">
-                            <span
-                              className={clsx(
-                                adm.verified === true
-                                  ? "bg-teal-400"
-                                  : "bg-rose-400",
-                                "inline-flex rounded px-4 py-1 text-xs text-white",
+                            <div className="flex flex-wrap items-center gap-1">
+                              <span
+                                className={clsx(
+                                  adm.verified === true
+                                    ? "bg-teal-400"
+                                    : "bg-rose-400",
+                                  "inline-flex rounded px-4 py-1 text-xs text-white",
+                                )}
+                              >
+                                {adm.verified ? "VERIFIED" : "NOT VERIFIED"}
+                              </span>
+                              {adm.loginLocked && (
+                                <span
+                                  className="inline-flex rounded bg-red-700 px-3 py-1 text-xs font-semibold text-white"
+                                  title={
+                                    adm.loginLockPermanent
+                                      ? "Terkunci permanen — perlu unlock manual"
+                                      : "Terkunci sementara akibat gagal login berulang"
+                                  }
+                                >
+                                  {adm.loginLockPermanent ? "LOCKED (PERMANENT)" : "LOCKED"}
+                                </span>
                               )}
-                            >
-                              {adm.verified ? "VERIFIED" : "NOT VERIFIED"}
-                            </span>
+                            </div>
                           </td>
                           <td className="flex items-center justify-center gap-4 py-4 pl-3 pr-4 text-sm font-medium sm:pr-0">
+                            {canUpdateAdmin && adm.loginLocked && (
+                              <HiOutlineLockOpen
+                                className="h-5 w-5 cursor-pointer text-amber-500"
+                                title="Unlock akun"
+                                onClick={(e: any) => {
+                                  e.stopPropagation();
+                                  unlockAdmin(adm);
+                                }}
+                              />
+                            )}
                             {canUpdateAdmin && (
                               <Link href={`/dashboard/admin/${adm._id}`}>
                                 <HiOutlinePencil className="h-5 w-5 text-blue-400" />

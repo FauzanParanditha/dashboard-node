@@ -1,4 +1,3 @@
-import { jwtConfig } from "@/utils/var";
 import { clearStoredAuthMetadata } from "@/utils/rbac";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -8,24 +7,10 @@ const api = () => {
     baseURL:
       process.env.NEXT_PUBLIC_CLIENT_API_URL || process.env.SERVER_API_URL,
     timeout: 30000,
+    // Send the HttpOnly auth cookie with every request. The token is no longer
+    // read from localStorage or attached as a Bearer header by the client.
+    withCredentials: true,
   });
-
-  // REQUEST INTERCEPTOR
-  Axios.interceptors.request.use(
-    (config) => {
-      if (typeof window !== "undefined") {
-        const token =
-          localStorage.getItem(jwtConfig.admin.accessTokenName) ||
-          localStorage.getItem(jwtConfig.user.accessTokenName);
-
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-      }
-      return config;
-    },
-    (error) => Promise.reject(error),
-  );
 
   // RESPONSE INTERCEPTOR
   Axios.interceptors.response.use(

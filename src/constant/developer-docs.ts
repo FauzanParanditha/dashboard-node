@@ -5,7 +5,7 @@ export const developerGuides: DeveloperGuide[] = [
     slug: "pandi-payment-gateway",
     title: "PANDI Payment Gateway",
     subtitle: "Panduan integrasi pembayaran invoice untuk client integrator.",
-    updatedAt: "2025-09-02",
+    updatedAt: "2026-06-26",
     audience: "Client integrator",
     summary:
       "Dokumentasi ini mengubah panduan PDF menjadi langkah integrasi yang lebih cepat discan: dari create payment link, iframe checkout, event hasil transaksi, sampai webhook final.",
@@ -372,6 +372,107 @@ export function createPandiSignature(
   },
   "link": "https://paylabs.link/abc123"
 }`,
+          },
+        ],
+      },
+      {
+        id: "iframe-events",
+        title: "Event lifecycle iframe (expiry & resize)",
+        actionHint:
+          "Dengarkan event bertipe `type` dari iframe untuk menyinkronkan timer kedaluwarsa dan tinggi iframe — kanal ini terpisah dari message code status transaksi.",
+        paragraphs: [
+          "Selain message code status (01/05/00), iframe juga mengirim event lifecycle ber-field `type` yang TIDAK memiliki field `message`. Gunakan kanal ini untuk kebutuhan teknis tampilan, bukan untuk menentukan status transaksi.",
+          "`pandi-payment:expiry` dikirim satu kali saat halaman proses pembayaran selesai dimuat di dalam iframe. Isinya waktu kedaluwarsa absolut (ISO-8601 UTC) yang merupakan sumber kebenaran timer PANDI. Pakai nilai ini untuk countdown di aplikasi Anda agar persis sama dengan yang tampil di iframe — jangan menghitung sendiri dari durasi `expire` pada saat request.",
+          "`pandi-payment:resize` dikirim setiap tinggi konten iframe berubah, berisi `height` (px) untuk menyesuaikan tinggi elemen iframe Anda tanpa scrollbar ganda.",
+        ],
+        table: {
+          columns: ["type", "Kapan dikirim", "Field penting"],
+          rows: [
+            [
+              "pandi-payment:expiry",
+              "Sekali, saat halaman proses dimuat di dalam iframe",
+              "paymentExpired (ISO-8601 UTC), secondsLeft, paymentId, orderId",
+            ],
+            ["pandi-payment:resize", "Setiap tinggi konten iframe berubah", "height (number, px)"],
+          ],
+        },
+        callouts: [
+          {
+            title: "Beda kanal dengan message code",
+            tone: "warning",
+            content: [
+              "Event ini memakai field `type`, BUKAN `message`. Handler yang hanya membaca `event.data.message` (01/05/00) tidak akan menangkapnya — tambahkan pengecekan `event.data.type` secara terpisah.",
+              "`pandi-payment:expiry` bersifat informasional (sinkronisasi timer), bukan status final. Status final transaksi tetap harus berasal dari webhook.",
+            ],
+          },
+          {
+            title: "Selalu verifikasi origin",
+            tone: "info",
+            content: [
+              "iframe mengirim pesan dengan targetOrigin `*`. Di sisi penerima, validasi `event.origin` terhadap origin checkout PANDI sebelum memproses pesan apa pun.",
+            ],
+          },
+        ],
+        codeExamples: [
+          {
+            label: "Payload pandi-payment:expiry",
+            language: "json",
+            code: `{
+  "type": "pandi-payment:expiry",
+  "paymentId": "PLB-PAY-123",
+  "orderId": "PLB-ORD-001",
+  "paymentExpired": "2026-06-26T05:00:00.000Z",
+  "secondsLeft": 900
+}`,
+          },
+          {
+            label: "Payload pandi-payment:resize",
+            language: "json",
+            code: `{
+  "type": "pandi-payment:resize",
+  "height": 812
+}`,
+          },
+          {
+            label: "Contoh listener (sinkronkan timer & tinggi iframe)",
+            language: "tsx",
+            description:
+              "Pasang sekali saat komponen mount. Sesuaikan PANDI_CHECKOUT_ORIGIN dengan environment (dev/prod).",
+            code: `const PANDI_CHECKOUT_ORIGIN = "https://pg.pandi.id";
+
+useEffect(() => {
+  const handler = (event: MessageEvent) => {
+    // 1) Verifikasi origin
+    if (event.origin !== PANDI_CHECKOUT_ORIGIN) return;
+
+    const data = event.data;
+    if (!data || typeof data !== "object") return;
+
+    // 2) Kanal lifecycle (ber-field \`type\`)
+    switch (data.type) {
+      case "pandi-payment:expiry": {
+        // Sumber kebenaran kedaluwarsa — pakai untuk countdown Anda
+        const expiresAt = new Date(data.paymentExpired).getTime();
+        startCountdown(expiresAt); // implementasi Anda
+        return;
+      }
+      case "pandi-payment:resize": {
+        if (iframeRef.current) {
+          iframeRef.current.style.height = data.height + "px";
+        }
+        return;
+      }
+    }
+
+    // 3) Kanal status transaksi (ber-field \`message\`: 01/05/00)
+    if (data.message) {
+      handleStatusCode(data.message, data); // implementasi Anda
+    }
+  };
+
+  window.addEventListener("message", handler);
+  return () => window.removeEventListener("message", handler);
+}, []);`,
           },
         ],
       },
