@@ -131,7 +131,11 @@ const PaymentPage = () => {
         onSuccess,
         onFailure,
       );
-    } catch {
+    } catch (err) {
+      // Surface the real cause; the generic toast alone hid config/signing
+      // errors (e.g. missing NEXT_PUBLIC_SECRET_KEY) that throw before any
+      // request is sent, leaving the network tab empty.
+      console.error("processPayment failed:", err);
       toast.error("Failed to process payment, please try again.");
     }
   };

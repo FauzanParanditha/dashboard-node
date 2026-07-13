@@ -129,6 +129,24 @@ export const processPayment = async (
     return;
   }
 
+  // Fail fast with a clear message if the build is missing its signing config.
+  // These are NEXT_PUBLIC_* vars baked at build time; when absent every create
+  // call would otherwise throw before reaching the backend, surfacing only a
+  // generic "Failed to process payment" toast with no request in the network tab.
+  if (!process.env.NEXT_PUBLIC_SECRET_KEY || !process.env.NEXT_PUBLIC_CLIENT_API_URL) {
+    console.error(
+      "Payment config missing:",
+      "NEXT_PUBLIC_SECRET_KEY set?", Boolean(process.env.NEXT_PUBLIC_SECRET_KEY),
+      "NEXT_PUBLIC_CLIENT_API_URL set?", Boolean(process.env.NEXT_PUBLIC_CLIENT_API_URL),
+    );
+    toast.error(
+      "Konfigurasi pembayaran belum lengkap. Hubungi admin.",
+      { theme: "colored" },
+    );
+    if (onFailure) onFailure("Payment configuration missing");
+    return;
+  }
+
   const signature = createSignatureForward(
     "POST",
     endpointUrl,
