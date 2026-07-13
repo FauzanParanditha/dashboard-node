@@ -1,4 +1,26 @@
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import type { NextConfig } from "next";
+
+// Build-time guard: NEXT_PUBLIC_* are inlined into the client bundle at
+// `next build`. If NEXT_PUBLIC_SECRET_KEY is missing, every payment create
+// throws before a request is sent and the UI shows only a generic error with
+// nothing in the network tab. Fail the production build instead of shipping a
+// broken bundle. (Dev server is exempt so local work without the secret still
+// runs.)
+const REQUIRED_PUBLIC_ENV = ["NEXT_PUBLIC_SECRET_KEY", "NEXT_PUBLIC_CLIENT_API_URL"];
+
+function assertBuildEnv() {
+  const missing = REQUIRED_PUBLIC_ENV.filter(
+    (name) => !process.env[name] || process.env[name]!.trim() === "",
+  );
+  if (missing.length > 0) {
+    throw new Error(
+      `[build] Missing required NEXT_PUBLIC_* env at build time: ${missing.join(", ")}. ` +
+        `These are baked into the client bundle by \`next build\`; building without them ` +
+        `ships a bundle where payment signing fails silently. Set them (CI build args / .env) and rebuild.`,
+    );
+  }
+}
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -73,4 +95,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default (phase: string) => {
+  if (phase === PHASE_PRODUCTION_BUILD) {
+    assertBuildEnv();
+  }
+  return nextConfig;
+};
