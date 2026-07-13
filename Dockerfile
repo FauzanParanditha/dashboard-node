@@ -15,6 +15,20 @@ WORKDIR /app
 # Copy only the necessary files
 COPY package.json yarn.lock ./
 # RUN yarn install --frozen-lockfile
+
+# NEXT_PUBLIC_* are inlined into the client bundle at `next build`, so they must
+# be present at build time. Passing them as build args (promoted to ENV) makes
+# their values part of the build layer's cache key: changing a value — e.g. a
+# newly-set CI variable — busts the cache and rebakes the bundle. Baking via a
+# COPYed .env file cache-hit with stale (empty) contents and shipped a bundle
+# with an empty NEXT_PUBLIC_SECRET_KEY. ENV set here also wins over .env in Next.
+ARG NEXT_PUBLIC_SECRET_KEY
+ARG NEXT_PUBLIC_CLIENT_API_URL
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_SECRET_KEY=$NEXT_PUBLIC_SECRET_KEY \
+    NEXT_PUBLIC_CLIENT_API_URL=$NEXT_PUBLIC_CLIENT_API_URL \
+    NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+
 COPY .env.example .env
 # Copy all files
 COPY . .
