@@ -212,6 +212,11 @@ export const processPayment = async (
       selectedPaymentMethod,
       paymentMethods: paymentMethod,
       orderDetails: orderDetails,
+      // Top-level so the process page's frame-ancestors gSSP reads it; also
+      // propagated onward when the process page re-encrypts this payload into
+      // the /payment/success?q= link. Without it the process/success pages fall
+      // back to frame-ancestors 'self' and the merchant iframe is blocked.
+      ...(orderDetails?.frameOrigins?.length ? { frameOrigins: orderDetails.frameOrigins } : {}),
       paymentData: {
         virtualAccountNo: response.data.virtualAccountNo,
         customerNo: response.data.customerNo,
@@ -330,6 +335,11 @@ export const cancelPayment = async (
         phoneNumber: paymentDetails.orderDetails.phoneNumber,
         totalAmount: paymentDetails.orderDetails.totalAmount,
         expired: Math.floor((Date.now() + 30 * 60 * 1000) / 1000),
+        // Keep the merchant's iframe origins on the rebuilt Confirm link so
+        // frame-ancestors doesn't fall back to 'self' after a cancel.
+        ...(paymentDetails.orderDetails?.frameOrigins?.length
+          ? { frameOrigins: paymentDetails.orderDetails.frameOrigins }
+          : {}),
       });
 
       const newLink = `${window.location.origin}/payment?q=${encodeURIComponent(encryptedData)}`;

@@ -203,6 +203,11 @@ export interface OrderDetails {
   paymentMethod: PaymentMethod;
   clientId: string;
   expired: number;
+  // Merchant iframe origins, carried from the BE-built /payment?q= payload.
+  // Must be propagated into every re-encrypted q (process, success, cancel) so
+  // the per-order CSP frame-ancestors keeps allowing the merchant to embed the
+  // page — otherwise it falls back to 'self' and the iframe is blocked.
+  frameOrigins?: string[];
 }
 export interface PaymentData {
   success: boolean;
